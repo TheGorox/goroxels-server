@@ -1,0 +1,30 @@
+{
+  "name": "goroxels-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheGorox/goroxels-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheGorox/goroxels-server/issues"
+  },
+  "homepage": "https://github.com/TheGorox/goroxels-server#readme",
+  "dependencies": {
+    "pako": "^1.0.10",
+    "ws": "^7.2.1"
+  },
+  "devDependencies": {
+    "pngjs": "^3.4.0",
+    "request": "^2.88.0",
+    "zlib": "^1.0.5"
+  }
+}
