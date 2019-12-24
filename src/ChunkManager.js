@@ -4,7 +4,8 @@ const path = require('path');
 const Chunk = require('./Chunk');
 const {
     boardWidth,
-    boardHeight
+    boardHeight,
+    chunkSize
 } = require('./config');
 
 
@@ -69,6 +70,11 @@ class ChunkManager{
             
             return newChunk.compress();
         }
+    }
+
+    setChunkPixel(x, y, c){
+        let key = this.getChunkKey(x / chunkSize | 0, y / chunkSize | 0);
+        this.chunks[key].set(x % chunkSize, y % chunkSize, c)
     }
 }
 

@@ -14,4 +14,7 @@ const config = {
     ]
 }
 
+config.realBoardWid = config.boardWidth * this.chunkSize;
+config.realBoardHei = config.boardHeight * this.chunkSize;
+
 module.exports = config
