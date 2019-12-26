@@ -3,8 +3,9 @@ const {
 } = require('./utils')
 
 const OPCODES = {
-    chunk: 0x0, // also as getChunk on client
-    place: 0x1
+    chunk: 0x0,
+    place: 0x1,
+    online: 0x2
 }
 
 const STRING_OPCODES = {
@@ -27,6 +28,13 @@ const createPacket = {
         buf.writeUInt8(OPCODES.place, 0);
         buf.writeUInt32BE(packPixel(x, y, col), 1);
         buf.writeUInt32BE(uid, 5);
+
+        return buf
+    },
+    online: (count) => {
+        const buf = Buffer.allocUnsafe(1 + 2);
+        buf.writeUInt8(OPCODES.online, 0);
+        buf.writeUInt16BE(count, 1);
 
         return buf
     }

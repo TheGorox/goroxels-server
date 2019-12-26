@@ -26,14 +26,6 @@ class Server {
     }
 
     run(config = {}) {
-        // const server = new http.Server((req, res) => {
-        //     if (req.url === '/api') {
-        //         res.end('Your ip: 127.0.0.1; Banned: true')
-        //     } else {
-        //         res.end('404 Not Found')
-        //     }
-        // });
-
         const wss = new WebSocketServer({
             port: config.port || 1488,
         });
@@ -44,15 +36,13 @@ class Server {
 
             socket.onclose = () => {
                 this.clients.delete(socket);
+                this.broadcastOnline();
             }
 
             socket.onmessage = (event) => this.onmessage(socket, event);
-        })
 
-        // server.on('clientError', res => {
-        //     res.end('HTTP/1.1 400 Bad Request/r/n/r/n')
-        // })
-        //server.listen(config.port || 1488);
+            this.broadcastOnline();
+        })
 
         console.log('Listening!');
     }
@@ -81,8 +71,8 @@ class Server {
                 case OPCODES.place: {
                     const [x, y, c] = unpackPixel(message.readUInt32BE(1));
 
-                    if (x < 0 || x > realBoardWid ||
-                        y < 0 || y > realBoardHei ||
+                    if (x < 0 || x >= realBoardWid ||
+                        y < 0 || y >= realBoardHei ||
                         c < 0 || c >= palette.length) return;
 
                     this.chunkManager.setChunkPixel(x, y, c);
@@ -90,6 +80,16 @@ class Server {
                 }
             }
         }
+    }
+
+    broadcastOnline(){
+        let online = this.clients.size;
+
+        let buf = Buffer.allocUnsafe(1 + 3);
+        buf.writeUInt8(OPCODES.online, 0);
+        buf.writeUInt16BE(online, 1);
+
+        this.broadcast(buf);
     }
 
     broadcast(message) {

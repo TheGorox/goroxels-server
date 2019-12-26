@@ -1,7 +1,7 @@
 const config = {
     chunkSize: 512,
-    boardWidth: 8, // in chunks
-    boardHeight: 8,
+    boardWidth: 1, // in chunks
+    boardHeight: 3,
     palette: [
         [240, 240, 220],
         [250, 200, 0],
