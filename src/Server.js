@@ -54,7 +54,7 @@ class Server {
 
         let message = ev.data;
         if (typeof message === 'string') {
-
+            console.log(message)
         } else {
             switch (message.readUInt8(0)) {
                 // TODO: check is coords in bounds
