@@ -2,3 +2,5 @@ node_modules
 backups
 tests
 chunkdata
+.env
+public/img/*
