@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "devStart": ".\\utils\\copyConfig.bat && .\\utils\\copyPublic.bat && node src/index.js",
+    "start": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -19,8 +20,12 @@
   },
   "homepage": "https://github.com/TheGorox/goroxels-server#readme",
   "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "log4js": "^6.2.1",
     "pako": "^1.0.10",
-    "ws": "^7.2.1"
+    "pg": "^8.2.1",
+    "ws": "^7.3.0"
   },
   "devDependencies": {
     "pngjs": "^3.4.0",
