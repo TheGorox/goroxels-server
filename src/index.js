@@ -13,7 +13,7 @@ const {
 } = process.env;
 
 const db = require('./db');
-db.init(DB_HOST, DB_PORT, DB_USER, DB_PASS);
+// db.init(DB_HOST, DB_PORT, DB_USER, DB_PASS);
 
 const canvases = [];
 config.canvases.forEach((canvas, i) => {
