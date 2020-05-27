@@ -1,13 +1,11 @@
 const pako = require('pako');
 
-const {
-    chunkSize
-} = require('./config');
-
 class Chunk{
-    constructor(x, y, data){
+    constructor(x, y, size, data){
         this.x = x;
         this.y = y;
+
+        this.size = size;
 
         this.data = data;
         this._needUpdate = true;
@@ -15,11 +13,11 @@ class Chunk{
     }
 
     get(x, y){
-        return this.data[x + y * chunkSize]
+        return this.data[x + y * this.size]
     }
 
     set(x, y, c){
-        this.data[x + y * chunkSize] = c;
+        this.data[x + y * this.size] = c;
         this._needUpdate = true;
     }
 
@@ -38,8 +36,8 @@ Chunk.fromBuffer = buffer => {
     return new Uint8Array(buffer);
 }
 
-Chunk.createEmpty = () => {
-    return new Uint8Array(chunkSize * chunkSize).fill(0)
+Chunk.createEmpty = (size) => {
+    return new Uint8Array(size * size).fill(0)
 }
 
 module.exports = Chunk
