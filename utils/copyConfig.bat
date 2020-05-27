@@ -1,0 +1,1 @@
+copy ..\sharedConfig.json shared\config.json

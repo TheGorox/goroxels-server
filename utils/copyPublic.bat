@@ -1,0 +1,1 @@
+xcopy ..\goroxels\dist .\public /Y/E
