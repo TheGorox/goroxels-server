@@ -1,35 +1,41 @@
+const logger = require('log4js').getLogger('CHUNK_MANAGER');
+logger.level = 'debug';
+
 const fs = require('fs');
 const path = require('path');
 
 const Chunk = require('./Chunk');
-const {
-    boardWidth,
-    boardHeight,
-    chunkSize
-} = require('./config');
 
 
 const chunkdataPath = path.resolve(__dirname, '../chunkdata');
 
 class ChunkManager{
-    constructor(){
-        this.chunks = new Object();
-        // Map would be faster in often insert/deletion case, but not in get
+    constructor(canvas){
+        this.needToSave = false;
 
-        setInterval(this.saveAll.bind(this), 60000*5);
+        this.canvas = canvas;
+
+        this.boardWidth = this.canvas.width;
+        this.boardHeight = this.canvas.height;
+
+        this.chunkSize = this.canvas.chunkSize;
+
+        this.dataPath = path.resolve(chunkdataPath, this.canvas.id.toString());
+
+        this.chunks = new Object();
+        // Map would be faster in often insert/deletion case, but not in gets
+
+        setInterval(this.saveAll.bind(this), 60000);
     }
 
     loadAll(){
-        for(let cx = 0; cx < boardWidth; cx++){
-            for(let cy = 0; cy < boardHeight; cy++){
+        for(let cx = 0; cx < this.boardWidth; cx++){
+            for(let cy = 0; cy < this.boardHeight; cy++){
                 const key = this.getChunkKey(cx, cy);
                 this.chunks[key] = 
                     this.loadChunk(cx, cy);
             }
         }
-
-        this.saveAll();
-        // TODO: remove this..?
     }
 
     getChunkKey(x, y){
@@ -38,24 +44,42 @@ class ChunkManager{
 
     loadChunk(x, y){
         const key = `${x},${y}.dat`;
-        const chunkPath = path.resolve(chunkdataPath, key);
+        const chunkPath = path.resolve(this.dataPath, key);
 
         let chunkData;
         if(fs.existsSync(chunkPath)){
             chunkData = Chunk.fromBuffer(fs.readFileSync(chunkPath).buffer);
+            if(chunkData.length != this.chunkSize * this.chunkSize){
+                logger.warn(`Wrong chunk size. Removing this (${x}, ${y}) chunk`);
+
+                // TODO move to async
+                fs.unlinkSync(chunkPath);
+
+                return this.loadChunk(x, y);
+            }
         }else{
-            chunkData = Chunk.createEmpty();
+            chunkData = Chunk.createEmpty(this.canvas.chunkSize);
+            this.needToSave = true;
         }
 
-        return new Chunk(x, y, chunkData)
+        return new Chunk(x, y, this.canvas.chunkSize, chunkData)
     }
 
     saveAll(){
+        if(!this.needToSave) return;
+        this.needToSave = false;
+
+        logger.debug('Saving all chunks...');
+
+        if(!fs.existsSync(path.resolve(this.dataPath))){
+            logger.info('Chunk folder doesn\'t exists, creating...');
+            fs.mkdirSync(this.dataPath);
+        }
         for(let key in this.chunks){
             const chunk = this.chunks[key];
 
             const filekey = `${chunk.x},${chunk.y}.dat`;
-            fs.writeFileSync(path.resolve(chunkdataPath, filekey), Buffer.from(chunk.data))
+            fs.writeFileSync(path.resolve(this.dataPath, filekey), Buffer.from(chunk.data))
         }
     }
 
@@ -73,8 +97,10 @@ class ChunkManager{
     }
 
     setChunkPixel(x, y, c){
-        let key = this.getChunkKey(x / chunkSize | 0, y / chunkSize | 0);
-        this.chunks[key].set(x % chunkSize, y % chunkSize, c)
+        this.needToSave = true;
+
+        let key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
+        this.chunks[key].set(x % this.chunkSize, y % this.chunkSize, c)
     }
 }
 
