@@ -7891,7 +7891,7 @@ module.exports = function (id, list, options) {
 /*! exports provided: canvases, default */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"canvases\":[{\"name\":\"main\",\"cooldown\":{\"guest\":[100,16],\"user\":[50,32]},\"chunkSize\":512,\"boardWidth\":2,\"boardHeight\":2,\"palette\":[[31,36,10],[57,87,28],[165,140,39],[239,172,40],[239,216,161],[171,92,28],[24,63,57],[239,105,47],[239,183,117],[165,98,67],[119,52,33],[114,65,19],[42,29,13],[57,42,28],[104,76,60],[146,126,106],[39,100,104],[239,58,12],[69,35,13],[60,159,156],[155,26,10],[54,23,12],[85,15,10],[48,15,10]]},{\"name\":\"test\",\"cooldown\":{\"guest\":[100,16],\"user\":[50,32]},\"chunkSize\":256,\"boardWidth\":16,\"boardHeight\":16,\"palette\":[[255,255,255],[127,127,127],[0,0,0]]}]}");
+module.exports = JSON.parse("{\"canvases\":[{\"name\":\"main\",\"cooldown\":{\"guest\":[100,16],\"user\":[50,32]},\"chunkSize\":512,\"boardWidth\":2,\"boardHeight\":2,\"palette\":[[31,36,10],[57,87,28],[165,140,39],[239,172,40],[239,216,161],[171,92,28],[24,63,57],[239,105,47],[239,183,117],[165,98,67],[119,52,33],[114,65,19],[42,29,13],[57,42,28],[104,76,60],[146,126,106],[39,100,104],[239,58,12],[69,35,13],[60,159,156],[155,26,10],[54,23,12],[85,15,10],[48,15,10]]},{\"name\":\"test\",\"cooldown\":{\"guest\":[100,16],\"user\":[50,32]},\"chunkSize\":512,\"boardWidth\":8,\"boardHeight\":8,\"palette\":[[255,255,255],[127,127,127],[0,0,0]]}]}");
 
 /***/ }),
 
@@ -9821,7 +9821,7 @@ function (_Tool3) {
     value: function tick() {
       if (!this.active) return; // TODO
 
-      for (var i = 0; i < 10 && this.stack.length; i++) {
+      for (var i = 0; i < 100 && this.stack.length; i++) {
         var _this$stack$pop = this.stack.pop(),
             _this$stack$pop2 = _slicedToArray(_this$stack$pop, 2),
             x = _this$stack$pop2[0],
