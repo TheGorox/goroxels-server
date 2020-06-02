@@ -3,3 +3,4 @@ backups
 tests
 chunkdata
 .env
+backup/
