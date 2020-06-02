@@ -41,9 +41,9 @@
             "guest": [100, 16],
             "user": [50, 32]
         },
-        "chunkSize": 256,
-        "boardWidth": 16,
-        "boardHeight": 16,
+        "chunkSize": 512,
+        "boardWidth": 8,
+        "boardHeight": 8,
         "palette": [
             [255, 255, 255],
             [127, 127, 127],
