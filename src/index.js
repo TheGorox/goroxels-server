@@ -1,9 +1,13 @@
-require('dotenv').config();
+try { // optional
+    require('dotenv').config();
+} catch {}
 
 const Server = require('./Server');
 const Canvas = require('./Canvas');
 
 const config = require('./config');
+
+const logger = require('./logger')('MAIN', 'info');
 
 const {
     DB_HOST,
@@ -23,4 +27,9 @@ config.canvases.forEach((canvas, i) => {
     ))
 })
 
-Server.startServer(config.port, canvases)
+db.sync().then(() => {
+    Server.startServer(config.port, canvases)
+}).catch(err => {
+    logger.fatal('Can\'t sync database: ' + err);
+    process.exit()
+})

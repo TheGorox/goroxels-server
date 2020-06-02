@@ -1,33 +1,21 @@
-const logger = require('log4js').getLogger('DB');
-logger.level = 'info';
+const Sequelize = require('sequelize').Sequelize;
 
-const {
-    Pool
-} = require('pg');
+const logger = require('../logger')('DB', 'info');
 
-let pool;
-
-module.exports = {
-    init: (host, port, user, pass) => {
-        if (pool) return logger.warn('Init should be run once!');
-
-        pool = new Pool({
-            host,
-            port,
-            user,
-            password: pass,
-            database: 'goroxels'
-        });
-        pool.connect()
-            .then(() => logger.info('Database has been connected'))
-            .catch((err) => {
-                logger.fatal('Error connecting database: ' + err);
-            });
+const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, process.env.DB_PASS, {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: 'postgres',
+    dialectOptions: {
+        charset: 'UNICODE'
     },
+    pool: {
+        max: 15,
+        min: 2,
+        acquire: 10000,
+        idle: 10000
+    },
+    logging: (info) => process.env.DB_LOG ? logger.info(info) : false
+});
 
-    query: (query, params, callback) => {
-        if (!pool) throw new Error('Pool was not initialized!');
-
-        pool.query(query, params, callback);
-    }
-}
+module.exports = sequelize

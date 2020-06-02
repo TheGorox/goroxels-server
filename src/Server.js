@@ -1,17 +1,25 @@
-const logger = require('log4js').getLogger('SERVER');
-logger.level = 'info';
+const logger = require('./logger')('SERVER');
 
 const express = require('express');
 const https = require('http');
 
+const verifyUser = require('./verifySocket');
+const {
+    api
+} = require('./routes/')
+
 const Socket = require('./WebsocketServer');
 
-function startServer(port, canvases){
+function startServer(port, canvases) {
     const app = express();
+    app.disable('x-powered-by');
+
     const server = https.createServer(app);
 
+    app.use('/api', api);
+
     // TODO handle world names?
-    app.use(/\/[\d\w]{0,32}/, express.static(__dirname + '/../public'));
+    // app.use([/\/[\d\w]{0,32}/, '/'], express.static(__dirname + '/../public'));
     // kostyl↓
     app.use('/', express.static(__dirname + '/../public'));
 
@@ -20,6 +28,16 @@ function startServer(port, canvases){
     logger.info('Listening http + websocket on port ' + port);
     server.listen(port);
     webSocketServer.run(server);
+
+    const wss = webSocketServer.wss;
+
+    server.on('upgrade', async (request, socket, head) => {
+        const user = verifyUser(request);
+
+        wss.handleUpgrade(request, socket, head, function done(ws) {
+            wss.emit('connection', ws, request, user);
+        });
+    })
 }
 
 // const compression = require('compression');

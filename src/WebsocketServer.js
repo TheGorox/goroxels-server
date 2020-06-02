@@ -1,5 +1,4 @@
-const logger = require('log4js').getLogger('WEBSOCKET');
-logger.level = 'info';
+const logger = require('./logger')('WEBSOCKET');
 
 const {
     Server: WebSocketServer,
@@ -32,13 +31,14 @@ class Server {
         this.canvases = canvases;
 
         this.clients = new Map();
+        this.wss = null;
     }
 
-    run(server) {
+    run() {
         const wss = new WebSocketServer({
-            server,
+            noServer: true,
         });
-        wss.on('connection', (socket, request) => {
+        wss.on('connection', (socket, request, user) => {
             const ip = request.socket.remoteAddress;
 
             if(ipConns[ip] >= MAX_CLIENTS_PER_IP){
@@ -58,7 +58,10 @@ class Server {
                 ipConns[ip] = 1;
 
             socket.onclose = () => {
-                ipConns[ip]--;
+                // won't let users use reconnection to reset cd
+                setTimeout(() => {
+                    ipConns[ip]--;
+                }, 1600);
 
                 this.clients.delete(socket);
                 this.broadcastOnline();
@@ -69,7 +72,9 @@ class Server {
             socket.onmessage = (event) => this.onmessage(client, event);
 
             this.broadcastOnline();
-        })
+        });
+
+        this.wss = wss;
     }
 
     onmessage(client, ev) {

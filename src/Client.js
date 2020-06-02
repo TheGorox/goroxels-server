@@ -20,6 +20,8 @@ class Client{
         this.state = 0;
 
         this.id = ++lastId;
+
+        this.user = null;    
     }
 
     send(message){
