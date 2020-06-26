@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -7,6 +8,7 @@
     <title>Goroxels</title>
     <meta name="keywords" content="porn, traps, pixel, art, gay">
 <link rel="shortcut icon" href="./favicon.ico"></head>
+
 <body>
     <div id="viewport">
         <canvas id="board"></canvas>
@@ -14,11 +16,60 @@
     </div>
     <div id="ui">
         <div id="info" class="bubble"></div>
-        <div id="online" class="bubble"><span id="onlineCounter"></span><img src="./img/user.png" alt="Users online"></div>
+        <div id="online" class="bubble"><span id="onlineCounter"></span><img src="./img/user.png" alt="Users online">
+        </div>
         <div id="coords" class="bubble"></div>
+        <div id="topMenu">
+            <div class="content">
+                <div class="column" id="templateColumn">
+                    <div class="columnHeader">
+                        <div class="translate">template</div>
+                    </div>
+                    <div class="columnContent">
+                        <table class="columnTable">
+                            <tr class="tableRow">
+                                <td class="rowDesc">
+                                    <div class="translate">template_url</div>
+                                </td>
+                                <td class="rowProp"><input type="text" id="templateURL"></td>
+                            </tr>
+                            <tr class="tableRow">
+                                <td class="rowDesc">X</td>
+                                <td class="rowProp"><input type="text" id="templateX"></td>
+                            </tr>
+                            <tr class="tableRow">
+                                <td class="rowDesc">Y</td>
+                                <td class="rowProp"><input type="text" id="templateY"></td>
+                            </tr>
+                            <tr class="tableRow">
+                                <td class="rowDesc">
+                                    <div class="translate">template_opacity</div>
+                                </td>
+                                <td class="rowProp"><input type="text" id="templateOpacity"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="column" id="functionsColumn">
+                    <tr class="tableRow">
+                        <td class="rowDesc">
+                            <div class="translate">account_settings</div>
+                        </td>
+                        <td class="rowProp">
+                            <button id="accountSettings">
+                                <div class="translate">open_window</div>
+                            </button>
+                        </td>
+                    </tr>
+                </div>
+                <div class="column" id="onlineColumn"></div>
+                <div class="bottomResizer" id="contentResizer"></div>
+            </div>
+        </div>
         <div id="settings" class="bubble"></div>
         <div id="tools" class="bubble"></div>
         <div id="palette"></div>
     </div>
 <script type="text/javascript" src="./bundle.js"></script></body>
+
 </html>

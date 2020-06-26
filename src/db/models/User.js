@@ -21,13 +21,18 @@ const User = sequelize.define('user', {
         defaultValue: 'user'
     },
 
-    authorizationType: { // for stats
-        type: Sequelize.ENUM('vkontakte', 'facebook', 'discord'),
+    email: {
+        type: Sequelize.STRING,
         allowNull: true
     },
 
-    email: {
-        type: Sequelize.STRING,
+    discordId: {
+        type: Sequelize.CHAR(18),
+        allowNull: true
+    },
+
+    vkId: {
+        type: Sequelize.INTEGER,
         allowNull: true
     }
 }, {

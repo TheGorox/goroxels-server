@@ -7,6 +7,7 @@ const {
 const WebSocket = require('ws');
 
 const Client = require('./Client');
+const Bucket = require('./Bucket');
 const {
     OPCODES,
     STRING_OPCODES,
@@ -49,6 +50,7 @@ class Server {
             }
 
             const client = new Client(socket, ip);
+            client.user = user;
 
             this.clients.set(socket, client);
 
@@ -66,8 +68,6 @@ class Server {
                 this.clients.delete(socket);
                 this.broadcastOnline();
             }
-
-            
 
             socket.onmessage = (event) => this.onmessage(client, event);
 
@@ -116,6 +116,8 @@ class Server {
                         return client.sendError('captcha');
                     }
 
+                    if(!client.bucket.spend(1)) return;
+
                     const canvas = client.canvas;
 
                     const [x, y, c] = unpackPixel(message.readUInt32BE(1));
@@ -144,6 +146,19 @@ class Server {
                     }
 
                     client.canvas = this.canvases[canvas];
+
+                    let cooldown;
+                    if(client.user){
+                        if(client.user.role === 'admin'){
+                            cooldown = [0, 32];
+                        }else{
+                            cooldown = client.canvas.cooldown.user
+                        }
+                    }else{
+                        cooldown = client.canvas.cooldown.guest
+                    }
+
+                    client.bucket = new Bucket(...cooldown);
 
                     break
                 }

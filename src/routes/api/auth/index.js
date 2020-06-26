@@ -6,7 +6,7 @@ module.exports = (passport) => {
     router.get('/facebook', passport.authenticate('facebook', {
         scope: ['email']
     }));
-    router.get('/facebook/return', passport.authenticate('facebook', {
+    router.get('/facebookCallback', passport.authenticate('facebook', {
         failureRedirect: '/api/auth/failure',
         failureFlash: true,
         successRedirect: '/',
@@ -15,7 +15,7 @@ module.exports = (passport) => {
     router.get('/discord', passport.authenticate('discord', {
         scope: ['identify', 'email']
     }));
-    router.get('/discord/return', passport.authenticate('discord', {
+    router.get('/discordCallback', passport.authenticate('discord', {
         failureRedirect: '/api/auth/failure',
         failureFlash: true,
         successRedirect: '/',
@@ -24,7 +24,7 @@ module.exports = (passport) => {
     router.get('/vk', passport.authenticate('vkontakte', {
         scope: ['email']
     }));
-    router.get('/vk/return', passport.authenticate('vkontakte', {
+    router.get('/vkCallback', passport.authenticate('vkontakte', {
         failureRedirect: '/api/auth/failure',
         failureFlash: true,
         successRedirect: '/',
@@ -45,5 +45,5 @@ module.exports = (passport) => {
         res.status(200).send(text);
     });
 
-    return router
+    return router;
 }

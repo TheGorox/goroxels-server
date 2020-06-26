@@ -23,6 +23,8 @@ class Bucket{
     }
 
     spend(count){
+        if(this.delay === 0) return true;
+        
         let allow = this.allowance;
 
         if(allow < count) return false;

@@ -1,8 +1,13 @@
+const logger = require('./logger')('PASSPORT', 'debug');
+
 const passport = require('passport');
 const User = require('./db/models/User');
 const {
     auth
 } = require('./config');
+const {
+    randomNameGenerator
+} = require('./utils')
 
 const {
     Strategy: DiscordStrategy
@@ -18,11 +23,39 @@ passport.serializeUser(function (user, done) {
     done(null, user.id);
 });
 
-passport.deserializeUser(function (id, done) {
-    User.findById(id, function (err, user) {
-        done(err, user);
+passport.deserializeUser(async function (id, done) {
+    const user = await User.findOne({
+        where: {
+            id
+        }
     });
+
+    done(null, user || null);
 });
+
+async function login(options){
+    const email = options.email;
+
+    if(!email) throw new Error('No email in login function');
+
+    let user = await User.findOne({ where: { email } });
+    if(!user){
+        let name = options.name;
+
+        while(true){
+            const exists = await User.findOne({ where: { name } });
+            if(exists){
+                name = randomNameGenerator(options.name);
+            }else break
+        }
+        options.name = name;
+
+        logger.debug('Creating account with options ' + JSON.stringify(options));
+        user = await User.create(options);
+    }
+
+    return user
+}
 
 // passport.use(new FacebookStrategy({
 //     ...auth.facebook,
@@ -46,8 +79,7 @@ passport.deserializeUser(function (id, done) {
 passport.use(new DiscordStrategy({
     clientID: auth.discord.id,
     clientSecret: auth.discord.secret,
-    callbackURL: '/api/auth/discordCallback',
-    proxy: true,
+    callbackURL: '/api/auth/discordCallback'
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         logger.info({
@@ -62,11 +94,18 @@ passport.use(new DiscordStrategy({
         } = profile;
         if (!email) {
             done(null, false, {
-                // eslint-disable-next-line max-len
                 message: 'Sorry, you can not use discord login with an discord account that does not have email set.',
             });
         }
-        const user = await oauthLogin(email, name, id);
+
+        // TODO: user already exists check
+        
+        const user = await login({
+            discordId: id.toString(),
+            name,
+            email
+        })
+
         done(null, user);
     } catch (err) {
         done(err);

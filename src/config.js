@@ -18,5 +18,7 @@ config.auth = {
         secret: process.env.AUTH_VK_CLIENT_SECRET
     },
 }
+config.generateUsernamesFromFile = true;
+config.generateUsernamesFilePath = __dirname + '/../tests/sanitizedNames.txt'
 
 module.exports = config

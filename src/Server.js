@@ -32,12 +32,13 @@ function startServer(port, canvases) {
     const wss = webSocketServer.wss;
 
     server.on('upgrade', async (request, socket, head) => {
-        const user = verifyUser(request);
+        const user = await verifyUser(request);
+        logger.debug('Going to upgrade ip ' + socket.remoteAddress + ' with user ' + (user ? user.name : null));
 
         wss.handleUpgrade(request, socket, head, function done(ws) {
             wss.emit('connection', ws, request, user);
         });
-    })
+    });
 }
 
 // const compression = require('compression');

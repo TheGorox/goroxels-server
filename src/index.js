@@ -28,7 +28,7 @@ config.canvases.forEach((canvas, i) => {
 })
 
 db.sync().then(() => {
-    Server.startServer(config.port, canvases)
+    Server.startServer(config.port, canvases);
 }).catch(err => {
     logger.fatal('Can\'t sync database: ' + err);
     process.exit()

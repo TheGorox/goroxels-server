@@ -1,3 +1,7 @@
+const Bucket = require('./Bucket');
+
+const config = require('./config');
+
 let lastId = 0;
 // todo replace it with.. something
 
@@ -14,6 +18,7 @@ const CLIENT_STATES = {
 class Client{
     constructor(socket){
         this.socket = socket;
+        this.bucket = null;
 
         this.canvas = null;
 
@@ -22,6 +27,10 @@ class Client{
         this.id = ++lastId;
 
         this.user = null;    
+    }
+
+    setCanvas(canvas){
+        this.canvas = canvas;
     }
 
     send(message){
