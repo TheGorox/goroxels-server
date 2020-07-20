@@ -1,4 +1,4 @@
-const logger = require('./logger')('WEBSOCKET');
+const logger = require('./logger')('WEBSOCKET', 'debug');
 
 const {
     Server: WebSocketServer,
@@ -6,7 +6,10 @@ const {
 
 const WebSocket = require('ws');
 
-const Client = require('./Client');
+const {
+    CLIENT_STATES: STATES,
+    Client
+} = require('./Client');
 const Bucket = require('./Bucket');
 const {
     OPCODES,
@@ -14,13 +17,11 @@ const {
     createPacket
 } = require('./protocol');
 const {
-    unpackPixel,
-    packPixel
+    unpackPixel
 } = require('./utils');
 const {
     realBoardWid,
     realBoardHei,
-    palette,
     MAX_CLIENTS_PER_IP,
     captchaEnabled
 } = require('./config');
@@ -33,6 +34,8 @@ class Server {
 
         this.clients = new Map();
         this.wss = null;
+
+        this.__state = 0;
     }
 
     run() {
@@ -42,7 +45,7 @@ class Server {
         wss.on('connection', (socket, request, user) => {
             const ip = request.socket.remoteAddress;
 
-            if(ipConns[ip] >= MAX_CLIENTS_PER_IP){
+            if (ipConns[ip] >= MAX_CLIENTS_PER_IP) {
                 let msg = [STRING_OPCODES.error, 'conn_limit'];
                 socket.send(JSON.stringify(msg));
 
@@ -65,11 +68,43 @@ class Server {
                     ipConns[ip]--;
                 }, 1600);
 
+                const packet = {
+                    c: STRING_OPCODES.userLeave,
+                    id: client.id
+                };
+                this.broadcastString(JSON.stringify(packet));
+
                 this.clients.delete(socket);
+                socket = null;
+
                 this.broadcastOnline();
             }
 
             socket.onmessage = (event) => this.onmessage(client, event);
+
+            client.on('statechange', state => {
+                // TODO NOTE when captcha is periodic, will send packets again
+                if (state === STATES.READY) {
+                    const packet = {
+                        c: STRING_OPCODES.userJoin,
+                        nick: client.user ? client.user.name : null,
+                        id: client.id,
+                        registered: !!client.user
+                    };
+
+                    this.broadcastString(JSON.stringify(packet));
+
+                    this.clients.forEach(_client => {
+                        if (_client !== client) {
+                            packet.nick = _client.user ? _client.user.name : null;
+                            packet.id = _client.id;
+                            packet.registered = !!_client.user;
+
+                            client.send(JSON.stringify(packet));
+                        }
+                    })
+                }
+            })
 
             this.broadcastOnline();
         });
@@ -83,12 +118,13 @@ class Server {
         if (ev.type !== 'message') return;
 
         let message = ev.data;
+        // todo: replace with !== statement(should be faster)
         if (typeof message === 'string') {
             logger.debug('Got string message: ' + message)
         } else {
             switch (message.readUInt8(0)) {
                 case OPCODES.chunk: {
-                    if(client.state === 0){
+                    if (client.state === 0) {
                         return client.sendError('Canvas must be chosen, you, dirty botter');
                     }
 
@@ -97,7 +133,7 @@ class Server {
 
                     const canvas = client.canvas;
 
-                    if(cx < 0 || cy < 0 || cx >= canvas.width || cy >= canvas.height){
+                    if (cx < 0 || cy < 0 || cx >= canvas.width || cy >= canvas.height) {
                         return client.sendError('Chunk coordinates out of bounds');
                     }
 
@@ -109,14 +145,16 @@ class Server {
 
                     break
                 }
+
+                // todo IMPORTANT don't send pixels to other canvases
                 case OPCODES.place: {
-                    if(client.state === 0){
+                    if (client.state === STATES.CANVAS_NOT_CHOSEN) {
                         return client.sendError('Canvas must be chosen, you, dirty botter');
-                    }else if(client.state === 1){
-                        return client.sendError('captcha');
+                    } else if (client.state === STATES.CAPTCHA) {
+                        return client.sendError('error.captcha');
                     }
 
-                    if(!client.bucket.spend(1)) return;
+                    if (!client.bucket.spend(1)) return;
 
                     const canvas = client.canvas;
 
@@ -127,7 +165,11 @@ class Server {
                         c < 0 || c >= canvas.palette.length) return;
 
                     canvas.chunkManager.setChunkPixel(x, y, c);
-                    this.broadcastBinary(message);
+
+                    // todo not pack pixel again
+                    const newMessage = createPacket.pixelSend(x, y, c, client.id);
+
+                    this.broadcastBinary(newMessage);
 
                     break
                 }
@@ -135,26 +177,26 @@ class Server {
                     const canvas = message.readUInt8(1);
 
                     // unsigned but i don't care
-                    if(canvas < 0 || canvas >= this.canvases.length){
+                    if (canvas < 0 || canvas >= this.canvases.length) {
                         return client.send('Wrong canvas number');
                     }
 
-                    if(client.state == 0 && captchaEnabled){
-                        client.state = 1
-                    }else{
-                        client.state = 2
+                    if (client.state == STATES.CANVAS_NOT_CHOSEN && captchaEnabled) {
+                        client.state = STATES.CAPTCHA
+                    } else {
+                        client.state = STATES.READY
                     }
 
                     client.canvas = this.canvases[canvas];
 
                     let cooldown;
-                    if(client.user){
-                        if(client.user.role === 'admin'){
+                    if (client.user) {
+                        if (client.user.role === 'admin') {
                             cooldown = [0, 32];
-                        }else{
+                        } else {
                             cooldown = client.canvas.cooldown.user
                         }
-                    }else{
+                    } else {
                         cooldown = client.canvas.cooldown.guest
                     }
 
@@ -184,18 +226,18 @@ class Server {
             rsv1: false,
             opcode: 2,
             fin: true,
-          });
+        });
 
         this.clients.forEach(client => {
             const ws = client.socket;
 
             frame.forEach((buffer) => {
                 try {
-                  ws._socket.write(buffer);
+                    ws._socket.write(buffer);
                 } catch (error) {
-                  logger.error(`WebSocket broadcast error: ${error.message}`);
+                    logger.error(`WebSocket broadcast error: ${error.message}`);
                 }
-              });
+            });
         });
     }
 
