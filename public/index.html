@@ -11,6 +11,7 @@
 
 <body>
     <div id="viewport">
+        <img id="template" src="https://i.imgur.com/46fwf6C.png">
         <canvas id="board"></canvas>
         <canvas id="fx"></canvas>
     </div>
@@ -20,49 +21,80 @@
         </div>
         <div id="coords" class="bubble"></div>
         <div id="topMenu">
+            <div class="header">
+
+            </div>
             <div class="content">
                 <div class="column" id="templateColumn">
                     <div class="columnHeader">
                         <div class="translate">template</div>
                     </div>
-                    <div class="columnContent">
+                    <div class="columnContent scroll">
                         <table class="columnTable">
                             <tr class="tableRow">
-                                <td class="rowDesc">
+                                <td>
                                     <div class="translate">template_url</div>
                                 </td>
-                                <td class="rowProp"><input type="text" id="templateURL"></td>
+                                <td><input type="text" id="templateURL"></td>
                             </tr>
                             <tr class="tableRow">
-                                <td class="rowDesc">X</td>
-                                <td class="rowProp"><input type="text" id="templateX"></td>
+                                <td>X</td>
+                                <td><input type="number" id="templateX"></td>
                             </tr>
                             <tr class="tableRow">
-                                <td class="rowDesc">Y</td>
-                                <td class="rowProp"><input type="text" id="templateY"></td>
+                                <td>Y</td>
+                                <td><input type="number" id="templateY"></td>
                             </tr>
                             <tr class="tableRow">
-                                <td class="rowDesc">
+                                <td>
                                     <div class="translate">template_opacity</div>
                                 </td>
-                                <td class="rowProp"><input type="text" id="templateOpacity"></td>
+                                <td><input type="range" min=0 max=1 step=0.01 id="templateOpacity"></td>
                             </tr>
                         </table>
                     </div>
                 </div>
                 <div class="column" id="functionsColumn">
-                    <tr class="tableRow">
-                        <td class="rowDesc">
-                            <div class="translate">account_settings</div>
-                        </td>
-                        <td class="rowProp">
-                            <button id="accountSettings">
-                                <div class="translate">open_window</div>
-                            </button>
-                        </td>
-                    </tr>
+                    <div class="columnHeader">
+                        <div class="translate">settings</div>
+                    </div>
+                    <div class="columnContent scroll">
+                        <table class="columnTable">
+                            <tr class="tableRow">
+                                <td>
+                                    <div class="translate">account_settings</div>
+                                </td>
+                                <td>
+                                    <button id="accountSettings" class="key">
+                                        <div class="translate">open_window</div>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="tableRow">
+                                <td>
+                                    <div class="translate">toolbinds_setings</div>
+                                </td>
+                                <td>
+                                    <button id="accountSettings" class="key">
+                                        <div class="translate">open_window</div>
+                                    </button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-                <div class="column" id="onlineColumn"></div>
+                <div class="column" id="onlineColumn">
+                    <div class="columnHeader" style="position: relative;">
+                        <div class="translate">online</div>&nbsp;
+                        <div class="shadow" style="right: 0;position: absolute;margin-right: 5px;">
+                            <div class="onlineCounter online">0</div>
+                        </div>
+                    </div>
+                    <div class="columnContent scroll">
+                        <table class="columnTable" id="usersTable">
+                        </table>
+                    </div>
+                </div>
                 <div class="bottomResizer" id="contentResizer"></div>
             </div>
         </div>
