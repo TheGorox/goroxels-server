@@ -10,12 +10,15 @@ const OPCODES = {
 }
 
 const STRING_OPCODES = {
-    error: 'e'
+    error: 'e',
+    userJoin: 'u',
+    userLeave: 'l'
 }
 
 const createPacket = {
     chunkSend: (x, y, compressedData) => {
         // Warning: max x/y cord is 0xFF=255
+        // to increase, change data type from uint8 to uint16
         const buf = Buffer.allocUnsafe(1 + 1 + 1 + compressedData.byteLength);
         buf.writeUInt8(OPCODES.chunk, 0);
         buf.writeUInt8(x, 1);
