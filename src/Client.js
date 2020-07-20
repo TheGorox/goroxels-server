@@ -1,6 +1,4 @@
-const Bucket = require('./Bucket');
-
-const config = require('./config');
+const EventEmitter = require('events');
 
 let lastId = 0;
 // todo replace it with.. something
@@ -15,18 +13,30 @@ const CLIENT_STATES = {
     READY: 2
 }
 
-class Client{
+class Client extends EventEmitter{
     constructor(socket){
+        super();
+        
         this.socket = socket;
         this.bucket = null;
 
         this.canvas = null;
 
-        this.state = 0;
-
         this.id = ++lastId;
 
-        this.user = null;    
+        this.user = null;   
+        
+        this.__state = 0;
+    }
+
+    set state(value){
+        this.__state = value;
+
+        this.emit('statechange', this.__state);
+    }
+
+    get state(){
+        return this.__state;
     }
 
     setCanvas(canvas){
@@ -43,4 +53,7 @@ class Client{
     }
 }
 
-module.exports = Client
+module.exports =  {
+    Client,
+    CLIENT_STATES
+}
