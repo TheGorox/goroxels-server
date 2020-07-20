@@ -13,7 +13,7 @@ const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USER, pr
         max: 15,
         min: 2,
         acquire: 10000,
-        idle: 10000
+        idle: 60000
     },
     logging: (info) => process.env.DB_LOG ? logger.info(info) : false
 });
