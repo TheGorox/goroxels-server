@@ -151,6 +151,11 @@ class ChunkManager {
         let key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
         this.chunks[key].set(x % this.chunkSize, y % this.chunkSize, c)
     }
+
+    getChunkPixel(x, y){
+        let key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
+        return this.chunks[key].get(x % this.chunkSize, y % this.chunkSize)
+    }
 }
 
 module.exports = ChunkManager

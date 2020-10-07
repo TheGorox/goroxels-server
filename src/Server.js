@@ -2,6 +2,7 @@ const logger = require('./logger')('SERVER');
 
 const express = require('express');
 const https = require('http');
+const path = require('path');
 
 const verifyUser = require('./verifySocket');
 const {
@@ -9,6 +10,7 @@ const {
 } = require('./routes/')
 
 const Socket = require('./WebsocketServer');
+const { fileURLToPath } = require('url');
 
 function startServer(port, canvases) {
     const app = express();
@@ -18,10 +20,10 @@ function startServer(port, canvases) {
 
     app.use('/api', api);
 
-    // TODO handle world names?
-    // app.use([/\/[\d\w]{0,32}/, '/'], express.static(__dirname + '/../public'));
     // kostyl↓
     app.use('/', express.static(__dirname + '/../public'));
+    // TODO handle world names?
+    app.use([/\/[\d\w]{0,32}/, '/'], express.static(__dirname + '/../public'));
 
     const webSocketServer = new Socket(canvases);
 

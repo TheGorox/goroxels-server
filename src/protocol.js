@@ -12,7 +12,8 @@ const OPCODES = {
 const STRING_OPCODES = {
     error: 'e',
     userJoin: 'u',
-    userLeave: 'l'
+    userLeave: 'l',
+    chatMessage: 'c'
 }
 
 const createPacket = {
@@ -44,8 +45,40 @@ const createPacket = {
     }
 }
 
+const createStringPacket = {
+    error: (...errors) => {
+        return {
+            c: STRING_OPCODES.error,
+            errors: errors
+        }
+    },
+    userJoin: (client) => {
+        return {
+            c: STRING_OPCODES.userJoin,
+            nick: client.user ? client.user.name : null,
+            id: client.id,
+            registered: !!client.user
+        }
+    },
+    userLeave: (client) => {
+        return {
+            c: STRING_OPCODES.userLeave,
+            id: client.id
+        }
+    },
+    chatMessage: (message, channel) => {
+        return {
+            c: STRING_OPCODES.chatMessage,
+            nick: message.name,
+            msg: message.message,
+            ch: channel
+        }
+    }
+}
+
 module.exports = {
     OPCODES,
     STRING_OPCODES,
-    createPacket
+    createPacket,
+    createStringPacket
 }

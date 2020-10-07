@@ -6,7 +6,7 @@ module.exports = (req, res) => {
 
     if (req.user) {
         me.registered = true;
-        me.username = req.user.name;
+        me.name = req.user.name;
         me.role = req.user.role;
     }
 

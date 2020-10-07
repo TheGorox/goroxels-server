@@ -7,5 +7,28 @@
 Гороксели будут доступны по http://localhost, если конечно у тебя не занят 80-й порт
 
 # А как запустить чтобы можно было изменять и клиент??
-Нужно скомпилировать клиент и кинуть высранное в /public. Как скомпилировать я напишу когда-нибудь.
+Нужно скомпилировать клиент и кинуть содержимое /dist в /public. Как скомпилировать я напишу когда-нибудь.
 Или нет
+
+-------------------
+
+DB_ISLOCAL=1
+
+DB_USER=no
+DB_PASS=no
+DB_HOST=nooo
+DB_PORT=no
+DB_DATABASE=goroxels
+DB_LOG=1
+DB_LOG_PATH=F:\path\to\goroxels_log
+
+SESSION_SECRET='sess.secret'
+
+AUTH_FB_CLIENT_ID=haha
+AUTH_FB_CLIENT_SECRET="stronkpassword123"
+
+AUTH_DC_CLIENT_ID=148839398080
+AUTH_DC_CLIENT_SECRET="MARVEL"
+
+AUTH_VK_CLIENT_ID="durovleavedus"
+AUTH_VK_CLIENT_SECRET="vkisbullshit"
