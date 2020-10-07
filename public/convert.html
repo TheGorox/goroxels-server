@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Convert!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
+<link rel="shortcut icon" href="./favicon.ico"></head>
+
+<body>
+    <div id="container">
+        <div class="section">
+            <div class="line">
+                По всем вопросам насчёт конвертера - <a style="display:contents" href="//t.me/AntiEden">@AntiEden</a>
+            </div>
+            <div class="line header">
+                <img src="../img/palette.png" alt="пол литра">
+                <span>В палитру</span>
+            </div>
+            <div class="line">
+                <div class="folderChoose" id="palFolder" title="Выбрать папку...">
+                    <img src="../img/folder.png" alt="Выбрать папку...">
+                </div>
+                <input type="text" id="palInput" placeholder="URL/путь к файлу/буфер(TODO)" class="half">
+                <button id="palGOBtn">Шамань уже давай..</button>
+            </div>
+            <div class="line">
+                <select id="ditheringMode" style="height: 24px;font-size: 12px;">
+                    <option disabled>Дизеринг (сложность в рисовании)</option>
+                    <option value="none">Нету ★☆☆</option>
+                    <option value="f-s">Флоид-Штеинберг ★★★</option>
+                    <option value="stuki">Штуки ★★★</option>
+                    <option value="check">Шахматы ★★☆</option>
+                    <option value="sierra-lite">Сьерра Lite ★★★</option>
+                    <option value="ordered">Упорядоченный(матричный) ★★☆</option>
+                </select>
+            </div>
+            <div class="line hidden" id="thresoldDiv">
+                    Порог: <input type="number" id="palThresold" style="width: 42px;margin-left: 3px;" min="0" max="100"
+                    value="25" autocomplete="nope">
+                </div>
+            <div class="line hidden" id="ordMatrix">
+                Размер матрицы:&nbsp;
+                <select id="ordMatrixSelect" style="height: 24px;font-size: 12px;">
+                    <option value="4">Bayer 4x4</option>
+                    <option value="8" selected>Bayer 8x8</option>
+                    <option value="16">Bayer 16x16 (shit)</option>
+                    <option value="c7">Custom 7x7</option>
+                    <option value="c4">Sha(члены) 4x4</option>
+                    <option value="c8">Sha(члены) 8x8</option>
+                </select>
+                <select id="ordMatrixModeSelect" style="height: 24px;font-size: 12px;">
+                    <option value="des">Затемнить</option>
+                    <option value="asc">Осветлить</option>
+                    <option value="bal" selected>Баланс</option>
+                </select>
+            </div>
+            <div class="line" id="labDiv" style="display: inline-block">
+                <select id="colorfunc">
+                    <option disabled>Color function for ΔE</option>
+                    <option value="lwrgbde">RGB + luminance [very fast and dirty]</option>
+                    <option value="ciede2000">ciede2000 [slow and accurate]</option>
+                    <option value="ciede2000">ciede1994</option>
+                    <option value="cmcic">CMC I:c [weird and slow]</option>
+                    <option value="eucl">Euclidian + color values [fast and dirty]</option>
+                </select><br>
+            </div>
+            <div class="line">
+                <input type="range" id="brightAdj" min="-100" max="100" value="0">
+                <span>охуенность яркости</span>
+                
+            </div>
+            <div class="line">
+                <input type="range" id="colorAdj" min="-100" max="100" value="0">
+                <span>охуенность контраста</span>
+            </div>
+            <div class="line">
+                <input type="checkbox" id="autoZoom">
+                <label for="autoZoom">
+                    автоматически увеличивать картинку
+                <label><br>
+            </div>
+
+            <div class="line hidden" id="serpBlock">
+                <input type="checkbox" id="serp">
+                <label for="serp">
+                    serpentine (слегка подавляет артефакты ошибочного дизеринга)
+                <label><br>
+            </div>
+
+            <div class="line output" id="palOut">
+            </div>
+        </div>
+        <div class="section">
+            <div class="line header">
+                <img src="../img/pattern.png" alt="patternImg">
+                <span>В узор</span>
+            </div>
+            <div class="line">
+                <div class="folderChoose" id="patFolder" title="Выбрать папку...">
+                    <img src="../img/folder.png" alt="Выбрать папку...">
+                </div>
+                <input type="text" id="patInput" placeholder="URL/путь к файлу/буфер(TODO)" class="half">
+                <button id="patGOBtn">I love Russia, run script!</button>
+            </div>
+            <div class="line output" id="patOut"></div>
+        </div>
+        <div class="section">
+            <div class="line header">
+                <img src="./img/pattern.png" alt="пол литра">
+                <span>Выбор палитры</span>
+            </div>
+            <div class="line">
+                <select id="paletteSel">
+                </select>
+                <textarea id="userPalette" cols="70" rows="2" style="display: none"></textarea>
+            </div>
+            <div class="line">
+                <div id="palette">
+                    <div class="paletteCol" style="background-color:red"></div>
+                    <div class="paletteCol" style="background-color:orange"></div>
+                    <div class="paletteCol" style="background-color:yellow"></div>
+                    <div class="paletteCol" style="background-color:green"></div>
+                    <div class="paletteCol" style="background-color:skyblue"></div>
+                    <div class="paletteCol" style="background-color:blue"></div>
+                    <div class="paletteCol" style="background-color:purple"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript" src="./converters.bundle.js"></script></body>
+
+</html>
