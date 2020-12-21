@@ -1,4 +1,5 @@
 const pako = require('pako');
+const logger = require('./logger')('CHUNK');
 
 class Chunk{
     constructor(x, y, size, data){
@@ -17,8 +18,17 @@ class Chunk{
     }
 
     set(x, y, c){
-        this.data[x + y * this.size] = c;
+        const i = x + y * this.size;
+
+        this.data[i] = (this.data[i] & 0x80) + c;
         this._needUpdate = true;
+    }
+
+    setProtection(x, y, state){
+        const i = x + y * this.size
+        const col = this.data[i];
+
+        this.data[i] = (state << 7) | (col & 0x7F);
     }
 
     compress(){
