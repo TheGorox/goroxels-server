@@ -9,7 +9,7 @@ const {
 const session = expressSession({
     name: 'goroxels.session',
 
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'YOUR SECRET HERE',
     store: new Store({
         db: sequelize
     }),
