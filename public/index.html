@@ -10,7 +10,7 @@
     <title>Goroxels</title>
 
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"> -->
-<link rel="shortcut icon" href="./favicon.ico"></head>
+<link rel="shortcut icon" href="./favicon.ico"><link href="./not_a_bundle.css" rel="stylesheet"></head>
 
 <body>
     <div id="viewport">
@@ -19,112 +19,148 @@
         <canvas id="fx"></canvas>
     </div>
     <div id="ui">
-        <div id="info" class="bubble"></div>
-        <div id="coords" class="bubble"></div>
-        <div id="topMenu">
-            <div class="header">
-            </div>
-            <div class="content">
-                <div class="column" id="templateColumn">
-                    <div class="columnHeader">
-                        <div class="translate">template</div>
-                    </div>
-                    <div class="columnContent scroll">
-                        <table class="columnTable">
-                            <tr class="tableRow">
-                                <td>
-                                    <div class="translate">template_url</div>
-                                </td>
-                                <td><input type="text" id="templateURL"></td>
-                            </tr>
-                            <tr class="tableRow">
-                                <td>X</td>
-                                <td><input type="number" id="templateX"></td>
-                            </tr>
-                            <tr class="tableRow">
-                                <td>Y</td>
-                                <td><input type="number" id="templateY"></td>
-                            </tr>
-                            <tr class="tableRow">
-                                <td>
-                                    <div class="translate">template_opacity</div>
-                                </td>
-                                <td><input type="range" min=0 max=1 step=0.01 id="templateOpacity"></td>
-                            </tr>
-                        </table>
-                    </div>
+        <div id="uiTop">
+            <div id="info" class="bubble"></div>
+            <div id="coords" class="bubble"></div>
+            <div id="topMenu">
+                <div class="header">
                 </div>
-                <div class="column" id="functionsColumn">
-                    <div class="columnHeader">
-                        <div class="translate">settings</div>
-                    </div>
-                    <div class="columnContent scroll">
-                        <table class="columnTable">
-                            <tr>
-                                <td>
-                                    <div class="translate">account_settings</div>
-                                </td>
-                                <td>
-                                    <button id="accountSettings" class="key">
-                                        <div class="translate">open_window</div>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="translate">toolbinds_settings</div>
-                                </td>
-                                <td>
-                                    <button id="toolBinds" class="key">
-                                        <div class="translate">open_window</div>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="translate">ui_settings</div>
-                                </td>
-                                <td>
-                                    <button id="uiSettings" class="key">
-                                        <div class="translate">open_window</div>
-                                    </button>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                <div class="column" id="onlineColumn">
-                    <div class="columnHeader" style="position: relative;">
-                        <div class="translate">online</div>&nbsp;
-                        <div class="shadow" style="right: 0;position: absolute;margin-right: 5px;">
-                            <div class="onlineCounter online">0</div>
+                <div class="content">
+                    <div class="column" id="templateColumn">
+                        <div class="columnHeader">
+                            <div class="translate hd">template</div>
+                        </div>
+                        <div class="columnContent scroll">
+                            <table class="columnTable">
+                                <tr class="tableRow">
+                                    <td>
+                                        <div class="translate fd">template_url</div>
+                                    </td>
+                                    <td><input type="text" id="templateURL"></td>
+                                </tr>
+                                <tr class="tableRow">
+                                    <td class="fd">X</td>
+                                    <td><input type="number" id="templateX"></td>
+                                </tr>
+                                <tr class="tableRow">
+                                    <td class="fd">Y</td>
+                                    <td><input type="number" id="templateY"></td>
+                                </tr>
+                                <tr class="tableRow">
+                                    <td>
+                                        <div class="translate fd">template_opacity</div>
+                                    </td>
+                                    <td><input type="range" min=0 max=1 step=0.01 id="templateOpacity"></td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
-                    <div class="columnContent scroll">
-                        <table class="columnTable" id="usersTable">
-                        </table>
+                    <div class="column" id="functionsColumn">
+                        <div class="columnHeader">
+                            <div class="translate hd">settings</div>
+                        </div>
+                        <div class="columnContent scroll">
+                            <table class="columnTable">
+                                <tr>
+                                    <td>
+                                        <div class="translate fd">game_settings</div>
+                                    </td>
+                                    <td>
+                                        <button id="canvasSettings" class="key">
+                                            <div class="translate fd">open_window</div>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="translate fd">account_settings</div>
+                                    </td>
+                                    <td>
+                                        <button id="accountSettings" class="key">
+                                            <div class="translate fd">open_window</div>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="translate fd">toolbinds_settings</div>
+                                    </td>
+                                    <td>
+                                        <button id="toolBinds" class="key">
+                                            <div class="translate fd">open_window</div>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="translate fd">ui_settings</div>
+                                    </td>
+                                    <td>
+                                        <button id="uiSettings" class="key">
+                                            <div class="translate fd">open_window</div>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="column" id="onlineColumn">
+                        <div class="columnHeader" style="position: relative;">
+                            <div class="translate hd">online</div>&nbsp;
+                            <div class="shadow" style="right: 0;position: absolute;margin-right: 5px;">
+                                <div class="onlineCounter online">0</div>
+                            </div>
+                        </div>
+                        <div class="columnContent scroll">
+                            <table class="columnTable" id="usersTable">
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bottomResizer" id="contentResizer"></div>
+                </div>
+            </div>
+            <div id="settings" class="bubble"></div>
+            <div id="tools" class="bubble"></div>
+            <div id="chat" class="window">
+                <div id="chatHeader" class="windowHeader">
+                    <div id="chatNick">CHAT</div>
+                </div>
+                <div id="chatBody">
+                    <div id="chatLog"></div>
+                    <div id="emotions"></div>
+                    <div id="myMessage">
+                        <input type="text" id="chatInput" value="login to chat" disabled max="250">
                     </div>
                 </div>
-                <div class="bottomResizer" id="contentResizer"></div>
+            </div>
+            <div id="modMenu" class="mod">
+                <div>
+                    <div class="body window">
+                        <div class="windowBody" style="min-height: 40px; min-width: 300px;">
+                            <table class="columnTable">
+                                <tr class="admin">
+                                    <td>
+                                        <input type="text" id="sendAlertsText">
+                                    </td>
+                                    <td>
+                                        <button id="sendAlerts">Send alerts</button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="title">
+                        <div>MOD</div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="settings" class="bubble"></div>
-        <div id="tools" class="bubble"></div>
-        <div id="palette"></div>
-        <div id="chat" class="window">
-            <div id="chatHeader" class="windowHeader">
-                <div id="chatNick">
-                        CHAT
-                </div>
-            </div>
-            <div id="chatBody">
-                <div id="chatLog"></div>
-                <div id="emotions"></div>
-                <div id="myMessage">
-                    <input type="text" id="chatInput" value="login to chat" disabled max="250">
-                </div>
-            </div>
+        <div id="uiBottom">
+            <div id="palette"></div>
         </div>
     </div>
-<script type="text/javascript" src="./ass.bundle.js"></script></body>
+    <script type="text/javascript">
+    </script>
+<script type="text/javascript" src="./not_a_bundle.bundle.js"></script></body>
+
 </html>

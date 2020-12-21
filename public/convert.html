@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Convert!</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
-<link rel="shortcut icon" href="./favicon.ico"></head>
+<link rel="shortcut icon" href="./favicon.ico"><link href="./converters.css" rel="stylesheet"></head>
 
 <body>
     <div id="container">
@@ -62,19 +62,21 @@
                     <option disabled>Color function for ΔE</option>
                     <option value="lwrgbde">RGB + luminance [very fast and dirty]</option>
                     <option value="ciede2000">ciede2000 [slow and accurate]</option>
-                    <option value="ciede2000">ciede1994</option>
                     <option value="cmcic">CMC I:c [weird and slow]</option>
                     <option value="eucl">Euclidian + color values [fast and dirty]</option>
                 </select><br>
             </div>
             <div class="line">
+                <span id="brightAdjLabel" class="inputLabel" style="width:40px">0</span>
                 <input type="range" id="brightAdj" min="-100" max="100" value="0">
                 <span>охуенность яркости</span>
-                
+                <button id="resetBrightness">сброс</button>
             </div>
             <div class="line">
+                <span id="colorAdjLabel" class="inputLabel" style="width:40px">0</span>
                 <input type="range" id="colorAdj" min="-100" max="100" value="0">
                 <span>охуенность контраста</span>
+                <button id="resetContrast">сброс</button>
             </div>
             <div class="line">
                 <input type="checkbox" id="autoZoom">
