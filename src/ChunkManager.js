@@ -133,7 +133,7 @@ class ChunkManager {
     }
 
     getChunkData(cx, cy) {
-        let chunkKey = this.getChunkKey(cx, cy);
+        const chunkKey = this.getChunkKey(cx, cy);
 
         if (this.chunks.hasOwnProperty(chunkKey)) {
             return this.chunks[chunkKey].compress()
@@ -148,13 +148,26 @@ class ChunkManager {
     setChunkPixel(x, y, c) {
         this.needToSave = true;
 
-        let key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
+        const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
         this.chunks[key].set(x % this.chunkSize, y % this.chunkSize, c)
     }
 
     getChunkPixel(x, y){
-        let key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
+        const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
         return this.chunks[key].get(x % this.chunkSize, y % this.chunkSize)
+    }
+
+    setPixelProtected(x, y, flag){
+        this.needToSave = true;
+
+        const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
+        this.chunks[key].setProtection(x % this.chunkSize, y % this.chunkSize, flag);
+    }
+
+    isPixelProtected(x, y){
+        const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
+        const pixel = this.chunks[key].get(x % this.chunkSize, y % this.chunkSize)
+        return pixel & 0x80 > 0
     }
 }
 
