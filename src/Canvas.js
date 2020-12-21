@@ -15,9 +15,6 @@ class Canvas{
 
         this.chunkManager = new ChunkManager(this);
         this.textChannel = new ChatChannel(this.id);
-
-        this.textChannel.addMessage('', `Welcome to the goroxels, server ${canvasOptions.name}!`, true)
-        this.textChannel.addMessage('', `Use <a href="/api/auth/discord">/api/auth/discord</a> to log in!`, true)
     }
 
     init(){
