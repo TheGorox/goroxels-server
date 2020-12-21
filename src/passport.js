@@ -76,63 +76,67 @@ async function login(options){
 //     }
 // }));
 
-passport.use(new DiscordStrategy({
-    clientID: auth.discord.id,
-    clientSecret: auth.discord.secret,
-    callbackURL: '/api/auth/discordCallback'
-}, async (accessToken, refreshToken, profile, done) => {
-    try {
-        logger.info({
-            profile,
-            refreshToken,
-            accessToken
-        });
-        const {
-            id,
-            email,
-            username: name
-        } = profile;
-        if (!email) {
-            done(null, false, {
-                message: 'Sorry, you can not use discord login with an discord account that does not have email set.',
+if(auth.discord.use){
+    passport.use(new DiscordStrategy({
+        clientID: auth.discord.id,
+        clientSecret: auth.discord.secret,
+        callbackURL: '/api/auth/discordCallback'
+    }, async (accessToken, refreshToken, profile, done) => {
+        try {
+            logger.info({
+                profile,
+                refreshToken,
+                accessToken
             });
+            const {
+                id,
+                email,
+                username: name
+            } = profile;
+            if (!email) {
+                done(null, false, {
+                    message: 'Sorry, you can not use discord login with an discord account that does not have email set.',
+                });
+            }
+    
+            // TODO: user already exists check
+            
+            const user = await login({
+                discordId: id.toString(),
+                name,
+                email
+            })
+    
+            done(null, user);
+        } catch (err) {
+            done(err);
         }
+    }));
+}
 
-        // TODO: user already exists check
-        
-        const user = await login({
-            discordId: id.toString(),
-            name,
-            email
-        })
-
-        done(null, user);
-    } catch (err) {
-        done(err);
-    }
-}));
-
-passport.use(new VKStrategy({
-    clientID: auth.vkontakte.id,
-    clientSecret: auth.vkontakte.secret,
-    callbackURL: '/api/auth/vk/return',
-    proxy: true,
-    scope: ['email'],
-    profileFields: ['displayName', 'email'],
-}, async (accessToken, refreshToken, params, profile, done) => {
-    try {
-        logger.info(profile);
-        const {
-            displayName: name
-        } = profile;
-        const {
-            email
-        } = params;
-        const user = await oauthLogin(email, name);
-        done(null, user);
-    } catch (err) {
-        done(err);
-    }
-}));
+if(auth.vkontakte.use){
+    passport.use(new VKStrategy({
+        clientID: auth.vkontakte.id,
+        clientSecret: auth.vkontakte.secret,
+        callbackURL: '/api/auth/vk/return',
+        proxy: true,
+        scope: ['email'],
+        profileFields: ['displayName', 'email'],
+    }, async (accessToken, refreshToken, params, profile, done) => {
+        try {
+            logger.info(profile);
+            const {
+                displayName: name
+            } = profile;
+            const {
+                email
+            } = params;
+            const user = await oauthLogin(email, name);
+            done(null, user);
+        } catch (err) {
+            done(err);
+        }
+    }));
+}
 
 module.exports = passport
