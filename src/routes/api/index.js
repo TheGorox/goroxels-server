@@ -6,7 +6,8 @@ const session = require('../../session');
 
 const auth = require('./auth');
 const me = require('./me');
-const changeName = require('./changename')
+const changeName = require('./changename');
+const userInfo = require('./userInfo');
 
 const router = express.Router();
 
@@ -20,5 +21,7 @@ router.use(passport.session())
 router.use('/auth', auth(passport));
 router.use('/me', me);
 router.use('/changename', changeName);
+
+router.use('/userInfo', userInfo);
 
 module.exports = router;
