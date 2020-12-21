@@ -5,7 +5,7 @@ const logger = require('../logger')('DB', 'info');
 const config = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    dialect: process.env.DB_ISLOCAL === '1' ? 'sqlite' : 'postgres',
+    dialect: process.env.DB_ISLOCAL === '0' ? 'postgres' : 'sqlite',
     storage: __dirname + '/database.sqlite',
     dialectOptions: {
         charset: 'UNICODE'
