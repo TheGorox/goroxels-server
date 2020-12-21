@@ -2,6 +2,17 @@ const express = require('express');
 
 const router = express.Router();
 
+const logger = require('../../../logger')('AUTH');
+
+function afterlogin(req, res){
+    req.user.lastIp = req.ip;
+    req.user.save().catch(e => {
+        logger.error(e);
+    });
+
+    res.redirect('/');
+}
+
 module.exports = (passport) => {
     router.get('/facebook', passport.authenticate('facebook', {
         scope: ['email']
@@ -9,8 +20,8 @@ module.exports = (passport) => {
     router.get('/facebookCallback', passport.authenticate('facebook', {
         failureRedirect: '/api/auth/failure',
         failureFlash: true,
-        successRedirect: '/',
-    }));
+        // successRedirect: '/',
+    }), afterlogin);
 
     router.get('/discord', passport.authenticate('discord', {
         scope: ['identify', 'email']
@@ -18,8 +29,8 @@ module.exports = (passport) => {
     router.get('/discordCallback', passport.authenticate('discord', {
         failureRedirect: '/api/auth/failure',
         failureFlash: true,
-        successRedirect: '/',
-    }));
+        // successRedirect: '/',
+    }), afterlogin);
 
     router.get('/vk', passport.authenticate('vkontakte', {
         scope: ['email']
@@ -27,8 +38,8 @@ module.exports = (passport) => {
     router.get('/vkCallback', passport.authenticate('vkontakte', {
         failureRedirect: '/api/auth/failure',
         failureFlash: true,
-        successRedirect: '/',
-    }));
+        // successRedirect: '/',
+    }), afterlogin);
 
     router.get('/failure', (req, res) => {
         res.set({
