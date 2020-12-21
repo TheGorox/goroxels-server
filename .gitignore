@@ -5,3 +5,4 @@ chunkdata
 .env
 backup/
 src/db/database.sqlite
+db.log
