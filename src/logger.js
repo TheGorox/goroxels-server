@@ -4,7 +4,7 @@ log4js.configure({
     appenders: {
         DB: {
             type: 'file',
-            filename: process.env.DB_LOG_PATH
+            filename: process.env.DB_LOG_PATH || db.log
         },
         console: {
             type: 'console'
