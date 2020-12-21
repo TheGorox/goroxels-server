@@ -16,9 +16,9 @@ const User = sequelize.define('user', {
     },
 
     role: {
-        type: Sequelize.ENUM('banned', 'user', 'mocher', 'admin', 'gorox'),
+        type: Sequelize.ENUM('BANNED', 'USER', 'MOD', 'ADMIN'),
         allowNull: false,
-        defaultValue: 'user'
+        defaultValue: 'USER'
     },
 
     email: {
@@ -34,10 +34,17 @@ const User = sequelize.define('user', {
     vkId: {
         type: Sequelize.INTEGER,
         allowNull: true
+    },
+
+    lastIp: {
+        type: Sequelize.STRING(15),
+        allowNull: true
     }
 }, {
     createdAt: 'creationDate',
     updatedAt: 'updateDate'
 });
+
+User.sync();
 
 module.exports = User

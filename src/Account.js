@@ -1,9 +1,4 @@
-const ROLES = {
-    BANNED: 0,
-    USER: 1,
-    TRUSTED: 2,
-    GOROX: 3
-}
+import { ROLES } from './constants'
 
 class Account{
     constructor(config){
