@@ -3,8 +3,8 @@ const log4js = require('log4js');
 log4js.configure({
     appenders: {
         DB: {
-            type: 'file',
-            filename: process.env.DB_LOG_PATH || db.log
+            type: process.env.DB_LOG_PATH ? 'file' : 'console',
+            filename: process.env.DB_LOG_PATH
         },
         console: {
             type: 'console'
