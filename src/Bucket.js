@@ -9,6 +9,8 @@ class Bucket{
     }
 
     get allowance () {
+        if(this.delay === 0) return Infinity;
+        
         this._allowance += (Date.now() - this.lastCheck) / this.delay;
 
         this.lastCheck = Date.now();
@@ -24,7 +26,7 @@ class Bucket{
 
     spend(count){
         if(this.delay === 0) return true;
-        
+
         let allow = this.allowance;
 
         if(allow < count) return false;
