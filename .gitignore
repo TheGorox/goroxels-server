@@ -3,6 +3,6 @@ backups
 tests
 chunkdata
 .env
-backup/
+backup
 src/db/database.sqlite
 db.log

@@ -19069,6 +19069,8 @@ class Bucket{
     }
 
     get allowance () {
+        if(this.delay === 0) return Infinity;
+        
         this._allowance += (Date.now() - this.lastCheck) / this.delay;
 
         this.lastCheck = Date.now();
@@ -19527,7 +19529,10 @@ class Renderer {
         this.preRenderBrush(_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize, _camera__WEBPACK_IMPORTED_MODULE_1__["default"].zoom);
     }
 
-    preRenderBrush(size, zoom){
+    preRenderBrush(){
+        const size = _player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize,
+            zoom = _camera__WEBPACK_IMPORTED_MODULE_1__["default"].zoom;
+
         const canvas = document.createElement('canvas');
         canvas.width = canvas.height = zoom*(size+1);
         const ctx = canvas.getContext('2d');
@@ -20596,7 +20601,7 @@ function initButtons() {
     $('#accountSettings').on('click', _windows__WEBPACK_IMPORTED_MODULE_8__["accountSettings"]);
     $('#toolBinds').on('click', _windows__WEBPACK_IMPORTED_MODULE_8__["keyBinds"]);
     $('#uiSettings').on('click', _windows__WEBPACK_IMPORTED_MODULE_8__["uiSettings"]);
-    $('#canvasSettings').on('click', _windows__WEBPACK_IMPORTED_MODULE_8__["canvasSettings"]);
+    $('#canvasSettings').on('click', _windows__WEBPACK_IMPORTED_MODULE_8__["gameSettings"]);
 }
 
 function initChat(){
@@ -22894,7 +22899,7 @@ __webpack_require__.r(__webpack_exports__);
 /*!***************************!*\
   !*** ./src/js/windows.js ***!
   \***************************/
-/*! exports provided: generateTable, accountSettings, keyBinds, uiSettings, canvasSettings */
+/*! exports provided: generateTable, accountSettings, keyBinds, uiSettings, gameSettings */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -22903,7 +22908,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "accountSettings", function() { return accountSettings; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "keyBinds", function() { return keyBinds; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uiSettings", function() { return uiSettings; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "canvasSettings", function() { return canvasSettings; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "gameSettings", function() { return gameSettings; });
 /* harmony import */ var _Window__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Window */ "./src/js/Window.js");
 /* harmony import */ var _translate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./translate */ "./src/js/translate.js");
 /* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./me */ "./src/js/me.js");
@@ -22914,6 +22919,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constants */ "./src/js/constants.js");
 /* harmony import */ var _utils_misc__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./utils/misc */ "./src/js/utils/misc.js");
 /* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./actions */ "./src/js/actions.js");
+/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./player */ "./src/js/player.js");
 
 
 
@@ -22925,17 +22931,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function generateTable(arr=[]) {
+
+function generateTable(arr = []) {
     const table = $('<table class="columnTable"></table>');
     arr.forEach(([title, content]) => {
         let tableBlock = $(`
                 <tr>
-                    ${
-                        content === void 0 ?
-                        `<td colspan="2">${title}</td>`:
-                        `<td>${title}</td>
+                    ${content === void 0 ?
+                `<td colspan="2">${title}</td>` :
+                `<td>${title}</td>
                         <td>${content}</td>`
-                    }
+            }
                 </tr>`);
         table.append(tableBlock)
     });
@@ -22943,7 +22949,7 @@ function generateTable(arr=[]) {
     return table
 }
 
-function getKeyAsString(keyCode){
+function getKeyAsString(keyCode) {
     return _constants__WEBPACK_IMPORTED_MODULE_6__["keys"][keyCode] || String.fromCharCode(keyCode)
 }
 
@@ -22955,7 +22961,7 @@ function accountSettings() {
     if (!settingsWin.created) return;
 
     let html = generateTable([
-        [ Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('role'), _constants__WEBPACK_IMPORTED_MODULE_6__["ROLE_I"][_me__WEBPACK_IMPORTED_MODULE_2__["default"].role].toUpperCase() ],
+        [Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('role'), _constants__WEBPACK_IMPORTED_MODULE_6__["ROLE_I"][_me__WEBPACK_IMPORTED_MODULE_2__["default"].role].toUpperCase()],
         [
             Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('change_name'),
             `<input type="text" id="name" style="width:50%"><button id="changeName">yes</button>`
@@ -23014,7 +23020,7 @@ function keyBinds() {
     let table = generateTable();
 
     for (const tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_4__["default"])) {
-        if(!tool.key) continue;
+        if (!tool.key) continue;
 
         const tableRow = $(
             `<tr>
@@ -23070,7 +23076,7 @@ function keyBinds() {
             let toSave = {};
 
             for (const tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_4__["default"])) {
-                if(!tool.key) continue;
+                if (!tool.key) continue;
 
                 toSave[tool.name] = tool.key;
             }
@@ -23079,7 +23085,7 @@ function keyBinds() {
         });
 
         const parsed = Object(_utils_misc__WEBPACK_IMPORTED_MODULE_7__["decodeKey"])(tool.key);
-        
+
         modsElement.text((parsed.alt ? 'ALT + ' : '') + (parsed.ctrl ? 'CTRL + ' : ''));
 
         input.val(getKeyAsString(parsed.keyCode));
@@ -23088,12 +23094,12 @@ function keyBinds() {
     $(keysWin.body).append(table);
 }
 
-function uiSettings(){
+function uiSettings() {
     const setWin = new _Window__WEBPACK_IMPORTED_MODULE_0__["default"]({
         title: Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('UI Settings'),
         center: true
     });
-    if(!setWin.created) return;
+    if (!setWin.created) return;
 
     const table = generateTable([
         [Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('colors size'), '<input type="range" id="colSize">'],
@@ -23107,27 +23113,61 @@ function uiSettings(){
     $(setWin.body).append(table);
 }
 
-function canvasSettings(){
-    const setWin = new _Window__WEBPACK_IMPORTED_MODULE_0__["default"]({
-        title: Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('Canvas Settings'),
+function gameSettings() {
+    const win = new _Window__WEBPACK_IMPORTED_MODULE_0__["default"]({
+        title: Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('Game Settings'),
         center: true
     });
-    if(!setWin.created) return;
+    if (!win.created) return;
 
     const table = generateTable([
         [
-            Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('show protected'), 
+            Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('show protected'),
             `<input type="checkbox" id="showProtected" ${_globals__WEBPACK_IMPORTED_MODULE_5__["default"].showProtected ? 'checked' : ''}>`
-        ]
+        ],
+        [
+            Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('brush size'),
+            `<input type="checkbox" id="customBrushSize" ${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize > 1 ? 'checked' : ''}>
+            <input id="brushSize" type="range" value="${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize}" ` +
+            `${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize == 1 ? 'disabled' : ''} min="2" ` +
+            `max="${_me__WEBPACK_IMPORTED_MODULE_2__["default"].role === _constants__WEBPACK_IMPORTED_MODULE_6__["ROLE"].ADMIN ? 20 : 8}" step="2">` +
+            `<span id="brushSizeCounter">${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize}<span>`
+        ],
     ]);
 
-    $(setWin.body).append(table);
+    $(win.body).append(table);
 
     $('#showProtected').on('change', e => {
         const show = e.target.checked;
         _globals__WEBPACK_IMPORTED_MODULE_5__["default"].showProtected = show;
         Object(_actions__WEBPACK_IMPORTED_MODULE_8__["showProtected"])(show);
+    });
+
+    $('#customBrushSize').on('change', e => {
+        const use = e.target.checked;
+
+        if (use) {
+            // TODO thing below does not work
+            $('#brushSize').removeAttr('disabled');
+            updateBrush($('#brushSize').val());
+        } else {
+            $('#brushSize').attr('disabled');
+            updateBrush(1);
+        }
+    });
+
+    $('#brushSize').on('input', e => {
+        updateBrush(e.target.value);
     })
+
+    function updateBrush(size) {
+        _player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize = +size;
+        _globals__WEBPACK_IMPORTED_MODULE_5__["default"].fxRenderer.needRender = true;
+
+        _globals__WEBPACK_IMPORTED_MODULE_5__["default"].renderer.preRenderBrush();
+
+        $('#brushSizeCounter').text(size);
+    }
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
