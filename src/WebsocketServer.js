@@ -201,7 +201,7 @@ class Server {
 
                     const oldPixel = canvas.chunkManager.getChunkPixel(x, y);
 
-                    if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.ADMIN) ||
+                    if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.MOD) ||
                         (oldPixel & 0x7F === c)) {
                         return;
                     }
@@ -251,6 +251,15 @@ class Server {
                             if (x < 0 || x >= realWidth ||
                                 y < 0 || y >= realHeight) return;
 
+                            if(client.user.role < ROLE.MOD){
+                                const oldPixel = canvas.chunkManager.getChunkPixel(x, y);
+
+                                if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.ADMIN) ||
+                                    (oldPixel & 0x7F === clr)) {
+                                    return;
+                                }
+                            }
+                            
                             if (isProtect) {
                                 client.canvas.chunkManager.setPixelProtected(x, y, clr);
                             } else {
