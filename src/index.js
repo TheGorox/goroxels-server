@@ -27,6 +27,8 @@ config.canvases.forEach((canvas, i) => {
     ))
 })
 
+console.log(process.env)
+
 db.sync().then(() => {
     Server.startServer(config.port, canvases);
 }).catch(err => {
