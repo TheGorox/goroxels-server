@@ -1,5 +1,9 @@
-// const express = require('express');
+const express = require('express');
 
-// const router = express.Router();
+const router = express.Router();
 
-// const user
+const changerole = require('./changerole');
+
+router.use('/changerole', changerole);
+
+module.exports = router
