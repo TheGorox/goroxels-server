@@ -9,6 +9,8 @@ const me = require('./me');
 const changeName = require('./changename');
 const userInfo = require('./userInfo');
 
+const admin = require('./admin');
+
 const router = express.Router();
 
 router.use(bodyParser.json());
@@ -21,7 +23,8 @@ router.use(passport.session())
 router.use('/auth', auth(passport));
 router.use('/me', me);
 router.use('/changename', changeName);
-
 router.use('/userInfo', userInfo);
+
+router.use('/admin', admin);
 
 module.exports = router;
