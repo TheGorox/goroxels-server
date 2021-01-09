@@ -11,6 +11,7 @@ module.exports = (req, res) => {
         me.registered = true;
         me.name = req.user.name;
         me.role = ROLE[req.user.role];
+        me.id = req.user.id;
 
         if(me.role === undefined){
             logger.warn('me.role is undefined!', JSON.stringify(me));
