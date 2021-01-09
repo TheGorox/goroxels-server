@@ -4,7 +4,13 @@ const logger = require('../../logger')('API');
 
 const router = express.Router();
 
-// todo add rate limiter
+const rateLimit = require('express-rate-limit');
+
+// limit to 15 minutes
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 3
+})
 
 function error(res, error) {
     res.json({
@@ -12,6 +18,8 @@ function error(res, error) {
         errors: [error]
     })
 }
+
+router.use(limiter);
 
 router.post('/', async (req, res) => {
     if (!req.user) {
@@ -43,9 +51,7 @@ router.post('/', async (req, res) => {
     }
 
     req.user.name = newName;
-    req.user.save({
-        fields: ['name']
-    }).then(() => {
+    req.user.save().then(() => {
         return res.json({
             success: true
         })
