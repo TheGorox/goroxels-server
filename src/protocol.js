@@ -33,7 +33,7 @@ const createPacket = {
         return buf
     },
     pixelSend: (x, y, col, uid) => {
-        const buf = Buffer.allocUnsafe(1 + 3 + 3 + 1 + 4);
+        const buf = Buffer.allocUnsafe(1 + 4 + 4);
         buf.writeUInt8(OPCODES.place, 0);
         buf.writeUInt32BE(packPixel(x, y, col), 1);
         buf.writeUInt32BE(uid, 5);
