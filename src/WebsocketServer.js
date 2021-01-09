@@ -123,7 +123,7 @@ class Server {
                         message.nick = '';
                         message.server = true;
 
-                        message.msg = `Welcome to the Goroxels, server ${client.canvas.name}!`;
+                        message.msg = `Welcome to the [#00f986]Goroxels[], server ${client.canvas.name}!`;
                         client.send(JSON.stringify(message));
 
                         if (!client.user) {
@@ -235,7 +235,7 @@ class Server {
 
                         const pxlsCount = (message.length - 6) / 4;
 
-                        if (!client.bucket.spend(pxlsCount)) {
+                        if (!isProtect && !client.bucket.spend(pxlsCount)) {
                             return
                         }
 
@@ -251,12 +251,12 @@ class Server {
                             if (x < 0 || x >= realWidth ||
                                 y < 0 || y >= realHeight) return;
 
-                            if(client.user.role < ROLE.MOD){
-                                const oldPixel = canvas.chunkManager.getChunkPixel(x, y);
+                            if(ROLE[client.user.role] < ROLE.MOD){
+                                const oldPixel = client.canvas.chunkManager.getChunkPixel(x, y);
 
                                 if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.ADMIN) ||
                                     (oldPixel & 0x7F === clr)) {
-                                    return;
+                                    continue;
                                 }
                             }
                             
