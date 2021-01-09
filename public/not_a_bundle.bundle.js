@@ -19551,7 +19551,7 @@ class Renderer {
         })
         
         ctx.beginPath();
-        ctx.lineWidth = zoom / 5;
+        ctx.lineWidth = zoom / 4;
         ctx.strokeStyle = _config__WEBPACK_IMPORTED_MODULE_2__["hexPalette"][_player__WEBPACK_IMPORTED_MODULE_9__["default"].color];
         ctx.lineCap = 'square';
 
@@ -19683,7 +19683,7 @@ class Renderer {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function(toastr, $) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Socket; });
+/* WEBPACK VAR INJECTION */(function(toastr) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Socket; });
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! events */ "./node_modules/events/events.js");
 /* harmony import */ var events__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(events__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var pako__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! pako */ "./node_modules/pako/index.js");
@@ -19693,6 +19693,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./globals */ "./src/js/globals.js");
 /* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./actions */ "./src/js/actions.js");
 /* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./user */ "./src/js/user.js");
+/* harmony import */ var _chat__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./chat */ "./src/js/chat.js");
 
 
 
@@ -19702,14 +19703,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function htmlspecialchars(text){
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
 
 class Socket extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
     constructor(port) {
@@ -19805,28 +19798,17 @@ class Socket extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
             }
 
             case _protocol__WEBPACK_IMPORTED_MODULE_2__["STRING_OPCODES"].chatMessage: {
-                const msg = decoded.msg,
-                    nick = decoded.nick,
-                    isServer = decoded.server;
-
-                const msgEl = $(
-                `<div class="chatMessage">
-                    <div class="messageNick">${nick}:</div>
-                    <div class="messageText">${isServer ? msg : htmlspecialchars(msg)}</div>
-                </div>`)
-
-                if(!nick.length) msgEl[0].children[0].remove();
-
-                $('#chatLog').append(msgEl);
-
-                $('#chatLog')[0].scrollBy(0, 999);
+                _chat__WEBPACK_IMPORTED_MODULE_7__["default"].addMessage(decoded)
 
                 break
             }
 
             case _protocol__WEBPACK_IMPORTED_MODULE_2__["STRING_OPCODES"].alert: {
                 // todo :)))
-                console.log(decoded.msg);
+                toastr.info(decoded.msg, 'ALERT', {
+                    timeOut: 1000*60*5,
+                    extendedTimeOut: 1000*60*5
+                })
                 break
             }
         }
@@ -19958,7 +19940,7 @@ class Socket extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
         this.socket.send(JSON.stringify(packet));
     }
 }
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js"), __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js")))
 
 /***/ }),
 
@@ -20142,7 +20124,12 @@ class ToolManager extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
                 this.tools.mover.emit('down', e)
             });
             em.on('mouseup', e => {
-                this.tools.mover.emit('up', e)
+                if(e.button === 2){
+                    _player__WEBPACK_IMPORTED_MODULE_4__["default"].switchColor(-1);
+                    _player__WEBPACK_IMPORTED_MODULE_4__["default"].switchSecondColor(-1);
+                    _globals__WEBPACK_IMPORTED_MODULE_1__["default"].fxRenderer.needRender = true;
+                }
+                this.tools.mover.emit('up', e);
             });
             em.on('mousemove', e => {
                 if (e.buttons === 0) {
@@ -20150,6 +20137,7 @@ class ToolManager extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
                 }
 
                 this.tool != _tools__WEBPACK_IMPORTED_MODULE_2__["default"].mover && this.tools.mover.emit('move', e);
+
                 this.tool.emit('move', e)
             });
 
@@ -20461,6 +20449,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _elements__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./elements */ "./src/js/elements.js");
 /* harmony import */ var _windows__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./windows */ "./src/js/windows.js");
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./constants */ "./src/js/constants.js");
+/* harmony import */ var _chat__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./chat */ "./src/js/chat.js");
+
 
 
 
@@ -20606,14 +20596,14 @@ function initButtons() {
 
 function initChat(){
     _elements__WEBPACK_IMPORTED_MODULE_7__["chatInput"].on('keydown', e => {
-        if(e.keyCode !== 13) return;
+        if(e.code !== 'Enter') return;
 
         const message = _elements__WEBPACK_IMPORTED_MODULE_7__["chatInput"].val();
         if(!message.length) return;
 
         _elements__WEBPACK_IMPORTED_MODULE_7__["chatInput"].val('');
 
-        _globals__WEBPACK_IMPORTED_MODULE_6__["default"].socket.sendChatMessage(message, _config__WEBPACK_IMPORTED_MODULE_1__["canvasId"]);
+        _chat__WEBPACK_IMPORTED_MODULE_10__["default"].handleMessage(message);
     })
 }
 
@@ -20803,6 +20793,207 @@ __webpack_require__.r(__webpack_exports__);
         this.zoom = Math.min(Math.max(this.zoom, _config__WEBPACK_IMPORTED_MODULE_1__["minZoom"]), _config__WEBPACK_IMPORTED_MODULE_1__["maxZoom"])
     }
 });
+
+/***/ }),
+
+/***/ "./src/js/chat.js":
+/*!************************!*\
+  !*** ./src/js/chat.js ***!
+  \************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./config */ "./src/js/config.js");
+/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./globals */ "./src/js/globals.js");
+/* harmony import */ var _utils_cssColorsList__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/cssColorsList */ "./src/js/utils/cssColorsList.js");
+
+
+
+
+function htmlspecialchars(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function pad(pad, str, padLeft) {
+    if (typeof str === 'undefined')
+        return pad;
+    if (padLeft) {
+        return (pad + str).slice(-pad.length);
+    } else {
+        return (str + pad).substring(0, pad.length);
+    }
+}
+
+class Chat {
+    constructor() {
+        this.element = $('#chatLog');
+
+        this.colorsEnabled = true;
+
+        this.muted = JSON.parse(localStorage.getItem('muted')) || [];
+    }
+
+    setColors(state) {
+        this.colorsEnabled = state;
+
+        $('chatColored').toggleClass('noColor', state);
+    }
+
+    parseColors(str) {
+        // colors should be formatted like: [RED]test or [#FF0000]te[]st
+
+        let colorEntries = 0;
+
+        let regIter = str.matchAll(/\[(#?[A-Z0-9]+)*?\]/gi);
+        while (true) {
+            let {
+                value: entry,
+                done
+            } = regIter.next();
+            if (done) break;
+
+            let color = entry[1];
+
+            if (color) {
+                if (color.startsWith('#')) {
+                    color = pad(color.slice(-1).repeat(6 + 1), color);
+                } else if (!_utils_cssColorsList__WEBPACK_IMPORTED_MODULE_2__["default"][color]) continue;
+
+                str = str.replace(entry[0],
+                    `<div class="chatColored${this.colorsEnabled ? '' : ' noColor'}" style="color:${color}">`);
+                colorEntries++;
+            } else { // empty braces
+                if (colorEntries > 0) {
+                    str = str.replace(entry[0], '</div>');
+                    colorEntries--;
+                } else {
+                    // "[" and "]"
+                    str = str.replace(entry[0], '&#91;&#93;');
+                }
+            }
+        }
+
+        if (colorEntries > 0) str += '</div>'.repeat(colorEntries);
+
+        return str
+    }
+
+    // TODO?
+    //parseBB(){}
+
+    addMessage(message) {
+        if (message.server)
+            return this.addServerMessage(message.msg);
+
+        let text = htmlspecialchars(message.msg),
+            nick = htmlspecialchars(message.nick);
+
+        const realNick = nick;
+
+        text = this.parseColors(text);
+        nick = this.parseColors(nick);
+
+        const isMuted = ~this.muted.indexOf(realNick);
+
+        const msgEl = $(
+            `<div class="chatMessage" ${isMuted ? 'style="display:none"' : ''}>
+            <div class="messageNick" data-nick="${realNick}">${nick}:</div>
+            <div class="messageText">${text}</div>
+        </div>`)
+
+        this.element.append(msgEl);
+
+        this.element[0].scrollBy(0, 999);
+    }
+
+    addLocalMessage(text) {
+        text = this.parseColors(text);
+
+        const msgEl = $(
+            `<div class="chatMessage">
+                <div class="messageText">${text}</div>
+            </div>`)
+
+        this.element.append(msgEl);
+
+        this.element[0].scrollBy(0, 999);
+    }
+
+    addServerMessage(text) {
+        this.addLocalMessage(text)
+    }
+
+    // handles messages to send
+    handleMessage(message) {
+        if (message.startsWith('/')) {
+            this.handleCommand(message);
+        } else
+            _globals__WEBPACK_IMPORTED_MODULE_1__["default"].socket.sendChatMessage(message, _config__WEBPACK_IMPORTED_MODULE_0__["canvasId"]);
+    }
+
+    // handles chat commands
+    handleCommand(command) {
+        let args = command.split(' ').slice(1);
+
+        if (command.startsWith('/mute')) {
+            const nick = args.join(' ');
+            this.mute(nick);
+        }else if(command.startsWith('/unmute')){
+            const nick = args.join(' ');
+            this.unmute(nick);
+        }
+    }
+
+    mute(nick) {
+        const pref = '<b>mute:</b> ';
+
+        if (!nick.length || nick.length > 32) {
+            return this.addLocalMessage(pref + 'Wrong nick length')
+        }
+        if(~this.muted.indexOf(nick)){
+            return this.addLocalMessage(pref + 'Player is already muted')
+        }
+
+        this.muted.push(nick);
+        localStorage.setItem('muted', JSON.stringify(this.muted));
+
+        $('.messageNick').each((_, el) => {
+            if(el.dataset.nick === nick){
+                el.parentElement.style.display = 'none';
+            }
+        })
+    }
+
+    unmute(nick){
+        let pref = '<b>unmute:</b> ', index;
+
+        if (!nick.length || nick.length > 32) {
+            return this.addLocalMessage(pref + 'Wrong nick length')
+        }
+        if(!~(index=this.muted.indexOf(nick))){
+            return this.addLocalMessage(pref + 'Player is not muted')
+        }
+
+        this.muted.splice(index, 1);
+        localStorage.setItem('muted', JSON.stringify(this.muted));
+
+        $('.messageNick').each((_, el) => {
+            if(el.dataset.nick === nick){
+                el.parentElement.style.display = 'block';
+            }
+        })
+    }
+}
+
+/* harmony default export */ __webpack_exports__["default"] = (new Chat());
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 
@@ -21276,11 +21467,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
     registered: false,
     name: null,
+    id: null,
     role: _constants__WEBPACK_IMPORTED_MODULE_0__["ROLE"].USER,
     update(newMe){
-        this.registered = newMe.registered || false;
-        this.name = newMe.name || null;
-        this.role = +newMe.role || _constants__WEBPACK_IMPORTED_MODULE_0__["ROLE"].USER;
+        this.registered = newMe.registered;
+        if(newMe.registered){
+            this.name = newMe.name;
+            this.role = newMe.role;
+            this.id = newMe.id;
+        }
 
         switch(this.role){
             case _constants__WEBPACK_IMPORTED_MODULE_0__["ROLE"].USER:
@@ -21318,7 +21513,7 @@ __webpack_require__.r(__webpack_exports__);
     x: 0,
     y: 0,
     color: Math.random() * _config__WEBPACK_IMPORTED_MODULE_0__["palette"].length | 0,
-    brushSize: 4,
+    brushSize: 1,
     secondCol: -1,
     switchColor(id){
         this.color = id;
@@ -21360,7 +21555,7 @@ __webpack_require__.r(__webpack_exports__);
         this.bucket = new _Bucket__WEBPACK_IMPORTED_MODULE_1__["default"](delay, max);
     },
     placed: [],
-    maxPlaced: 500
+    maxPlaced: isNaN(+localStorage['game.maxPlaced']) ? 500 : +localStorage['game.maxPlaced']
 });
 
 window.player = player
@@ -21507,11 +21702,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./camera */ "./src/js/camera.js");
 /* harmony import */ var _elements__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./elements */ "./src/js/elements.js");
 /* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./actions */ "./src/js/actions.js");
-/* harmony import */ var _img_toolIcons_clicker_png__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../img/toolIcons/clicker.png */ "./src/img/toolIcons/clicker.png");
-/* harmony import */ var _img_toolIcons_move_png__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../img/toolIcons/move.png */ "./src/img/toolIcons/move.png");
-/* harmony import */ var _img_toolIcons_floodfill_png__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../img/toolIcons/floodfill.png */ "./src/img/toolIcons/floodfill.png");
-/* harmony import */ var _img_toolIcons_pipette_png__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../img/toolIcons/pipette.png */ "./src/img/toolIcons/pipette.png");
-/* harmony import */ var _template__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./template */ "./src/js/template.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./constants */ "./src/js/constants.js");
+/* harmony import */ var _img_toolIcons_clicker_png__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../img/toolIcons/clicker.png */ "./src/img/toolIcons/clicker.png");
+/* harmony import */ var _img_toolIcons_move_png__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../img/toolIcons/move.png */ "./src/img/toolIcons/move.png");
+/* harmony import */ var _img_toolIcons_floodfill_png__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../img/toolIcons/floodfill.png */ "./src/img/toolIcons/floodfill.png");
+/* harmony import */ var _img_toolIcons_pipette_png__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ../img/toolIcons/pipette.png */ "./src/img/toolIcons/pipette.png");
+/* harmony import */ var _template__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./template */ "./src/js/template.js");
+/* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./me */ "./src/js/me.js");
+
+
 
 
 
@@ -21570,8 +21769,8 @@ function renderFX() {
     _globals__WEBPACK_IMPORTED_MODULE_1__["default"].fxRenderer.needRender = true;
 }
 
-function protectPixel(x, y){
-    _globals__WEBPACK_IMPORTED_MODULE_1__["default"].socket.sendProtect([[x, y, 1]]);
+function protectPixels(pixels) {
+    _globals__WEBPACK_IMPORTED_MODULE_1__["default"].socket.sendPixels(pixels, true);
 }
 
 class Clicker extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -21616,22 +21815,27 @@ class Clicker extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let pixels = _utils_shapes__WEBPACK_IMPORTED_MODULE_2__["default"].line(this.lastPos[0], this.lastPos[1], x, y);
         this.lastPos = [x, y];
 
-        for (let [x, y] of pixels) {
-            if(_player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize === 1){
+        for (let [x, y] of pixels) { // TODO reduce code size here
+            if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize === 1) {
                 const key = `${x},${y}`;
                 const color = getColByCord(x, y);
 
                 if (getPixel(x, y) === color) continue;
 
+                const pixel = getPixel(x, y),
+                isProtected = getProtect(x, y);
+                if (pixel === color || pixel === -1 || (isProtected && _me__WEBPACK_IMPORTED_MODULE_17__["default"].role < _constants__WEBPACK_IMPORTED_MODULE_11__["ROLE"].MOD)) continue;
+
+                if (this._pendingPixels[key] && this._pendingPixels[key][0] === color) continue;
+
                 if (!_player__WEBPACK_IMPORTED_MODULE_5__["default"].bucket.spend(1)) {
                     return
                 }
-    
-                if (this._pendingPixels[key] && this._pendingPixels[key][0] === color) continue;
+
                 this._pendingPixels[key] = [color, Date.now()];
-    
+
                 Object(_actions__WEBPACK_IMPORTED_MODULE_10__["placePixel"])(x, y, color)
-            }else{
+            } else {
                 let circle = _globals__WEBPACK_IMPORTED_MODULE_1__["default"].renderer.preRendered.brush.circle,
                     pixels = [];
 
@@ -21644,18 +21848,19 @@ class Clicker extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     let _y = y + cy;
 
                     const key = `${_x},${_y}`;
-                    const color = getColByCord(_x, _y);
+                    const myColor = getColByCord(_x, _y);
 
-                    const pixel = getPixel(_x, _y);
-                    if (pixel === color || pixel === -1) return;
-        
-                    if (this._pendingPixels[key] && this._pendingPixels[key][0] === color) return;
-                    this._pendingPixels[key] = [color, Date.now()];
-        
-                    pixels.push([_x, _y, color]);
+                    const pixel = getPixel(_x, _y),
+                        isProtected = getProtect(_x, _y);
+                    if (pixel === myColor || pixel === -1 || (isProtected && _me__WEBPACK_IMPORTED_MODULE_17__["default"].role < _constants__WEBPACK_IMPORTED_MODULE_11__["ROLE"].MOD)) return;
+
+                    if (this._pendingPixels[key] && this._pendingPixels[key][0] === myColor) return;
+                    this._pendingPixels[key] = [myColor, Date.now()];
+
+                    pixels.push([_x, _y, myColor]);
                 })
 
-                if(pixels.length === 0) continue;
+                if (pixels.length === 0) continue;
 
                 _player__WEBPACK_IMPORTED_MODULE_5__["default"].bucket.spend(pixels.length)
 
@@ -21703,7 +21908,7 @@ class Clicker extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         return deletedSome;
     }
 }
-const clicker = new Clicker('clicker', 32, _img_toolIcons_clicker_png__WEBPACK_IMPORTED_MODULE_11__["default"]);
+const clicker = new Clicker('clicker', 32, _img_toolIcons_clicker_png__WEBPACK_IMPORTED_MODULE_12__["default"]);
 
 class Protector extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(...args) {
@@ -21737,18 +21942,52 @@ class Protector extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
     move(e) {
         if (!this.mousedown || e.gesture) return;
 
+        const protect = e.__alt ? 0 : 1;
+
         let [x, y] = [_player__WEBPACK_IMPORTED_MODULE_5__["default"].x, _player__WEBPACK_IMPORTED_MODULE_5__["default"].y];
 
         let pixels = _utils_shapes__WEBPACK_IMPORTED_MODULE_2__["default"].line(this.lastPos[0], this.lastPos[1], x, y);
         this.lastPos = [x, y];
 
         for (let [x, y] of pixels) {
-            const key = `${x},${y}`;
+            if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize == 1) {
+                if(!Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["inBounds"])(x, y)) continue;
 
-            if (this._pendingPixels[key] || getProtect(x, y)) continue;
-            this._pendingPixels[key] = Date.now();
+                const key = `${x},${y}`;
 
-            protectPixel(x, y);
+                if (this._pendingPixels[key]) continue;
+                this._pendingPixels[key] = Date.now();
+
+                protectPixels([[x, y, protect]]);
+            } else {
+                let circle = _globals__WEBPACK_IMPORTED_MODULE_1__["default"].renderer.preRendered.brush.circle,
+                    pixels = [];
+
+                if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].bucket.allowance < circle.length) {
+                    return
+                }
+
+                circle.forEach(([cx, cy]) => {
+                    let _x = x + cx;
+                    let _y = y + cy;
+
+                    if(!Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["inBounds"])(_x, _y)) return;
+
+                    const key = `${_x},${_y}`;
+
+                    const isProtected = getProtect(_x, _y);
+                    if ((isProtected && protect) || (!isProtected && !protect)) return;
+
+                    if (this._pendingPixels[key]) return;
+                    this._pendingPixels[key] = Date.now();
+
+                    pixels.push([_x, _y, protect]);
+                })
+
+                if (pixels.length === 0) continue;
+
+                protectPixels(pixels);
+            }
         }
     }
 
@@ -21766,7 +22005,24 @@ class Protector extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         return deletedSome;
     }
 }
-const protector = new Protector('protector', 'V'.charCodeAt(), _img_toolIcons_clicker_png__WEBPACK_IMPORTED_MODULE_11__["default"]);
+const protector = new Protector('protector', 'V'.charCodeAt(), _img_toolIcons_clicker_png__WEBPACK_IMPORTED_MODULE_12__["default"]);
+
+const altProtector = new Protector('alt protector', 'ALT+' + 'V'.charCodeAt(), _img_toolIcons_clicker_png__WEBPACK_IMPORTED_MODULE_12__["default"]);
+altProtector.off('down', altProtector.down);
+altProtector.on('down', (e) => {
+    e.__alt = true;
+    altProtector.down.call(altProtector, e)
+});
+altProtector.off('up', altProtector.up);
+altProtector.on('up', (e) => {
+    e.__alt = true;
+    altProtector.up.call(altProtector, e)
+});
+altProtector.off('move', altProtector.move);
+altProtector.on('move', (e) => {
+    e.__alt = true;
+    altProtector.move.call(altProtector, e)
+});
 
 class Mover extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(...args) {
@@ -21794,20 +22050,20 @@ class Mover extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
         const color = getCurCol();
 
-        if (color && zoom > 1) {
-            if(_player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize == 1){
+        if (~color && zoom > 1) {
+            if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize == 1) {
                 const [x, y] = Object(_utils_conversions__WEBPACK_IMPORTED_MODULE_4__["boardToScreenSpace"])(_player__WEBPACK_IMPORTED_MODULE_5__["default"].x, _player__WEBPACK_IMPORTED_MODULE_5__["default"].y);
                 ctx.strokeStyle = _config__WEBPACK_IMPORTED_MODULE_7__["hexPalette"][color];
-            //ctx.fillStyle = hexPalette[player.color];
-            ctx.lineWidth = zoom / 5;
+                //ctx.fillStyle = hexPalette[player.color];
+                ctx.lineWidth = zoom / 5;
 
 
-            //ctx.fillRect(x, y, zoom, zoom);
-            ctx.strokeRect(x, y, zoom, zoom);
+                //ctx.fillRect(x, y, zoom, zoom);
+                ctx.strokeRect(x, y, zoom, zoom);
 
-            //renderFX();
-            }else{
-                const [x, y] = Object(_utils_conversions__WEBPACK_IMPORTED_MODULE_4__["boardToScreenSpace"])(_player__WEBPACK_IMPORTED_MODULE_5__["default"].x-_player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize/2, _player__WEBPACK_IMPORTED_MODULE_5__["default"].y-_player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize/2);
+                //renderFX();
+            } else {
+                const [x, y] = Object(_utils_conversions__WEBPACK_IMPORTED_MODULE_4__["boardToScreenSpace"])(_player__WEBPACK_IMPORTED_MODULE_5__["default"].x - _player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize / 2, _player__WEBPACK_IMPORTED_MODULE_5__["default"].y - _player__WEBPACK_IMPORTED_MODULE_5__["default"].brushSize / 2);
                 ctx.drawImage(_globals__WEBPACK_IMPORTED_MODULE_1__["default"].renderer.preRendered.brush.canvas, x, y)
             }
         }
@@ -21868,7 +22124,7 @@ class Mover extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
             Math.abs(this.downPos[1] - this.lastPos[1]) < 5)
     }
 }
-const mover = new Mover('mover', null, _img_toolIcons_move_png__WEBPACK_IMPORTED_MODULE_12__["default"]);
+const mover = new Mover('mover', null, _img_toolIcons_move_png__WEBPACK_IMPORTED_MODULE_13__["default"]);
 
 class FloodFill extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(...args) {
@@ -21898,7 +22154,7 @@ class FloodFill extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
 
         const cord = Object(_utils_conversions__WEBPACK_IMPORTED_MODULE_4__["screenToBoardSpace"])(e.clientX, e.clientY);
-        if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].color === -1 || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["visible"])(...cord) || e.type === 'mouseleave') {
+        if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].color === -1 || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["inBounds"])(...cord) || e.type === 'mouseleave') {
             return
         }
 
@@ -21920,7 +22176,7 @@ class FloodFill extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
 
         const cord = Object(_utils_conversions__WEBPACK_IMPORTED_MODULE_4__["screenToBoardSpace"])(e.clientX, e.clientY);
-        if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].color === -1 || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["visible"])(...cord)) {
+        if (_player__WEBPACK_IMPORTED_MODULE_5__["default"].color === -1 || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["inBounds"])(...cord)) {
             return
         }
         let _lastX, _lastY;
@@ -21961,7 +22217,7 @@ class FloodFill extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let tileCol = getPixel(x, y);
             let painted = this.showedPixels.indexOf(x + ',' + y) !== -1;
 
-            if (painted || tileCol === color || tileCol !== this.fillingCol || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["visible"])(x, y)) {
+            if (painted || tileCol === color || tileCol !== this.fillingCol || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["inBounds"])(x, y)) {
                 return 0
             }
 
@@ -22040,7 +22296,7 @@ class FloodFill extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let color = getColByCord(x, y, this.playerCol, this.secondPlayerCol);
             let tileCol = getPixel(x, y);
 
-            if (tileCol === color || tileCol !== this.fillingCol || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["visible"])(x, y)) {
+            if (tileCol === color || tileCol !== this.fillingCol || !Object(_utils_camera__WEBPACK_IMPORTED_MODULE_3__["inBounds"])(x, y)) {
                 continue
             }
 
@@ -22075,7 +22331,7 @@ class FloodFill extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         return true
     }
 }
-const floodfill = new FloodFill('floodfill', 'F'.charCodeAt(), _img_toolIcons_floodfill_png__WEBPACK_IMPORTED_MODULE_13__["default"]);
+const floodfill = new FloodFill('floodfill', 'F'.charCodeAt(), _img_toolIcons_floodfill_png__WEBPACK_IMPORTED_MODULE_14__["default"]);
 
 class Pipette extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(...args) {
@@ -22097,9 +22353,9 @@ class Pipette extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         renderFX();
     }
 }
-const pipette = new Pipette('pipette', 'C'.charCodeAt(), _img_toolIcons_pipette_png__WEBPACK_IMPORTED_MODULE_14__["default"]);
+const pipette = new Pipette('pipette', 'C'.charCodeAt(), _img_toolIcons_pipette_png__WEBPACK_IMPORTED_MODULE_15__["default"]);
 
-const altPipette = new Pipette('alt pipette', 'ALT+' + 'C'.charCodeAt(), _img_toolIcons_pipette_png__WEBPACK_IMPORTED_MODULE_14__["default"]);
+const altPipette = new Pipette('alt pipette', 'ALT+' + 'C'.charCodeAt(), _img_toolIcons_pipette_png__WEBPACK_IMPORTED_MODULE_15__["default"]);
 altPipette.off('down', altPipette.down);
 altPipette.on('down', (e) => {
     e.__alt = true;
@@ -22220,12 +22476,12 @@ class Line extends _Tool__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this.on('up', up);
     }
 }
-const line = new Line('line', 16 /*Shift*/ , _img_toolIcons_floodfill_png__WEBPACK_IMPORTED_MODULE_13__["default"]);
+const line = new Line('line', 16 /*Shift*/, _img_toolIcons_floodfill_png__WEBPACK_IMPORTED_MODULE_14__["default"]);
 
 const cordAdd = new _Tool__WEBPACK_IMPORTED_MODULE_0__["default"]('coords to chat', 'U'.charCodeAt());
 cordAdd.on('up', function () {
     _elements__WEBPACK_IMPORTED_MODULE_9__["chatInput"][0].value += this.elements.coords.text() + ' ';
-    _elements__WEBPACK_IMPORTED_MODULE_9__["chatInput"].focus();
+    _elements__WEBPACK_IMPORTED_MODULE_9__["chatInput"].trigger('focus');
 });
 
 const pixelInfo = new _Tool__WEBPACK_IMPORTED_MODULE_0__["default"]('pixel info', 'I'.charCodeAt());
@@ -22244,7 +22500,7 @@ const colorDec = new _Tool__WEBPACK_IMPORTED_MODULE_0__["default"]('left color',
 colorDec.on('down', function () {
     let color = _player__WEBPACK_IMPORTED_MODULE_5__["default"].color;
     if (--color < 0) color = _config__WEBPACK_IMPORTED_MODULE_7__["hexPalette"].length - 1;
-    
+
     _player__WEBPACK_IMPORTED_MODULE_5__["default"].switchColor(color);
 });
 
@@ -22252,7 +22508,7 @@ const colorInc = new _Tool__WEBPACK_IMPORTED_MODULE_0__["default"]('right color'
 colorInc.on('down', function () {
     let color = _player__WEBPACK_IMPORTED_MODULE_5__["default"].color;
     if (++color >= _config__WEBPACK_IMPORTED_MODULE_7__["hexPalette"].length) color = 0;
-    
+
     _player__WEBPACK_IMPORTED_MODULE_5__["default"].switchColor(color);
 });
 
@@ -22266,7 +22522,7 @@ menuOpac.on('down', function () {
     Object(_actions__WEBPACK_IMPORTED_MODULE_10__["toggleTopMenu"])();
 });
 
-const allOpac = new _Tool__WEBPACK_IMPORTED_MODULE_0__["default"]('0/1 all except board', 186 /* ; */ );
+const allOpac = new _Tool__WEBPACK_IMPORTED_MODULE_0__["default"]('0/1 all except board', 186 /* ; */);
 allOpac.on('down', function () {
     Object(_actions__WEBPACK_IMPORTED_MODULE_10__["toggleEverything"])();
 });
@@ -22342,7 +22598,8 @@ const ctrlZ = new CtrlZ('ctrlZ', 'CTRL+' + 'Z'.charCodeAt());
     menuOpac,
     allOpac,
     ctrlZ,
-    protector
+    protector,
+    altProtector
 });
 
 /***/ }),
@@ -22447,7 +22704,7 @@ const userLanguage = languages[lang] || languages['en'];
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return User; });
+/* WEBPACK VAR INJECTION */(function(toastr) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return User; });
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./config */ "./src/js/config.js");
 /* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./camera */ "./src/js/camera.js");
 /* harmony import */ var _windows__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./windows */ "./src/js/windows.js");
@@ -22502,6 +22759,15 @@ class User {
             const req = await fetch('/api/userInfo?id=' + this.userId, {
             });
             const info = await req.json();
+
+            if(info.role !== undefined && _me__WEBPACK_IMPORTED_MODULE_5__["default"].role === _constants__WEBPACK_IMPORTED_MODULE_7__["ROLE"].ADMIN && _me__WEBPACK_IMPORTED_MODULE_5__["default"].id !== info.id){
+                const role = info.role;
+                let str = '';
+                Object.keys(_constants__WEBPACK_IMPORTED_MODULE_7__["ROLE"]).forEach(text => {
+                    str += `<option ${(text === role) ? 'selected' : ''}>${text}</option>`
+                })
+                info.role = `<select type="role">${str}<select>`
+            }
             
             // TODO: set values in specific order
             let infoArr = Object.keys(info).map(key => [key, info[key]]), misc = [];
@@ -22521,6 +22787,29 @@ class User {
 
                 $('.alertInput', win.body).val('');
                 _globals__WEBPACK_IMPORTED_MODULE_4__["default"].socket.sendAlert(this.id, val);
+            });
+
+            $('select[type=role]', win.body).on('change', async e => {
+                const role = e.target.value,
+                    userId = this.id;
+                const resp = await fetch('/api/admin/changerole', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        id: userId,
+                        role
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const body = await resp.json();
+                if(!body.success){
+                    body.errors.forEach(error => {
+                        toastr.error(error, 'ERROR');
+                    })
+                }else{
+                    toastr.success('Changed role to ' + role);
+                }
             })
         });
 
@@ -22545,6 +22834,7 @@ class User {
         this.element.remove();
     }
 }
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js")))
 
 /***/ }),
 
@@ -22552,14 +22842,14 @@ class User {
 /*!********************************!*\
   !*** ./src/js/utils/camera.js ***!
   \********************************/
-/*! exports provided: isAreaVisible, getVisibleChunks, visible */
+/*! exports provided: isAreaVisible, getVisibleChunks, inBounds */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isAreaVisible", function() { return isAreaVisible; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getVisibleChunks", function() { return getVisibleChunks; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "visible", function() { return visible; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "inBounds", function() { return inBounds; });
 /* harmony import */ var _camera__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../camera */ "./src/js/camera.js");
 /* harmony import */ var _misc__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./misc */ "./src/js/utils/misc.js");
 /* harmony import */ var _conversions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./conversions */ "./src/js/utils/conversions.js");
@@ -22603,8 +22893,8 @@ function getVisibleChunks() {
     return arr
 }
 
-function visible(x, y){
-    if(x < 0 || x > _config__WEBPACK_IMPORTED_MODULE_3__["boardWidth"] || y < 0 || y > _config__WEBPACK_IMPORTED_MODULE_3__["boardHeight"]) return false;
+function inBounds(x, y){
+    if(x < 0 || x >= _config__WEBPACK_IMPORTED_MODULE_3__["boardWidth"] || y < 0 || y >= _config__WEBPACK_IMPORTED_MODULE_3__["boardHeight"]) return false;
     return true;
 }
 
@@ -22718,6 +23008,168 @@ function boardToChunk(x, y) {
 function chunkToBoard(cx, cy, offx, offy) {
     return [cx * _config__WEBPACK_IMPORTED_MODULE_3__["chunkSize"] + offx, cy * _config__WEBPACK_IMPORTED_MODULE_3__["chunkSize"] + offy]
 }
+
+/***/ }),
+
+/***/ "./src/js/utils/cssColorsList.js":
+/*!***************************************!*\
+  !*** ./src/js/utils/cssColorsList.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+    "ALICEBLUE": "#F0F8FF",
+    "ANTIQUEWHITE": "#FAEBD7",
+    "AQUA": "#00FFFF",
+    "AQUAMARINE": "#7FFFD4",
+    "AZURE": "#F0FFFF",
+    "BEIGE": "#F5F5DC",
+    "BISQUE": "#FFE4C4",
+    "BLACK": "#000000",
+    "BLANCHEDALMOND": "#FFEBCD",
+    "BLUE": "#0000FF",
+    "BLUEVIOLET": "#8A2BE2",
+    "BROWN": "#A52A2A",
+    "BURLYWOOD": "#DEB887",
+    "CADETBLUE": "#5F9EA0",
+    "CHARTREUSE": "#7FFF00",
+    "CHOCOLATE": "#D2691E",
+    "CORAL": "#FF7F50",
+    "CORNFLOWERBLUE": "#6495ED",
+    "CORNSILK": "#FFF8DC",
+    "CRIMSON": "#DC143C",
+    "CYAN": "#00FFFF",
+    "DARKBLUE": "#00008B",
+    "DARKCYAN": "#008B8B",
+    "DARKGOLDENROD": "#B8860B",
+    "DARKGRAY": "#A9A9A9",
+    "DARKGREY": "#A9A9A9",
+    "DARKGREEN": "#006400",
+    "DARKKHAKI": "#BDB76B",
+    "DARKMAGENTA": "#8B008B",
+    "DARKOLIVEGREEN": "#556B2F",
+    "DARKORANGE": "#FF8C00",
+    "DARKORCHID": "#9932CC",
+    "DARKRED": "#8B0000",
+    "DARKSALMON": "#E9967A",
+    "DARKSEAGREEN": "#8FBC8F",
+    "DARKSLATEBLUE": "#483D8B",
+    "DARKSLATEGRAY": "#2F4F4F",
+    "DARKSLATEGREY": "#2F4F4F",
+    "DARKTURQUOISE": "#00CED1",
+    "DARKVIOLET": "#9400D3",
+    "DEEPPINK": "#FF1493",
+    "DEEPSKYBLUE": "#00BFFF",
+    "DIMGRAY": "#696969",
+    "DIMGREY": "#696969",
+    "DODGERBLUE": "#1E90FF",
+    "FIREBRICK": "#B22222",
+    "FLORALWHITE": "#FFFAF0",
+    "FORESTGREEN": "#228B22",
+    "FUCHSIA": "#FF00FF",
+    "GAINSBORO": "#DCDCDC",
+    "GHOSTWHITE": "#F8F8FF",
+    "GOLD": "#FFD700",
+    "GOLDENROD": "#DAA520",
+    "GRAY": "#808080",
+    "GREY": "#808080",
+    "GREEN": "#008000",
+    "GREENYELLOW": "#ADFF2F",
+    "HONEYDEW": "#F0FFF0",
+    "HOTPINK": "#FF69B4",
+    "INDIANRED": "#CD5C5C",
+    "INDIGO": "#4B0082",
+    "IVORY": "#FFFFF0",
+    "KHAKI": "#F0E68C",
+    "LAVENDER": "#E6E6FA",
+    "LAVENDERBLUSH": "#FFF0F5",
+    "LAWNGREEN": "#7CFC00",
+    "LEMONCHIFFON": "#FFFACD",
+    "LIGHTBLUE": "#ADD8E6",
+    "LIGHTCORAL": "#F08080",
+    "LIGHTCYAN": "#E0FFFF",
+    "LIGHTGOLDENRODYELLOW": "#FAFAD2",
+    "LIGHTGRAY": "#D3D3D3",
+    "LIGHTGREY": "#D3D3D3",
+    "LIGHTGREEN": "#90EE90",
+    "LIGHTPINK": "#FFB6C1",
+    "LIGHTSALMON": "#FFA07A",
+    "LIGHTSEAGREEN": "#20B2AA",
+    "LIGHTSKYBLUE": "#87CEFA",
+    "LIGHTSLATEGRAY": "#778899",
+    "LIGHTSLATEGREY": "#778899",
+    "LIGHTSTEELBLUE": "#B0C4DE",
+    "LIGHTYELLOW": "#FFFFE0",
+    "LIME": "#00FF00",
+    "LIMEGREEN": "#32CD32",
+    "LINEN": "#FAF0E6",
+    "MAGENTA": "#FF00FF",
+    "MAROON": "#800000",
+    "MEDIUMAQUAMARINE": "#66CDAA",
+    "MEDIUMBLUE": "#0000CD",
+    "MEDIUMORCHID": "#BA55D3",
+    "MEDIUMPURPLE": "#9370DB",
+    "MEDIUMSEAGREEN": "#3CB371",
+    "MEDIUMSLATEBLUE": "#7B68EE",
+    "MEDIUMSPRINGGREEN": "#00FA9A",
+    "MEDIUMTURQUOISE": "#48D1CC",
+    "MEDIUMVIOLETRED": "#C71585",
+    "MIDNIGHTBLUE": "#191970",
+    "MINTCREAM": "#F5FFFA",
+    "MISTYROSE": "#FFE4E1",
+    "MOCCASIN": "#FFE4B5",
+    "NAVAJOWHITE": "#FFDEAD",
+    "NAVY": "#000080",
+    "OLDLACE": "#FDF5E6",
+    "OLIVE": "#808000",
+    "OLIVEDRAB": "#6B8E23",
+    "ORANGE": "#FFA500",
+    "ORANGERED": "#FF4500",
+    "ORCHID": "#DA70D6",
+    "PALEGOLDENROD": "#EEE8AA",
+    "PALEGREEN": "#98FB98",
+    "PALETURQUOISE": "#AFEEEE",
+    "PALEVIOLETRED": "#DB7093",
+    "PAPAYAWHIP": "#FFEFD5",
+    "PEACHPUFF": "#FFDAB9",
+    "PERU": "#CD853F",
+    "PINK": "#FFC0CB",
+    "PLUM": "#DDA0DD",
+    "POWDERBLUE": "#B0E0E6",
+    "PURPLE": "#800080",
+    "REBECCAPURPLE": "#663399",
+    "RED": "#FF0000",
+    "ROSYBROWN": "#BC8F8F",
+    "ROYALBLUE": "#4169E1",
+    "SADDLEBROWN": "#8B4513",
+    "SALMON": "#FA8072",
+    "SANDYBROWN": "#F4A460",
+    "SEAGREEN": "#2E8B57",
+    "SEASHELL": "#FFF5EE",
+    "SIENNA": "#A0522D",
+    "SILVER": "#C0C0C0",
+    "SKYBLUE": "#87CEEB",
+    "SLATEBLUE": "#6A5ACD",
+    "SLATEGRAY": "#708090",
+    "SLATEGREY": "#708090",
+    "SNOW": "#FFFAFA",
+    "SPRINGGREEN": "#00FF7F",
+    "STEELBLUE": "#4682B4",
+    "TAN": "#D2B48C",
+    "TEAL": "#008080",
+    "THISTLE": "#D8BFD8",
+    "TOMATO": "#FF6347",
+    "TURQUOISE": "#40E0D0",
+    "VIOLET": "#EE82EE",
+    "WHEAT": "#F5DEB3",
+    "WHITE": "#FFFFFF",
+    "WHITESMOKE": "#F5F5F5",
+    "YELLOW": "#FFFF00",
+    "YELLOWGREEN": "#9ACD32"
+});
 
 /***/ }),
 
@@ -23130,9 +23582,13 @@ function gameSettings() {
             `<input type="checkbox" id="customBrushSize" ${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize > 1 ? 'checked' : ''}>
             <input id="brushSize" type="range" value="${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize}" ` +
             `${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize == 1 ? 'disabled' : ''} min="2" ` +
-            `max="${_me__WEBPACK_IMPORTED_MODULE_2__["default"].role === _constants__WEBPACK_IMPORTED_MODULE_6__["ROLE"].ADMIN ? 20 : 8}" step="2">` +
+            `max="${_me__WEBPACK_IMPORTED_MODULE_2__["default"].role === _constants__WEBPACK_IMPORTED_MODULE_6__["ROLE"].ADMIN ? 20 : 10}" step="2">` +
             `<span id="brushSizeCounter">${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize}<span>`
         ],
+        [
+            Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('max saved pixels'),
+            `<input id="savePixelsInp" type="number" min="0" value="${_player__WEBPACK_IMPORTED_MODULE_9__["default"].maxPlaced}" style="width:4rem">`
+        ]
     ]);
 
     $(win.body).append(table);
@@ -23168,6 +23624,15 @@ function gameSettings() {
 
         $('#brushSizeCounter').text(size);
     }
+
+    $('#savePixelsInp').on('change', e => {
+        e = e.target;
+        if(+e.value < 0) e.value = 0;
+
+        _player__WEBPACK_IMPORTED_MODULE_9__["default"].maxPlaced = +e.value;
+        localStorage.setItem('game.maxPlaced', _player__WEBPACK_IMPORTED_MODULE_9__["default"].maxPlaced)
+    })
+
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
