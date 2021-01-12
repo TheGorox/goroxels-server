@@ -153,157 +153,169 @@ class Server {
         if (typeof message === 'string') {
             logger.debug('Got string message: ' + message);
 
-            this.handleStringMessage(message, client);
+            try{
+                this.handleStringMessage(message, client);
+            }catch(e){
+                logger.error(e, client.user)
+            }
         } else {
-            switch (message.readUInt8(0)) {
-                case OPCODES.chunk: {
-                    if (client.state === 0) {
-                        return client.sendError('Canvas must be chosen, you, dirty botter');
-                    }
+            try{
+                this.handleBinaryMessage(message, client);
+            }catch(e){
+                logger.error(e, client.user)
+            }
+        }
+    }
 
-                    const cx = message.readUInt8(1),
-                        cy = message.readUInt8(2);
-
-                    const canvas = client.canvas;
-
-                    if (cx < 0 || cy < 0 || cx >= canvas.width || cy >= canvas.height) {
-                        return client.sendError('Chunk coordinates out of bounds');
-                    }
-
-                    const chunkManager = canvas.chunkManager;
-
-                    let chunkData = chunkManager.getChunkData(cx, cy);
-
-                    client.send(createPacket.chunkSend(cx, cy, chunkData));
-
-                    break
+    handleBinaryMessage(message, client){
+        switch (message.readUInt8(0)) {
+            case OPCODES.chunk: {
+                if (client.state === 0) {
+                    return client.sendError('Canvas must be chosen, you, dirty botter');
                 }
 
-                case OPCODES.place: {
-                    if (client.state === STATES.CANVAS_NOT_CHOSEN) {
-                        return client.sendError('Canvas must be chosen, you, dirty botter');
-                    } else if (client.state === STATES.CAPTCHA) {
-                        return client.sendError('error.captcha');
-                    }
+                const cx = message.readUInt8(1),
+                    cy = message.readUInt8(2);
 
-                    if (!client.bucket.spend(1)) {
+                const canvas = client.canvas;
+
+                if (cx < 0 || cy < 0 || cx >= canvas.width || cy >= canvas.height) {
+                    return client.sendError('Chunk coordinates out of bounds');
+                }
+
+                const chunkManager = canvas.chunkManager;
+
+                let chunkData = chunkManager.getChunkData(cx, cy);
+
+                client.send(createPacket.chunkSend(cx, cy, chunkData));
+
+                break
+            }
+
+            case OPCODES.place: {
+                if (client.state === STATES.CANVAS_NOT_CHOSEN) {
+                    return client.sendError('Canvas must be chosen, you, dirty botter');
+                } else if (client.state === STATES.CAPTCHA) {
+                    return client.sendError('error.captcha');
+                }
+
+                if (!client.bucket.spend(1)) {
+                    return
+                };
+
+                const canvas = client.canvas;
+
+                const [x, y, c] = unpackPixel(message.readUInt32BE(1));
+
+                if (x < 0 || x >= canvas.realWidth ||
+                    y < 0 || y >= canvas.realHeight ||
+                    c < 0 || c >= canvas.palette.length) return;
+
+
+                const oldPixel = canvas.chunkManager.getChunkPixel(x, y);
+
+                if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.MOD) ||
+                    (oldPixel & 0x7F === c)) {
+                    return;
+                }
+
+                canvas.chunkManager.setChunkPixel(x, y, c);
+
+                // todo not pack pixel again
+                const pixel = createPacket.pixelSend(x, y, c & 0x7F, client.id);
+                this.broadcastPixel(canvas, pixel);
+
+                break
+            }
+            case OPCODES.pixels: {
+                if (!client.user) return;
+
+                if (client.state === STATES.CANVAS_NOT_CHOSEN) {
+                    return client.sendError('Canvas must be chosen, you, dirty botter');
+                } else if (client.state === STATES.CAPTCHA) {
+                    return client.sendError('error.captcha');
+                } else {
+                    const isProtect = !!message.readUInt8(1);
+                    if (isProtect && ROLE[client.user.role] < ROLE.MOD) {
+                        logger.info(`User ${client.user.name} tried to protect many pixels`);
                         return
-                    };
-
-                    const canvas = client.canvas;
-
-                    const [x, y, c] = unpackPixel(message.readUInt32BE(1));
-
-                    if (x < 0 || x >= canvas.realWidth ||
-                        y < 0 || y >= canvas.realHeight ||
-                        c < 0 || c >= canvas.palette.length) return;
-
-
-                    const oldPixel = canvas.chunkManager.getChunkPixel(x, y);
-
-                    if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.MOD) ||
-                        (oldPixel & 0x7F === c)) {
-                        return;
                     }
 
-                    canvas.chunkManager.setChunkPixel(x, y, c);
+                    const {
+                        realWidth, realHeight
+                    } = client.canvas;
+                    const max = isProtect ? 1 : client.canvas.palette.length;
 
-                    // todo not pack pixel again
-                    const pixel = createPacket.pixelSend(x, y, c & 0x7F, client.id);
-                    this.broadcastPixel(canvas, pixel);
+                    const pxlsCount = (message.length - 6) / 4;
 
-                    break
-                }
-                case OPCODES.pixels: {
-                    if (!client.user) return;
+                    if (!isProtect && !client.bucket.spend(pxlsCount)) {
+                        return
+                    }
 
-                    if (client.state === STATES.CANVAS_NOT_CHOSEN) {
-                        return client.sendError('Canvas must be chosen, you, dirty botter');
-                    } else if (client.state === STATES.CAPTCHA) {
-                        return client.sendError('error.captcha');
-                    } else {
-                        const isProtect = !!message.readUInt8(1);
-                        if (isProtect && ROLE[client.user.role] < ROLE.MOD) {
-                            logger.info(`User ${client.user.name} tried to protect many pixels`);
+                    for (let i = 6; i < message.length; i += 4) {
+                        let [
+                            x, y, clr
+                        ] = unpackPixel(message.readUInt32BE(i));
+
+                        if (clr < 0 || clr > max) {
                             return
                         }
 
-                        const {
-                            realWidth, realHeight
-                        } = client.canvas;
-                        const max = isProtect ? 1 : client.canvas.palette.length;
+                        if (x < 0 || x >= realWidth ||
+                            y < 0 || y >= realHeight) return;
 
-                        const pxlsCount = (message.length - 6) / 4;
+                        if(ROLE[client.user.role] < ROLE.MOD){
+                            const oldPixel = client.canvas.chunkManager.getChunkPixel(x, y);
 
-                        if (!isProtect && !client.bucket.spend(pxlsCount)) {
-                            return
-                        }
-
-                        for (let i = 6; i < message.length; i += 4) {
-                            let [
-                                x, y, clr
-                            ] = unpackPixel(message.readUInt32BE(i));
-
-                            if (clr < 0 || clr > max) {
-                                return
-                            }
-
-                            if (x < 0 || x >= realWidth ||
-                                y < 0 || y >= realHeight) return;
-
-                            if(ROLE[client.user.role] < ROLE.MOD){
-                                const oldPixel = client.canvas.chunkManager.getChunkPixel(x, y);
-
-                                if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.ADMIN) ||
-                                    (oldPixel & 0x7F === clr)) {
-                                    continue;
-                                }
-                            }
-                            
-                            if (isProtect) {
-                                client.canvas.chunkManager.setPixelProtected(x, y, clr);
-                            } else {
-                                client.canvas.chunkManager.setChunkPixel(x, y, clr);
+                            if (((oldPixel & 0x80) && ROLE[client.user.role] < ROLE.ADMIN) ||
+                                (oldPixel & 0x7F === clr)) {
+                                continue;
                             }
                         }
-
-                        message.writeUInt32BE(client.id, 2);
-
-                        this.broadcastPixels(client.canvas, message);
-                    }
-                    break
-                }
-                case OPCODES.canvas: {
-                    const canvas = message.readUInt8(1);
-
-                    // unsigned but i don't care
-                    if (canvas < 0 || canvas >= this.canvases.length) {
-                        return client.send('Wrong canvas number');
-                    }
-
-                    client.canvas = this.canvases[canvas];
-
-                    if (captchaEnabled) {
-                        client.state = STATES.CAPTCHA
-                    } else {
-                        client.state = STATES.READY
-                    }
-
-                    let cooldown;
-                    if (client.user) {
-                        if (client.user.role === 'admin') {
-                            cooldown = [0, 32];
+                        
+                        if (isProtect) {
+                            client.canvas.chunkManager.setPixelProtected(x, y, clr);
                         } else {
-                            cooldown = client.canvas.cooldown.USER
+                            client.canvas.chunkManager.setChunkPixel(x, y, clr);
                         }
-                    } else {
-                        cooldown = client.canvas.cooldown.GUEST
                     }
 
-                    client.bucket = new Bucket(...cooldown);
+                    message.writeUInt32BE(client.id, 2);
 
-                    break
+                    this.broadcastPixels(client.canvas, message);
                 }
+                break
+            }
+            case OPCODES.canvas: {
+                const canvas = message.readUInt8(1);
+
+                // unsigned but i don't care
+                if (canvas < 0 || canvas >= this.canvases.length) {
+                    return client.send('Wrong canvas number');
+                }
+
+                client.canvas = this.canvases[canvas];
+
+                if (captchaEnabled) {
+                    client.state = STATES.CAPTCHA
+                } else {
+                    client.state = STATES.READY
+                }
+
+                let cooldown;
+                if (client.user) {
+                    if (client.user.role === 'admin') {
+                        cooldown = [0, 32];
+                    } else {
+                        cooldown = client.canvas.cooldown.USER
+                    }
+                } else {
+                    cooldown = client.canvas.cooldown.GUEST
+                }
+
+                client.bucket = new Bucket(...cooldown);
+
+                break
             }
         }
     }

@@ -19691,10 +19691,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _protocol__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./protocol */ "./src/js/protocol.js");
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./config */ "./src/js/config.js");
 /* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./globals */ "./src/js/globals.js");
-/* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./actions */ "./src/js/actions.js");
-/* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./user */ "./src/js/user.js");
-/* harmony import */ var _chat__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./chat */ "./src/js/chat.js");
-
+/* harmony import */ var _user__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./user */ "./src/js/user.js");
+/* harmony import */ var _chat__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./chat */ "./src/js/chat.js");
 
 
 
@@ -19730,8 +19728,6 @@ class Socket extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
 
             this.emit('opened');
             console.log('Socket has been connected');
-
-            Object(_actions__WEBPACK_IMPORTED_MODULE_5__["updateMe"])();
         }
 
         this.socket.onmessage = this.onmessage.bind(this);
@@ -19778,7 +19774,7 @@ class Socket extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
 
                 if (_globals__WEBPACK_IMPORTED_MODULE_4__["default"].users[id]) _globals__WEBPACK_IMPORTED_MODULE_4__["default"].users[id].destroy();
 
-                _globals__WEBPACK_IMPORTED_MODULE_4__["default"].users[id] = new _user__WEBPACK_IMPORTED_MODULE_6__["default"](name, id, userId, registered);
+                _globals__WEBPACK_IMPORTED_MODULE_4__["default"].users[id] = new _user__WEBPACK_IMPORTED_MODULE_5__["default"](name, id, userId, registered);
 
                 break
             }
@@ -19798,7 +19794,7 @@ class Socket extends events__WEBPACK_IMPORTED_MODULE_0___default.a {
             }
 
             case _protocol__WEBPACK_IMPORTED_MODULE_2__["STRING_OPCODES"].chatMessage: {
-                _chat__WEBPACK_IMPORTED_MODULE_7__["default"].addMessage(decoded)
+                _chat__WEBPACK_IMPORTED_MODULE_6__["default"].addMessage(decoded)
 
                 break
             }
@@ -20846,6 +20842,10 @@ class Chat {
         $('chatColored').toggleClass('noColor', state);
     }
 
+    setShowColors(){
+
+    }
+
     parseColors(str) {
         // colors should be formatted like: [RED]test or [#FF0000]te[]st
 
@@ -20910,7 +20910,7 @@ class Chat {
 
         this.element.append(msgEl);
 
-        this.element[0].scrollBy(0, 999);
+        this.afterAddingMessage();
     }
 
     addLocalMessage(text) {
@@ -20923,11 +20923,18 @@ class Chat {
 
         this.element.append(msgEl);
 
-        this.element[0].scrollBy(0, 999);
+        this.afterAddingMessage();
     }
 
     addServerMessage(text) {
         this.addLocalMessage(text)
+    }
+
+    afterAddingMessage(){
+        if(this.element.children().length > _config__WEBPACK_IMPORTED_MODULE_0__["game"].chatLimit){
+            this.element.children()[0].remove();
+        }
+        this.element[0].scrollBy(0, 999);
     }
 
     // handles messages to send
@@ -20992,7 +20999,7 @@ class Chat {
     }
 }
 
-/* harmony default export */ __webpack_exports__["default"] = (new Chat());
+/* harmony default export */ __webpack_exports__["default"] = (_globals__WEBPACK_IMPORTED_MODULE_1__["default"].chat = new Chat());
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
@@ -21001,7 +21008,7 @@ class Chat {
 /*!**************************!*\
   !*** ./src/js/config.js ***!
   \**************************/
-/*! exports provided: canvasId, chunkSize, boardWidth, boardHeight, palette, minZoom, maxZoom, bgrPalette, hexPalette, boardChunkWid, boardChunkHei, cooldown, argbToId */
+/*! exports provided: canvasId, chunkSize, boardWidth, boardHeight, palette, minZoom, maxZoom, bgrPalette, hexPalette, boardChunkWid, boardChunkHei, cooldown, game, argbToId */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -21018,10 +21025,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "boardChunkWid", function() { return boardChunkWid; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "boardChunkHei", function() { return boardChunkHei; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cooldown", function() { return cooldown; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "game", function() { return game; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "argbToId", function() { return argbToId; });
 /* harmony import */ var _shared_config_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../shared/config.json */ "./shared/config.json");
 var _shared_config_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpack_require__.t(/*! ../../shared/config.json */ "./shared/config.json", 1);
 /* harmony import */ var _utils_color__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/color */ "./src/js/utils/color.js");
+/* harmony import */ var _utils_localStorage__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/localStorage */ "./src/js/utils/localStorage.js");
+
 
 
 
@@ -21046,6 +21056,11 @@ const
     boardChunkWid = canvasConf.boardWidth,
     boardChunkHei = canvasConf.boardHeight,
     cooldown = canvasConf.cooldown;
+
+const game = {
+    disableColors: JSON.parse(Object(_utils_localStorage__WEBPACK_IMPORTED_MODULE_2__["getOrDefault"])('disableColors', false)),
+    chatLimit: parseInt(Object(_utils_localStorage__WEBPACK_IMPORTED_MODULE_2__["getOrDefault"])('chatLimit', 100), 10)
+}
 
 const argbToId = {};
 Array.from(bgrPalette.values()).forEach((argb, i) => argbToId[argb] = i)
@@ -21555,7 +21570,7 @@ __webpack_require__.r(__webpack_exports__);
         this.bucket = new _Bucket__WEBPACK_IMPORTED_MODULE_1__["default"](delay, max);
     },
     placed: [],
-    maxPlaced: isNaN(+localStorage['game.maxPlaced']) ? 500 : +localStorage['game.maxPlaced']
+    maxPlaced: isNaN(+localStorage['maxPlaced']) ? 500 : +localStorage['maxPlaced']
 });
 
 window.player = player
@@ -23361,17 +23376,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "keyBinds", function() { return keyBinds; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "uiSettings", function() { return uiSettings; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "gameSettings", function() { return gameSettings; });
-/* harmony import */ var _Window__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Window */ "./src/js/Window.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/js/constants.js");
 /* harmony import */ var _translate__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./translate */ "./src/js/translate.js");
-/* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./me */ "./src/js/me.js");
-/* harmony import */ var toastr__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js");
-/* harmony import */ var toastr__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(toastr__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _tools__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./tools */ "./src/js/tools.js");
+/* harmony import */ var _Window__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Window */ "./src/js/Window.js");
+/* harmony import */ var _utils_misc__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils/misc */ "./src/js/utils/misc.js");
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./config */ "./src/js/config.js");
 /* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./globals */ "./src/js/globals.js");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constants */ "./src/js/constants.js");
-/* harmony import */ var _utils_misc__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./utils/misc */ "./src/js/utils/misc.js");
+/* harmony import */ var _me__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./me */ "./src/js/me.js");
+/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./player */ "./src/js/player.js");
 /* harmony import */ var _actions__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./actions */ "./src/js/actions.js");
-/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./player */ "./src/js/player.js");
+/* harmony import */ var toastr__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js");
+/* harmony import */ var toastr__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(toastr__WEBPACK_IMPORTED_MODULE_9__);
+/* harmony import */ var _tools__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./tools */ "./src/js/tools.js");
+/* harmony import */ var _chat__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./chat */ "./src/js/chat.js");
+
+
+
 
 
 
@@ -23402,18 +23422,18 @@ function generateTable(arr = []) {
 }
 
 function getKeyAsString(keyCode) {
-    return _constants__WEBPACK_IMPORTED_MODULE_6__["keys"][keyCode] || String.fromCharCode(keyCode)
+    return _constants__WEBPACK_IMPORTED_MODULE_0__["keys"][keyCode] || String.fromCharCode(keyCode)
 }
 
 function accountSettings() {
-    const settingsWin = new _Window__WEBPACK_IMPORTED_MODULE_0__["default"]({
+    const settingsWin = new _Window__WEBPACK_IMPORTED_MODULE_2__["default"]({
         title: Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('account_settings'),
         center: true
     });
     if (!settingsWin.created) return;
 
     let html = generateTable([
-        [Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('role'), _constants__WEBPACK_IMPORTED_MODULE_6__["ROLE_I"][_me__WEBPACK_IMPORTED_MODULE_2__["default"].role].toUpperCase()],
+        [Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('role'), _constants__WEBPACK_IMPORTED_MODULE_0__["ROLE_I"][_me__WEBPACK_IMPORTED_MODULE_6__["default"].role].toUpperCase()],
         [
             Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('change_name'),
             `<input type="text" id="name" style="width:50%"><button id="changeName">yes</button>`
@@ -23425,19 +23445,19 @@ function accountSettings() {
 
     $(settingsWin.body).append(html);
 
-    $('#name').val(_me__WEBPACK_IMPORTED_MODULE_2__["default"].name)
+    $('#name').val(_me__WEBPACK_IMPORTED_MODULE_6__["default"].name)
     $('#changeName').on('click', () => {
         console.log('click')
         const newName = $('#name').val();
 
-        if (!_me__WEBPACK_IMPORTED_MODULE_2__["default"].registered) {
-            return toastr__WEBPACK_IMPORTED_MODULE_3___default.a.error('Hey wtf', '0_o');
+        if (!_me__WEBPACK_IMPORTED_MODULE_6__["default"].registered) {
+            return toastr__WEBPACK_IMPORTED_MODULE_9___default.a.error('Hey wtf', '0_o');
         }
         if (newName.length < 0 || newName.length > 32) {
-            return toastr__WEBPACK_IMPORTED_MODULE_3___default.a.error('Name length is not 0 < length < 32', 'Name change')
+            return toastr__WEBPACK_IMPORTED_MODULE_9___default.a.error('Name length is not 0 < length < 32', 'Name change')
         }
-        if (_me__WEBPACK_IMPORTED_MODULE_2__["default"].name === newName) {
-            return toastr__WEBPACK_IMPORTED_MODULE_3___default.a.error('Name is the same as was', 'Name change')
+        if (_me__WEBPACK_IMPORTED_MODULE_6__["default"].name === newName) {
+            return toastr__WEBPACK_IMPORTED_MODULE_9___default.a.error('Name is the same as was', 'Name change')
         }
 
         fetch('/api/changename', {
@@ -23452,10 +23472,10 @@ function accountSettings() {
         }).then(async r => {
             const result = await r.json();
             if (result.success) {
-                toastr__WEBPACK_IMPORTED_MODULE_3___default.a.success('Name successfully changed')
+                toastr__WEBPACK_IMPORTED_MODULE_9___default.a.success('Name successfully changed')
             } else {
                 result.errors.map(e => {
-                    toastr__WEBPACK_IMPORTED_MODULE_3___default.a.error(e, 'Name change error')
+                    toastr__WEBPACK_IMPORTED_MODULE_9___default.a.error(e, 'Name change error')
                 })
             }
         })
@@ -23463,7 +23483,7 @@ function accountSettings() {
 }
 
 function keyBinds() {
-    const keysWin = new _Window__WEBPACK_IMPORTED_MODULE_0__["default"]({
+    const keysWin = new _Window__WEBPACK_IMPORTED_MODULE_2__["default"]({
         title: Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('toolbinds_settings'),
         center: true
     });
@@ -23471,7 +23491,7 @@ function keyBinds() {
 
     let table = generateTable();
 
-    for (const tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_4__["default"])) {
+    for (const tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_10__["default"])) {
         if (!tool.key) continue;
 
         const tableRow = $(
@@ -23511,7 +23531,7 @@ function keyBinds() {
             input.val(getKeyAsString(e.keyCode));
 
             // removing same values
-            for (let _tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_4__["default"])) {
+            for (let _tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_10__["default"])) {
                 if (tool.name != _tool.name && _tool.key == key) {
                     $('#MODS-' + _tool.name).text('')
                     $('#KEY-' + _tool.name).val('')
@@ -23527,7 +23547,7 @@ function keyBinds() {
             // saving ALL key binds
             let toSave = {};
 
-            for (const tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_4__["default"])) {
+            for (const tool of Object.values(_tools__WEBPACK_IMPORTED_MODULE_10__["default"])) {
                 if (!tool.key) continue;
 
                 toSave[tool.name] = tool.key;
@@ -23536,7 +23556,7 @@ function keyBinds() {
             localStorage.setItem('keyBinds', JSON.stringify(toSave));
         });
 
-        const parsed = Object(_utils_misc__WEBPACK_IMPORTED_MODULE_7__["decodeKey"])(tool.key);
+        const parsed = Object(_utils_misc__WEBPACK_IMPORTED_MODULE_3__["decodeKey"])(tool.key);
 
         modsElement.text((parsed.alt ? 'ALT + ' : '') + (parsed.ctrl ? 'CTRL + ' : ''));
 
@@ -23547,7 +23567,7 @@ function keyBinds() {
 }
 
 function uiSettings() {
-    const setWin = new _Window__WEBPACK_IMPORTED_MODULE_0__["default"]({
+    const setWin = new _Window__WEBPACK_IMPORTED_MODULE_2__["default"]({
         title: Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('UI Settings'),
         center: true
     });
@@ -23566,7 +23586,7 @@ function uiSettings() {
 }
 
 function gameSettings() {
-    const win = new _Window__WEBPACK_IMPORTED_MODULE_0__["default"]({
+    const win = new _Window__WEBPACK_IMPORTED_MODULE_2__["default"]({
         title: Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('Game Settings'),
         center: true
     });
@@ -23575,19 +23595,27 @@ function gameSettings() {
     const table = generateTable([
         [
             Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('show protected'),
-            `<input type="checkbox" id="showProtected" ${_globals__WEBPACK_IMPORTED_MODULE_5__["default"].showProtected ? 'checked' : ''}>`
+            `<input type="checkbox" id="showProtected" ${_config__WEBPACK_IMPORTED_MODULE_4__["game"].showProtected ? 'checked' : ''}>`
         ],
         [
             Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('brush size'),
-            `<input type="checkbox" id="customBrushSize" ${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize > 1 ? 'checked' : ''}>
-            <input id="brushSize" type="range" value="${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize}" ` +
-            `${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize == 1 ? 'disabled' : ''} min="2" ` +
-            `max="${_me__WEBPACK_IMPORTED_MODULE_2__["default"].role === _constants__WEBPACK_IMPORTED_MODULE_6__["ROLE"].ADMIN ? 20 : 10}" step="2">` +
-            `<span id="brushSizeCounter">${_player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize}<span>`
+            `<input type="checkbox" id="customBrushSize" ${_player__WEBPACK_IMPORTED_MODULE_7__["default"].brushSize > 1 ? 'checked' : ''}>
+            <input id="brushSize" type="range" value="${_player__WEBPACK_IMPORTED_MODULE_7__["default"].brushSize}" ` +
+            `${_player__WEBPACK_IMPORTED_MODULE_7__["default"].brushSize == 1 ? 'disabled' : ''} min="2" ` +
+            `max="${_me__WEBPACK_IMPORTED_MODULE_6__["default"].role === _constants__WEBPACK_IMPORTED_MODULE_0__["ROLE"].ADMIN ? 20 : 10}" step="2">` +
+            `<span id="brushSizeCounter">${_player__WEBPACK_IMPORTED_MODULE_7__["default"].brushSize}<span>`
         ],
         [
             Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('max saved pixels'),
-            `<input id="savePixelsInp" type="number" min="0" value="${_player__WEBPACK_IMPORTED_MODULE_9__["default"].maxPlaced}" style="width:4rem">`
+            `<input id="savePixelsInp" type="number" min="0" value="${_player__WEBPACK_IMPORTED_MODULE_7__["default"].maxPlaced}" style="width:4rem">`
+        ],
+        [
+            Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('disable chat colors'),
+            `<input type="checkbox" id="disableChatColors" ${_config__WEBPACK_IMPORTED_MODULE_4__["game"].disableColors ? 'checked' : ''}>`
+        ],
+        [
+            Object(_translate__WEBPACK_IMPORTED_MODULE_1__["translate"])('chat messages limit'),
+            `<input type="number" id="chatLimit" value="${_config__WEBPACK_IMPORTED_MODULE_4__["game"].chatLimit}" title="maximum messages in chat">`
         ]
     ]);
 
@@ -23595,7 +23623,7 @@ function gameSettings() {
 
     $('#showProtected').on('change', e => {
         const show = e.target.checked;
-        _globals__WEBPACK_IMPORTED_MODULE_5__["default"].showProtected = show;
+        _config__WEBPACK_IMPORTED_MODULE_4__["game"].showProtected = show;
         Object(_actions__WEBPACK_IMPORTED_MODULE_8__["showProtected"])(show);
     });
 
@@ -23617,7 +23645,7 @@ function gameSettings() {
     })
 
     function updateBrush(size) {
-        _player__WEBPACK_IMPORTED_MODULE_9__["default"].brushSize = +size;
+        _player__WEBPACK_IMPORTED_MODULE_7__["default"].brushSize = +size;
         _globals__WEBPACK_IMPORTED_MODULE_5__["default"].fxRenderer.needRender = true;
 
         _globals__WEBPACK_IMPORTED_MODULE_5__["default"].renderer.preRenderBrush();
@@ -23629,10 +23657,27 @@ function gameSettings() {
         e = e.target;
         if(+e.value < 0) e.value = 0;
 
-        _player__WEBPACK_IMPORTED_MODULE_9__["default"].maxPlaced = +e.value;
-        localStorage.setItem('game.maxPlaced', _player__WEBPACK_IMPORTED_MODULE_9__["default"].maxPlaced)
+        _player__WEBPACK_IMPORTED_MODULE_7__["default"].maxPlaced = +e.value;
+        localStorage.setItem('maxPlaced', _player__WEBPACK_IMPORTED_MODULE_7__["default"].maxPlaced)
+    });
+
+    $('#disableChatColors').on('change', e => {
+        const checked = e.target.checked
+
+        _config__WEBPACK_IMPORTED_MODULE_4__["game"].disableColors = checked;
+        localStorage.setItem('disableColors', checked.toString());
+
+        _chat__WEBPACK_IMPORTED_MODULE_11__["default"].setColors(checked)
     })
 
+    $('#chatLimit').on('change', e => {
+        const value = parseInt(e.target.value, 10);
+        if(isNaN(value) || value < 1) return;
+
+        localStorage.setItem('chatLimit', value.toString());
+
+        _config__WEBPACK_IMPORTED_MODULE_4__["game"].chatLimit = value;
+    })
 }
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
