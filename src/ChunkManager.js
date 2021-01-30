@@ -23,8 +23,7 @@ class ChunkManager {
 
         this.dataPath = path.resolve(chunkdataPath, this.canvas.id.toString());
 
-        this.chunks = new Object();
-        // Map would be faster in often insert/deletion case, but not in gets
+        this.chunks = {};
 
         setInterval(this.saveAll.bind(this), 60000);
     }
@@ -51,7 +50,7 @@ class ChunkManager {
         if (fs.existsSync(chunkPath)) {
             chunkData = Chunk.fromBuffer(fs.readFileSync(chunkPath).buffer);
             if (chunkData.length != this.chunkSize * this.chunkSize) {
-                logger.warn(`Wrong chunk size. Removing this (${x}, ${y}) chunk`);
+                logger.warn(`Wrong chunk size. Removing (${x}, ${y}) chunk`);
 
                 // TODO move to async
                 fs.unlinkSync(chunkPath);
@@ -95,8 +94,8 @@ class ChunkManager {
 
         // backups should be separated by folders. ?
 
-        const date = new Date();
-        const dateString = date.toISOString().replace(/:/g, '-').replace('T', ' ').replace('Z', '');;
+        // const date = new Date();
+        const dateString = Date.now().toString();
         const finallyBackupPath = path.resolve(canvasBackupPath, dateString);
 
         fs.mkdirSync(finallyBackupPath);
