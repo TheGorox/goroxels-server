@@ -87,6 +87,7 @@ class ChunkManager {
     }
 
     backup() {
+        // test
         const canvasBackupPath = path.resolve(backupPath, this.canvas.id.toString());
 
         if (!fs.existsSync(backupPath)) fs.mkdirSync(backupPath);
