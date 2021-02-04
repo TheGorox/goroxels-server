@@ -2,9 +2,10 @@ const express = require('express');
 const User = require('../../db/models/User');
 const logger = require('../../logger')('API');
 
-const router = express.Router();
-
 const rateLimit = require('express-rate-limit');
+const roleRequired = require('../roleRequired');
+
+const router = express.Router();
 
 // limit to 15 minutes
 const limiter = rateLimit({
@@ -14,18 +15,15 @@ const limiter = rateLimit({
 
 function error(res, error) {
     res.json({
-        success: false,
         errors: [error]
     })
 }
 
 router.use(limiter);
 
-router.post('/', async (req, res) => {
-    if (!req.user) {
-        return error(res, 'not registered')
-    }
+router.use(roleRequired.user)
 
+router.post('/', async (req, res) => {
     const newName = req.body.name;
 
     if (!newName) {
@@ -44,7 +42,6 @@ router.post('/', async (req, res) => {
             name: newName
         }
     });
-    console.log(exists)
 
     if (exists) {
         return error(res, 'name already taken');
@@ -53,7 +50,7 @@ router.post('/', async (req, res) => {
     req.user.name = newName;
     req.user.save().then(() => {
         return res.json({
-            success: true
+            errors: []
         })
     }).catch(e => {
         logger.error(e);

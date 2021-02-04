@@ -1,22 +1,20 @@
 const express = require('express');
 const User = require('../../db/models/User');
+const roleRequired = require('../roleRequired');
 
 const router = express.Router();
 
 function error(res, error) {
     res.json({
-        success: false,
         errors: [error]
     })
 }
 
-router.get('/', async (req, res) => {
-    if(!req.user){
-        return error(res, 'You must be logged in');
-    }
+router.use(roleRequired.user)
 
+router.get('/', async (req, res) => {
     if(req.query.id === undefined)
-        return error(res, 'No id in body');
+        return error(res, 'Player id is not specified');
 
     const id = parseInt(req.query.id, 10);
     if(isNaN(id) || id < 0 || id === Infinity){
@@ -31,7 +29,7 @@ router.get('/', async (req, res) => {
         return error(res, 'gay');
     }
     
-    // TODO add login type w/ id
+    // TODO add login type with id
     let properties = {};
 
     switch(req.user.role){

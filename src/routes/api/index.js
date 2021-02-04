@@ -20,6 +20,16 @@ router.use(session);
 router.use(passport.initialize());
 router.use(passport.session())
 
+router.use((req, res, next) => {
+    res.error = function(error){
+        res.json({
+            errors: [error]
+        })
+    }
+
+    next();
+})
+
 router.use('/auth', auth(passport));
 router.use('/me', me);
 router.use('/changename', changeName);
