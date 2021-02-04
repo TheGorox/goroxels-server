@@ -1,9 +1,11 @@
 const express = require('express');
 
+const changerole = require('./changerole');
+const backup = require('./backup');
+
 const router = express.Router();
 
-const changerole = require('./changerole');
-
 router.use('/changerole', changerole);
+router.use('/backup', backup);
 
 module.exports = router
