@@ -2,17 +2,26 @@ const logger = require('./logger')('CHUNK_MANAGER', 'debug');
 
 const fs = require('fs');
 const path = require('path');
+const EventEmitter = require('events')
+const util = require('util');
+const pako = require('pako');
 
 const Chunk = require('./Chunk');
 
 const PNG = require('pngjs').PNG;
 
+const { getFancyDate, getFancyTime, randint } = require('./utils');
+
+util.promisify(fs.writeFile)
+
 const chunkdataPath = path.resolve(__dirname, '../chunkdata');
 const backupPath = path.resolve(__dirname, '../backup/');
 
-class ChunkManager {
+class ChunkManager extends EventEmitter {
     constructor(canvas) {
-        this.needToSave = false;
+        super();
+
+        this.needToBackup = false;
 
         this.canvas = canvas;
 
@@ -24,18 +33,29 @@ class ChunkManager {
         this.dataPath = path.resolve(chunkdataPath, this.canvas.id.toString());
 
         this.chunks = {};
+        this.loaded = false;
 
-        setInterval(this.saveAll.bind(this), 60000);
+        // imagine 10 instances of this, and all saving in one time..
+        setTimeout(() => {
+            setInterval(this.saveAll.bind(this), 60000);
+            setInterval(this.backup.bind(this), (60000 * 2) + 1000);
+        }, randint(0, 60000));
+
+        this.loadAll();
+        this.backup();
     }
 
     loadAll() {
         for (let cx = 0; cx < this.boardWidth; cx++) {
             for (let cy = 0; cy < this.boardHeight; cy++) {
                 const key = this.getChunkKey(cx, cy);
-                this.chunks[key] =
-                    this.loadChunk(cx, cy);
+                if (!this.chunks[key])
+                    this.chunks[key] = this.loadChunk(cx, cy);
             }
         }
+
+        this.loaded = true;
+        this.emit('loaded');
     }
 
     getChunkKey(x, y) {
@@ -52,65 +72,84 @@ class ChunkManager {
             if (chunkData.length != this.chunkSize * this.chunkSize) {
                 logger.warn(`Wrong chunk size. Removing (${x}, ${y}) chunk`);
 
-                // TODO move to async
                 fs.unlinkSync(chunkPath);
 
                 return this.loadChunk(x, y);
             }
         } else {
             chunkData = Chunk.createEmpty(this.canvas.chunkSize);
-            this.needToSave = true;
+            this.needToBackup = true;
         }
 
         return new Chunk(x, y, this.canvas.chunkSize, chunkData)
     }
 
     saveAll() {
-        if (!this.needToSave) return;
-        this.needToSave = false;
-
-        logger.debug('Saving all chunks...');
-
         if (!fs.existsSync(path.resolve(this.dataPath))) {
             logger.info('Chunk folder doesn\'t exists, creating...');
             fs.mkdirSync(this.dataPath);
         }
 
+        let saved = 0;
         for (let key in this.chunks) {
             const chunk = this.chunks[key];
+            
+            if(!chunk._needToSave) continue;
 
             const filekey = `${chunk.x},${chunk.y}.dat`;
-            fs.writeFileSync(path.resolve(this.dataPath, filekey), Buffer.from(chunk.data))
+            fs.writeFileSync(path.resolve(this.dataPath, filekey), Buffer.from(chunk.data));
+            saved += 1
+
+            chunk._needToSave = false;
         }
 
-        // this.backup(); // БЛОКИРУЕТ ПРОЦЕСС
+        saved > 0 && logger.debug('Saved ' + saved + ' chunks');
     }
 
     backup() {
+        if(!this.needToBackup) return;
+        this.needToBackup = false;
+
+        const timer = Date.now();
+
         const canvasBackupPath = path.resolve(backupPath, this.canvas.id.toString());
 
         if (!fs.existsSync(backupPath)) fs.mkdirSync(backupPath);
         if (!fs.existsSync(canvasBackupPath)) fs.mkdirSync(canvasBackupPath);
 
-        // backups should be separated by folders. ?
+        const date = getFancyDate(),
+            time = getFancyTime().replace(/:/g, '-');
 
-        // const date = new Date();
-        const dateString = Date.now().toString();
-        const finallyBackupPath = path.resolve(canvasBackupPath, dateString);
+        const dayFolder = path.resolve(canvasBackupPath, date);
+        if (!fs.existsSync(dayFolder)) fs.mkdirSync(dayFolder);
 
-        fs.mkdirSync(finallyBackupPath);
+        const timeFolder = path.resolve(dayFolder, time);
+        fs.mkdirSync(timeFolder);
 
-        logger.debug('Backup path: ' + finallyBackupPath);
+        const canvas = this.canvas;
+        const metadata = {
+            chunkSize: canvas.chunkSize,
+            palette: canvas.palette,
+            width: canvas.boardWidth,
+            height: canvas.boardHeight
+        }
+
+        const metaPath = path.resolve(timeFolder, 'metadata');
+        const metaStr = JSON.stringify(metadata);
+        fs.writeFileSync(metaPath, metaStr);
 
         for (let key in this.chunks) {
             const chunk = this.chunks[key];
 
-            const filekey = `${chunk.x},${chunk.y}.png`;
-            const fullPath = path.resolve(finallyBackupPath, filekey);
+            const filekey = `${chunk.x},${chunk.y}.dat`;
+            const fullPath = path.resolve(timeFolder, filekey);
 
-            const img = this.chunkToImage(chunk);
-            img.pack().pipe(fs.createWriteStream(fullPath));
+            const data = pako.deflate(chunk.data)
+
+            fs.writeFileSync(fullPath, data)
         }
+
+        logger.debug('backup done in ' + (Date.now() - timer) + 'ms')
     }
 
     chunkToImage(chunk) {
@@ -145,25 +184,25 @@ class ChunkManager {
     }
 
     setChunkPixel(x, y, c) {
-        this.needToSave = true;
+        this.needToBackup = true;
 
         const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
         this.chunks[key].set(x % this.chunkSize, y % this.chunkSize, c)
     }
 
-    getChunkPixel(x, y){
+    getChunkPixel(x, y) {
         const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
         return this.chunks[key].get(x % this.chunkSize, y % this.chunkSize)
     }
 
-    setPixelProtected(x, y, flag){
-        this.needToSave = true;
+    setPixelProtected(x, y, flag) {
+        this.needToBackup = true;
 
         const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
         this.chunks[key].setProtection(x % this.chunkSize, y % this.chunkSize, flag);
     }
 
-    isPixelProtected(x, y){
+    isPixelProtected(x, y) {
         const key = this.getChunkKey(x / this.chunkSize | 0, y / this.chunkSize | 0);
         const pixel = this.chunks[key].get(x % this.chunkSize, y % this.chunkSize)
         return pixel & 0x80 > 0

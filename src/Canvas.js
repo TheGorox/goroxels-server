@@ -5,7 +5,7 @@ class Canvas{
     constructor(id, canvasOptions){
         this.id = id;
 
-        Object.assign(this, canvasOptions); // copying args like "this.prop = prop"
+        Object.assign(this, canvasOptions);
 
         this.width = this.boardWidth; // todo wtf
         this.height = this.boardHeight;

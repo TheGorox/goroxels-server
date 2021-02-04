@@ -32,8 +32,52 @@ function randomNameGenerator(originalName){
     }
 }
 
+function getFancyDate(){
+    const date = new Date();
+    let str = '';
+
+    const day = date.getUTCDate();
+    str += padDate(day) + '.';
+
+    const month = date.getUTCMonth() + 1;
+    str += padDate(month) + '.';
+
+    const year = date.getUTCFullYear();
+    str += year;
+
+    return str
+}
+
+function getFancyTime(){
+    const time = new Date();
+    let str = '';
+
+    const hrs = time.getUTCHours();
+    str += padDate(hrs) + ':';
+
+    const min = time.getUTCMinutes();
+    str += padDate(min) + ':';
+
+    const sec = time.getUTCSeconds();
+    str += padDate(sec);
+
+    return str
+}
+
+function padDate(num){
+    if(num < 10) return '0' + num;
+    return num
+}
+
+function randint(min, max){
+    return ((Math.random() * (max - min)) + min) | 0
+}
+
 module.exports = {
     packPixel,
     unpackPixel,
-    randomNameGenerator
+    randomNameGenerator,
+    getFancyDate,
+    getFancyTime,
+    randint
 }

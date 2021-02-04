@@ -11,6 +11,8 @@ class Chunk{
         this.data = data;
         this._needUpdate = true;
         this._compressed = null;
+
+        this._needToSave = false;
     }
 
     get(x, y){
@@ -21,7 +23,9 @@ class Chunk{
         const i = x + y * this.size;
 
         this.data[i] = (this.data[i] & 0x80) + c;
+        
         this._needUpdate = true;
+        this._needToSave = true;
     }
 
     setProtection(x, y, state){

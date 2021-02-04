@@ -156,13 +156,13 @@ class Server {
             try{
                 this.handleStringMessage(message, client);
             }catch(e){
-                logger.error(e, client.user)
+                logger.error(e, client.user.dataValues.id)
             }
         } else {
             try{
                 this.handleBinaryMessage(message, client);
             }catch(e){
-                logger.error(e, client.user)
+                logger.error(e, client.user.dataValues.id)
             }
         }
     }
@@ -184,10 +184,17 @@ class Server {
                 }
 
                 const chunkManager = canvas.chunkManager;
-
-                let chunkData = chunkManager.getChunkData(cx, cy);
-
-                client.send(createPacket.chunkSend(cx, cy, chunkData));
+                if(!chunkManager.loaded){
+                    chunkManager.once('loaded', () => {
+                        let chunkData = chunkManager.getChunkData(cx, cy);
+        
+                        client.send(createPacket.chunkSend(cx, cy, chunkData));
+                    })
+                }else{
+                    let chunkData = chunkManager.getChunkData(cx, cy);
+        
+                    client.send(createPacket.chunkSend(cx, cy, chunkData));
+                }
 
                 break
             }
@@ -362,7 +369,8 @@ class Server {
                 ) {
                     return
                 }
-
+                
+                // second restriction is stupid, maybe remove?
                 if (msg.msg.length == 0 || msg.msg.length > ((ROLE[client.user.role] == ROLE.ADMIN) ? 2000 : 500)) {
                     return
                 }
