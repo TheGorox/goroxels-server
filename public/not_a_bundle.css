@@ -17,6 +17,20 @@ input[type=number] {
     text-align: center;
 }
 
+::-webkit-scrollbar-track {
+    background-color: #404040;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #333;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+
+
 .columnHeader {
         display: flex;
 
@@ -27,6 +41,7 @@ input[type=number] {
 
         height: 43px;
         line-height: 43px;
+        font-weight: bold;
         /* костыль */
         border-bottom: 3px solid var(--primary);
         font-size: 25px;
@@ -38,6 +53,8 @@ input[type=number] {
         height: 127px;
         border-bottom: 3px solid var(--primary);
         background-color: var(--dark);
+
+        scrollbar-width: thin;
 }
 
 #chatLog {
@@ -73,6 +90,8 @@ input[type=number] {
     left: 1rem;
     z-index: 2;
     padding: 3px;
+
+    border-radius: 10px;
 }
 
 #topMenu{
@@ -83,7 +102,6 @@ input[type=number] {
 
 @media screen and (max-width: 650px) {
     .content {
-        width: 100vw;
         display: flex;
         position: relative;
         justify-content: center;
@@ -92,10 +110,24 @@ input[type=number] {
     }
     #topMenu{
         max-height: 30vh;
+
+        scrollbar-width: none !important;
+    }
+    #topMenu::-webkit-scrollbar {
+        display: none !important;
     }
     .column{
-        width: 100vw;
+        width: 100% !important;
+        border-right: none !important;
     }
+    .columnContent{
+        height: auto !important;
+    }
+
+    #uiBottom.chatOpened {
+        display: none;
+    }
+
     #chat {
         bottom: 0px;
         left: 0px;
@@ -103,6 +135,10 @@ input[type=number] {
         width: 100vw;
         height: 100vh;
         z-index: 23;
+
+        border-radius: 0;
+
+        display: none;
     }
     #chatLog {
         width: 100%;
@@ -239,7 +275,7 @@ body {
 
 .hd {
     font-size: 2vw;
-    font-size: min(16px);
+    font-size: min(21px);
 }
 
 #adapte {

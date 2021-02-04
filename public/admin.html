@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin stuff</title>
+    <style>
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+            text-align: center;
+            width: 22px;
+        }
+
+        .inline {
+            display: inline;
+        }
+
+        body {
+            font-family: sans-serif;
+        }
+
+        label {
+            user-select: none;
+        }
+
+        #backupContainer {
+            margin: 5px;
+        }
+
+        #backupContainer canvas {
+            max-width: 50vw;
+        }
+        
+    </style>
+<link rel="shortcut icon" href="./favicon.ico"><link href="./admin.css" rel="stylesheet"></head>
+
+<body>
+    <h1>You shouldn't be here</h1>
+    <h2>Backup viewer</h2>
+    <div class="inline">
+        <select id="canvasSelect">
+            <option disabled>SELECT CANVAS</option>
+        </select>
+        <select id="dateSelect">
+            <option disabled>SELECT DAY</option>
+        </select>
+        <select id="timeSelect">
+            <option disabled>SELECT TIME</option>
+        </select>
+    </div> <br>
+    <div class="inline">
+        <input type="checkbox" id="gridCB">
+        <label for="gridCB">Show chunk grid</label> &nbsp;
+
+        <input type="checkbox" id="cropCB">
+        <label for="cropCB">Crop chunks from</label>
+        <input type="number" id="cropXStart"></input>,
+        <input type="number" id="cropYStart"></input>
+        to
+        <input type="number" id="cropXEnd"></input>,
+        <input type="number" id="cropYEnd"></input>
+    </div>
+    <div id="backupContainer"></div>
+<script type="text/javascript" src="./admin.bundle.js"></script></body>
+
+</html>
