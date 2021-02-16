@@ -10,13 +10,26 @@
 ### Требования:
 - [Node.js](https://nodejs.org/en/) с NPM
 - [pm2](https://github.com/Unitech/pm2) (`npm install pm2 -g`) (опционально, но текущая инструкция без него не будет работать)
-- [Postgresql](https://www.postgresql.org/download/) (опционально + вероятно, будет заменено на mysql)
+- [Mysql](https://www.mysql.com/downloads/) (опционально)
 
 
 Чтобы полноценно и удобно разрабатывать гороксели, нужно чтобы папки с обоими репозиториями находились в одной общей. Имена папок должны быть *goroxels-server* и *goroxels-client*
 
+```
+git clone https://github.com/TheGorox/goroxels-server.git ./goroxels-server
+git clone https://github.com/TheGorox/goroxels-client.git ./goroxels-client
+```
+
 После скачивания, создай файл *sharedConfig.json* в общей папке и скопируй туда содержимое с *goroxels-server*/shared/config.json. Это упростит в будущем копирование конфига в клиент и в сервер.
+```
+cp ./goroxels-server/shared/config.json sharedConfig.json
+```
+
 Выполни `npm install` в обеих папках.
+```
+npm install --prefix goroxels-server
+npm install --prefix goroxels-client
+```
 
 Клиент компилируется командой `npm run devBuild` в папке с клиентом.
 
@@ -35,15 +48,15 @@ pm2 logs goroxels
 Ниже приведены обязательные переменные(без них запуск через node не сработает):
 | ИМЯ        | ЗНАЧЕНИЕ                                                             |
 | ---------- | -------------------------------------------------------------------- |
-| DB_ISLOCAL | Использование sqlite вместо postgres (1-е не требует настройки). 1/0 |
+| DB_ISLOCAL | Использование sqlite вместо mysql (1-е не требует настройки). 1/0    |
 | DB_LOG     | Логгировать ли транзакции. 1/0                                       |
 
 
 И необязательные:
 
-| ИМЯ                   | ЗНАЧЕНИЕ                         | ПО УМОЛЧАНИЮ |
+| ИМЯ                   | ЗНАЧЕНИЕ                         | ПРИМЕР       |
 | --------------------- | -------------------------------- | ------------ |
-| DB_USER               | Имя пользователя бд (postgres)   | postgres     |
+| DB_USER               | Имя пользователя бд (mysql)      | postgres     |
 | DB_PASS               | Пароль к выше описанному         | 12345        |
 | DB_HOST               | Адрес базы данных                | localhost    |
 | DB_PORT               | Порт бд, указанный при установке | 5432         |
