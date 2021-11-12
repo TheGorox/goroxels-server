@@ -824,6 +824,17 @@ input {
         left: 5px;
     }
 }
+
+#discordBtn { 
+    background-image: url(./img/discord.svg);
+    background-size: 25px;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: auto;
+    margin-right: 6px;
+    width: 25px;
+    height: 25px;
+}
 .toast-title {
   font-weight: bold;
 }
@@ -1053,5 +1064,3 @@ button.toast-close-button {
   }
 }
 
-
-/*# sourceMappingURL=game.css.map*/
