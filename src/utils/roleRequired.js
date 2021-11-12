@@ -1,4 +1,5 @@
 // tool for check roles in requests
+// TODO move it to /express.js
 
 const {
     ROLE

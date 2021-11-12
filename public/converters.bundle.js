@@ -10970,6 +10970,474 @@ return jQuery;
 
 /***/ }),
 
+/***/ "./node_modules/process/browser.js":
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+
+/***/ "./node_modules/setimmediate/setImmediate.js":
+/*!***************************************************!*\
+  !*** ./node_modules/setimmediate/setImmediate.js ***!
+  \***************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
+    "use strict";
+
+    if (global.setImmediate) {
+        return;
+    }
+
+    var nextHandle = 1; // Spec says greater than zero
+    var tasksByHandle = {};
+    var currentlyRunningATask = false;
+    var doc = global.document;
+    var registerImmediate;
+
+    function setImmediate(callback) {
+      // Callback can either be a function or a string
+      if (typeof callback !== "function") {
+        callback = new Function("" + callback);
+      }
+      // Copy function arguments
+      var args = new Array(arguments.length - 1);
+      for (var i = 0; i < args.length; i++) {
+          args[i] = arguments[i + 1];
+      }
+      // Store and register the task
+      var task = { callback: callback, args: args };
+      tasksByHandle[nextHandle] = task;
+      registerImmediate(nextHandle);
+      return nextHandle++;
+    }
+
+    function clearImmediate(handle) {
+        delete tasksByHandle[handle];
+    }
+
+    function run(task) {
+        var callback = task.callback;
+        var args = task.args;
+        switch (args.length) {
+        case 0:
+            callback();
+            break;
+        case 1:
+            callback(args[0]);
+            break;
+        case 2:
+            callback(args[0], args[1]);
+            break;
+        case 3:
+            callback(args[0], args[1], args[2]);
+            break;
+        default:
+            callback.apply(undefined, args);
+            break;
+        }
+    }
+
+    function runIfPresent(handle) {
+        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
+        // So if we're currently running a task, we'll need to delay this invocation.
+        if (currentlyRunningATask) {
+            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
+            // "too much recursion" error.
+            setTimeout(runIfPresent, 0, handle);
+        } else {
+            var task = tasksByHandle[handle];
+            if (task) {
+                currentlyRunningATask = true;
+                try {
+                    run(task);
+                } finally {
+                    clearImmediate(handle);
+                    currentlyRunningATask = false;
+                }
+            }
+        }
+    }
+
+    function installNextTickImplementation() {
+        registerImmediate = function(handle) {
+            process.nextTick(function () { runIfPresent(handle); });
+        };
+    }
+
+    function canUsePostMessage() {
+        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+        // where `global.postMessage` means something completely different and can't be used for this purpose.
+        if (global.postMessage && !global.importScripts) {
+            var postMessageIsAsynchronous = true;
+            var oldOnMessage = global.onmessage;
+            global.onmessage = function() {
+                postMessageIsAsynchronous = false;
+            };
+            global.postMessage("", "*");
+            global.onmessage = oldOnMessage;
+            return postMessageIsAsynchronous;
+        }
+    }
+
+    function installPostMessageImplementation() {
+        // Installs an event handler on `global` for the `message` event: see
+        // * https://developer.mozilla.org/en/DOM/window.postMessage
+        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
+
+        var messagePrefix = "setImmediate$" + Math.random() + "$";
+        var onGlobalMessage = function(event) {
+            if (event.source === global &&
+                typeof event.data === "string" &&
+                event.data.indexOf(messagePrefix) === 0) {
+                runIfPresent(+event.data.slice(messagePrefix.length));
+            }
+        };
+
+        if (global.addEventListener) {
+            global.addEventListener("message", onGlobalMessage, false);
+        } else {
+            global.attachEvent("onmessage", onGlobalMessage);
+        }
+
+        registerImmediate = function(handle) {
+            global.postMessage(messagePrefix + handle, "*");
+        };
+    }
+
+    function installMessageChannelImplementation() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function(event) {
+            var handle = event.data;
+            runIfPresent(handle);
+        };
+
+        registerImmediate = function(handle) {
+            channel.port2.postMessage(handle);
+        };
+    }
+
+    function installReadyStateChangeImplementation() {
+        var html = doc.documentElement;
+        registerImmediate = function(handle) {
+            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+            var script = doc.createElement("script");
+            script.onreadystatechange = function () {
+                runIfPresent(handle);
+                script.onreadystatechange = null;
+                html.removeChild(script);
+                script = null;
+            };
+            html.appendChild(script);
+        };
+    }
+
+    function installSetTimeoutImplementation() {
+        registerImmediate = function(handle) {
+            setTimeout(runIfPresent, 0, handle);
+        };
+    }
+
+    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+
+    // Don't get fooled by e.g. browserify environments.
+    if ({}.toString.call(global.process) === "[object process]") {
+        // For Node.js before 0.9
+        installNextTickImplementation();
+
+    } else if (canUsePostMessage()) {
+        // For non-IE10 modern browsers
+        installPostMessageImplementation();
+
+    } else if (global.MessageChannel) {
+        // For web workers, where supported
+        installMessageChannelImplementation();
+
+    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+        // For IE 6–8
+        installReadyStateChangeImplementation();
+
+    } else {
+        // For older browsers
+        installSetTimeoutImplementation();
+    }
+
+    attachTo.setImmediate = setImmediate;
+    attachTo.clearImmediate = clearImmediate;
+}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../process/browser.js */ "./node_modules/process/browser.js")))
+
+/***/ }),
+
+/***/ "./node_modules/timers-browserify/main.js":
+/*!************************************************!*\
+  !*** ./node_modules/timers-browserify/main.js ***!
+  \************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
+            (typeof self !== "undefined" && self) ||
+            window;
+var apply = Function.prototype.apply;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, scope, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, scope, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) {
+  if (timeout) {
+    timeout.close();
+  }
+};
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(scope, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// setimmediate attaches itself to the global object
+__webpack_require__(/*! setimmediate */ "./node_modules/setimmediate/setImmediate.js");
+// On some exotic environments, it's not clear which object `setimmediate` was
+// able to install onto.  Search each possibility in the same order as the
+// `setimmediate` library.
+exports.setImmediate = (typeof self !== "undefined" && self.setImmediate) ||
+                       (typeof global !== "undefined" && global.setImmediate) ||
+                       (this && this.setImmediate);
+exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
+                         (typeof global !== "undefined" && global.clearImmediate) ||
+                         (this && this.clearImmediate);
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
+
+/***/ }),
+
 /***/ "./node_modules/toastr/toastr.js":
 /*!***************************************!*\
   !*** ./node_modules/toastr/toastr.js ***!
@@ -11466,14 +11934,34 @@ module.exports = function() {
 
 /***/ }),
 
-/***/ "./shared/config.json":
-/*!****************************!*\
-  !*** ./shared/config.json ***!
-  \****************************/
-/*! exports provided: canvases, default */
-/***/ (function(module) {
+/***/ "./node_modules/webpack/buildin/global.js":
+/*!***********************************!*\
+  !*** (webpack)/buildin/global.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
 
-module.exports = JSON.parse("{\"canvases\":[{\"name\":\"main\",\"cooldown\":{\"GUEST\":[0,32],\"USER\":[0,32]},\"chunkSize\":200,\"boardWidth\":2,\"boardHeight\":2,\"palette\":[[255,255,255],[0,0,0],[14,14,55],[22,56,84],[19,120,120],[30,198,99],[156,255,106],[255,246,120],[238,117,33],[182,43,56],[103,13,61],[42,4,38],[80,18,35],[146,55,55],[206,132,100],[255,215,176],[85,255,241],[39,150,219],[36,61,171],[27,27,92],[23,7,43],[64,11,103],[137,19,147],[218,79,188],[255,170,207],[178,207,205],[113,136,143],[56,62,81]]},{\"name\":\"test\",\"cooldown\":{\"GUEST\":[100,16],\"USER\":[50,32]},\"chunkSize\":512,\"boardWidth\":8,\"boardHeight\":8,\"palette\":[[255,255,255],[127,127,127],[0,0,0]]}]}");
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || new Function("return this")();
+} catch (e) {
+	// This works if the window reference is available
+	if (typeof window === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
 
 /***/ }),
 
@@ -11514,6 +12002,19 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = (__webpack_require__.p + "/img/palette.png");
+
+/***/ }),
+
+/***/ "./src/img/palette2.png":
+/*!******************************!*\
+  !*** ./src/img/palette2.png ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (__webpack_require__.p + "/img/palette2.png");
 
 /***/ }),
 
@@ -12241,6 +12742,39 @@ module.exports = colorManip
 
 /***/ }),
 
+/***/ "./src/js/convert/imgur.js":
+/*!*********************************!*\
+  !*** ./src/js/convert/imgur.js ***!
+  \*********************************/
+/*! exports provided: upload */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "upload", function() { return upload; });
+async function upload(image){
+    const formData = new FormData();
+    formData.append('image', image);
+    formData.append('type', 'base64');
+
+    const resp = await fetch('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Client-ID 134a48816a3c4d6'
+        },
+        body: formData,
+        redirect: 'follow'
+    })
+    const json = await resp.json();
+    if(!json.success) throw new Error('Imgur upload eror');
+
+    return json.data.link;
+}
+
+window.imgurUpload = upload;
+
+/***/ }),
+
 /***/ "./src/js/convert/imgzoom.js":
 /*!***********************************!*\
   !*** ./src/js/convert/imgzoom.js ***!
@@ -12399,14 +12933,22 @@ const imgZoom = {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($, toastr) {/* harmony import */ var _css_converters_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../css/converters.css */ "./src/css/converters.css");
+/* WEBPACK VAR INJECTION */(function($, toastr, clearImmediate, setImmediate) {/* harmony import */ var _css_converters_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../css/converters.css */ "./src/css/converters.css");
 /* harmony import */ var _img_folder_png__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../img/folder.png */ "./src/img/folder.png");
 /* harmony import */ var _img_pattern_png__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../img/pattern.png */ "./src/img/pattern.png");
 /* harmony import */ var _img_palette_png__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../img/palette.png */ "./src/img/palette.png");
-/* harmony import */ var _palettes__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./palettes */ "./src/js/convert/palettes.js");
-/* harmony import */ var _imgzoom__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./imgzoom */ "./src/js/convert/imgzoom.js");
-/* harmony import */ var _imgzoom__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_imgzoom__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _openImage__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./openImage */ "./src/js/convert/openImage.js");
+/* harmony import */ var _img_palette2_png__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../img/palette2.png */ "./src/img/palette2.png");
+/* harmony import */ var _palettes__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./palettes */ "./src/js/convert/palettes.js");
+/* harmony import */ var _setImmediate__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./setImmediate */ "./src/js/convert/setImmediate.js");
+/* harmony import */ var _setImmediate__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_setImmediate__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _imgzoom__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./imgzoom */ "./src/js/convert/imgzoom.js");
+/* harmony import */ var _imgzoom__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_imgzoom__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _openImage__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./openImage */ "./src/js/convert/openImage.js");
+/* harmony import */ var _imgur__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./imgur */ "./src/js/convert/imgur.js");
+/* harmony import */ var _translate__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../translate */ "./src/js/translate.js");
+
+
+
 
 
 
@@ -12420,6 +12962,11 @@ const importedPatterns = __webpack_require__(/*! ./patterns */ "./src/js/convert
 
 
 
+
+
+
+
+Object(_translate__WEBPACK_IMPORTED_MODULE_10__["init"])();
 
 // автоматический корректор инпута
 $('input[type=number]').on('change', (e) => {
@@ -12453,16 +13000,18 @@ let utils = {
 }
 
 const paletteSel = $('#paletteSel');
+function applyPalettes(selected='pixelplanet'){
+    Object.keys(_palettes__WEBPACK_IMPORTED_MODULE_5__["default"]).forEach(key => {
+        const newEl = $(`<option id="p_${key}">${key}</option>`);
+        newEl.val(key);
 
-Object.keys(_palettes__WEBPACK_IMPORTED_MODULE_4__["default"]).forEach(key => {
-    const newEl = $(`<option>${key}</option>`);
-    newEl.val(key);
-
-    if (key === 'game.main') newEl.attr('selected', '');
-
-    paletteSel.prepend(newEl);
-});
-paletteSel.append('<option value="_custom">custom</option>');
+        if(key === selected)
+            newEl.attr('selected', '');
+    
+        paletteSel.prepend(newEl);
+    });
+    paletteSel.append('<option value="_custom">custom</option>');
+}
 
 paletteSel.on('change', () => {
     const val = paletteSel.val();
@@ -12472,7 +13021,7 @@ paletteSel.on('change', () => {
     } else {
         $('#userPalette').hide();
 
-        const pal = _palettes__WEBPACK_IMPORTED_MODULE_4__["default"][val];
+        const pal = _palettes__WEBPACK_IMPORTED_MODULE_5__["default"][val];
 
         palUtils.setPalette(pal);
         palUtils.updatePalette();
@@ -12493,16 +13042,16 @@ $('#userPalette').on('input', () => {
     visualizePalette();
 });
 
-function visualizePalette(){
+function visualizePalette() {
     const pal = paletteRGB;
 
     $('#palette').children().remove();
-    
+
     pal.forEach(col => {
         const el = $(`<div class="paletteCol" style="background-color:rgb(${col.join(',')})"></div>`);
         $('#palette').append(el);
     });
-}  
+}
 
 
 function tryParseUserPalette() {
@@ -12535,7 +13084,7 @@ function tryParseUserPalette() {
     $('#userPalette').css('background-color', '')
 }
 
-let paletteRGB = _palettes__WEBPACK_IMPORTED_MODULE_4__["default"]['game.main'],
+let paletteRGB = _palettes__WEBPACK_IMPORTED_MODULE_5__["default"]['game.main'],
     paletteLAB,
     palette32;
 
@@ -12692,7 +13241,7 @@ let palUtils = {
                         for (let j = (~dir ? 0 : dithering.length - 1), end = (~dir ? dithering.length : 0); j != end; j += dir) {
                             const p = dithering[j];
 
-                            const [mult, X, Y] = [p[0], x + p[1]*dir, y + p[2]];
+                            const [mult, X, Y] = [p[0], x + p[1] * dir, y + p[2]];
                             if (X < 0 || X >= width || Y < 0 || Y >= height)
                                 continue;
 
@@ -12725,7 +13274,7 @@ let palUtils = {
     * checkboardDithering(imageData) { // дупликация кода конечно, но мне пофег
         const width = imageData.width;
         let imgData = imageData.data;
-        
+
         let deFunction;
         let palette = this.colorValuesExRGB;
         switch ($('#colorfunc').val()) {
@@ -12797,7 +13346,7 @@ let palUtils = {
 
         const width = imageData.width;
         let imgData = imageData.data;
-        
+
         let deFunction;
         let palette = paletteRGB;
         switch ($('#colorfunc').val()) {
@@ -12865,8 +13414,8 @@ let palUtils = {
 }
 
 $('#palFolder').on('click', () => {
-    Object(_openImage__WEBPACK_IMPORTED_MODULE_6__["default"])(dataURL => {
-        $('#palInput').val('[буфер обмена]');
+    Object(_openImage__WEBPACK_IMPORTED_MODULE_8__["default"])(dataURL => {
+        $('#palInput').val(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('[clipboard]'));
         $('#palInput').data('source', 'dataURL');
 
         palUtils.dataURL = dataURL;
@@ -12902,9 +13451,9 @@ $('#ditheringMode').on('change', () => {
     }
 
     // serpentine mode is only works for error dithering
-    if(['f-s', 'stuki', 'sierra', 'sierra-lite'].includes(val)){
+    if (['f-s', 'stuki', 'sierra', 'sierra-lite'].includes(val)) {
         $('#serpBlock').removeClass('hidden');
-    }else{
+    } else {
         $('#serpBlock').addClass('hidden');
     }
 });
@@ -12924,7 +13473,7 @@ $('#palInput').on('paste', (e) => {
 
     const reader = new FileReader();
     reader.onload = function (ev) {
-        $('#palInput').val('[буфер обмена]');
+        $('#palInput').val(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('[clipboard]'));
         $('#palInput').data('source', 'dataURL');
         const tempImage = new Image();
         tempImage.onload = function () {
@@ -12945,14 +13494,14 @@ function converterPreload(showWarn = true) {
     let path = $('#palInput').val();
     if ($('#palInput').data('source') !== 'dataURL') {
         if (!path.length) {
-            return showWarn && toastr.error('Укажи изображение!');
+            return showWarn && toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Choose a image!'));
         }
 
         if (utils.isURLValid(path)) {
             palUtils.link = path;
             startPaletteConverter(path);
         } else {
-            return showWarn && toastr.error('Ссылка невалидная!');
+            return showWarn && toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Invalid link!'));
         }
     } else {
         startPaletteConverter(palUtils.dataURL);
@@ -12960,11 +13509,7 @@ function converterPreload(showWarn = true) {
 }
 
 function startPaletteConverter(url) {
-    // иногда вызывает ошибку. наверное потому, что он уже очищен из памяти сборщиком
-    // а может я просто долбоёб. лень разбираться
-    try {
-        clearTimeout(palUtils.converterInterval);
-    } catch {}
+    clearImmediate(palUtils.converterInterval);
 
     let tempImg = new Image();
     tempImg.crossOrigin = 'anonymous';
@@ -12982,7 +13527,7 @@ function startPaletteConverter(url) {
         try {
             var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         } catch (e) {
-            return toastr.error('Изображение загружено, но не хочет показывать себя. Скорее всего, виноват CORS. Рекомендую скачать эту картинку и повторить попытку через файл. Ну или ты просто дурачок.', 'ОШИБКА ЗАГРУЗКИ ИЗОБРАЖЕНИЯ')
+            return toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Image is loaded, but pixels can not be shown. Try to load it on Imgur or download->upload from file'))
         }
 
         const contrast = +$('#colorAdj').val();
@@ -13033,28 +13578,32 @@ function startPaletteConverter(url) {
         palUtils.usedColors = [];
 
         let startTime = Date.now();
-        palUtils.converterInterval = setTimeout(function rec() {
+        const progressBar = $('#palLB>.barProgress');
+        progressBar.parent().parent().removeClass('hidden');
+        palUtils.converterInterval = setImmediate(function rec() {
             let loaded = convGen.next();
 
             if (loaded.done) {
-                //ctx.putImageData(loaded.value, 0, 0);
+                progressBar.parent().parent().addClass('hidden');
+                progressBar.css('width', 0);
                 ctx.putImageData(imgData, 0, 0);
                 onDone(canvas, 'palOut',
                     () => {
-                        toastr.info(`Завершено за ${(Date.now() - startTime)/1000}сек.`);
+                        toastr.info(`${Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Done in')} ${(Date.now() - startTime) / 1000} ${s}`);
                     });
             } else {
-                palUtils.converterInterval = setTimeout(rec);
+                let perc = loaded.value*100;
+                if(perc > 97) perc = 100;
+                progressBar.css('width', perc + '%');
+                palUtils.converterInterval = setImmediate(rec);
             }
         });
     }
 
     tempImg.onerror = () => {
-        toastr.error('Предыдущие проверки пройдены, так что скорее всего либо файла нет, либо cors(хотя не должОн)', 'ОШИБКА ЗАГРУЗКИ ИЗОБРАЖЕНИЯ')
+        toastr.error('Unknown image loading error. Maybe CORS, so try to upload on Imgur')
     }
 }
-
-palUtils.updatePalette();
 
 $('#palThresold').on('change', () => {
     palUtils.ditherPalette();
@@ -13063,7 +13612,7 @@ $('#palThresold').on('change', () => {
 $('#colorAdj').on('input', (e) => {
     $('#colorAdjLabel').text(e.target.value);
 });
-$('#resetContrast').click(() => {
+$('#resetContrast').on('click', () => {
     $('#colorAdj').val(0);
     $('#colorAdjLabel').text(0);
 });
@@ -13076,7 +13625,7 @@ $('#resetBrightness').click(() => {
     $('#brightAdjLabel').text(0);
 });
 document.onkeydown = e => {
-    if(e.code === 'Enter' && !e.repeat){
+    if (e.key === 'Enter' && !e.repeat) {
         converterPreload();
     }
 }
@@ -13090,18 +13639,59 @@ document.onkeydown = e => {
 let patUtils = {
     patterns: importedPatterns.patterns,
     defaultPattern: importedPatterns.defaultPattern,
+    patternSize: Math.sqrt(importedPatterns.patterns[0].length),
+
     usedColors: [],
+
+    patternsCans: [], // список картинок с паттернами для ускоренного рисования
+    generatePatterns() {
+        this.patternsCans = [];
+        const patternSize = this.patternSize;
+        let pattern, ctx, color;
+        for (let i = 0; i < paletteRGB.length; i++) {
+            let canvas = document.createElement('canvas');
+            canvas.width = canvas.height = patternSize;
+
+            pattern = this.patterns[i % this.patterns.length];
+            color = paletteRGB[i];
+
+            ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = `rgb(${color.join(',')})`;
+
+            for (let j = 0; j < pattern.length; j++) {
+                if (!pattern[j]) continue;
+
+                const x = j % patternSize,
+                    y = j / patternSize | 0;
+
+                ctx.fillRect(x, y, 1, 1);
+            }
+
+            this.patternsCans.push(canvas);
+        }
+    },
+    drawPattern(ctx, pattern, startX, startY, color){
+        let s = this.patternSize;
+        ctx.fillStyle = `rgb(${color.join(',')})`;
+        for(let x = 0; x < s; x++){
+            for(let y = 0; y < s; y++){
+                if(!pattern[x+y*s]) continue
+                ctx.fillRect(startX+x, startY+y, 1, 1);
+            }
+        }
+    },
     // todo расширяемые паттерны
     * patternize(canvas) {
         const ctx = canvas.getContext('2d');
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const {
+            data: imgData,
+            width, height
+        } = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-        const width = imgData.width;
-        const height = imgData.height;
+        this.generatePatterns();
 
-        const imgDataData = imgData.data;
-
-        const patternSize = Math.sqrt(this.patterns[0].length);
+        const patternSize = this.patternSize;
         const patternLength = patternSize ** 2;
 
         const newWidth = width * patternSize;
@@ -13113,46 +13703,37 @@ let patUtils = {
 
         const ctx2 = newCanvas.getContext('2d');
 
-        for (let i = 0; i < imgDataData.length; i += 4) {
-            let _i = i / 4;
-            const imgX = _i % width;
-            const imgY = _i / width | 0;
+        // actual palette32 includes opacity, i don't need it
+        let palette32 = paletteRGB.map(c => (c[0] << 16) + (c[1] << 8) + c[2])
+        let colorMap = new Map();
+        palette32.forEach((el, i) => colorMap.set(el, i))
 
-            if (imgDataData[i + 3] < 127) continue;
+        let imgX, imgY, absX, absY, color, colId, color32, _i, pattern;
+        for (let i = 0; i < imgData.length; i += 4) {
+            if (imgData[i + 3] < 127) continue;
 
-            const absX = imgX * patternSize;
-            const absY = imgY * patternSize;
+            _i = i / 4;
+            imgX = _i % width;
+            imgY = _i / width | 0;
 
-            const color = [imgDataData[i], imgDataData[i + 1], imgDataData[i + 2], imgDataData[i + 3]];
-            const colorEnc = (color[0] << 16) + (color[1] << 8) + color[2];
-            let colId = -1;
-            const usedIndex = this.usedColors[colorEnc];
-            if (usedIndex !== undefined) {
-                colId = usedIndex;
-            } else {
-                colId = clrManip.getColorIndex(color, paletteRGB);
-                this.usedColors[colorEnc] = colId;
-            }
+            absX = imgX * patternSize;
+            absY = imgY * patternSize;
 
-            const pattern = colId > -1 ? this.patterns[colId % this.patterns.length] : this.defaultPattern;
+            color = [imgData[i], imgData[i + 1], imgData[i + 2], imgData[i + 3]];
+            color32 = (color[0] << 16) + (color[1] << 8) + color[2];
 
-            ctx2.fillStyle = `rgb(${color.join(',')})`;
+            colId = colorMap.get(color32);
 
-            for (let j = 0; j < patternLength; j++) {
-                let bool = pattern[j];
-                if (!bool) continue;
+            pattern = this.patternsCans[colId];
 
-                let _x = j % patternSize;
-                let _y = j / patternSize | 0;
-
-                let _absX = absX + _x;
-                let _absY = absY + _y;
-
-                ctx2.fillRect(_absX, _absY, 1, 1);
+            if (pattern) {
+                ctx2.drawImage(pattern, absX, absY);
+            }else{
+                this.drawPattern(ctx2, this.defaultPattern, absX, absY, color)
             }
 
             if (i % 8000 === 0) {
-                yield i / imgDataData.length
+                yield i / imgData.length
             }
         }
         //newCanvas.getContext('2d').putImageData(newImgData, 0, 0);
@@ -13162,8 +13743,8 @@ let patUtils = {
 }
 
 $('#patFolder').on('click', () => {
-    Object(_openImage__WEBPACK_IMPORTED_MODULE_6__["default"])(dataURL => {
-        $('#patInput').val('[буфер обмена]');
+    Object(_openImage__WEBPACK_IMPORTED_MODULE_8__["default"])(dataURL => {
+        $('#patInput').val(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('[clipboard]'));
         $('#patInput').data('source', 'dataURL');
 
         patUtils.dataURL = dataURL;
@@ -13198,7 +13779,7 @@ $('#patInput').on('paste', (e) => {
 
     const reader = new FileReader();
     reader.onload = function (ev) {
-        $('#patInput').val('[буфер обмена]');
+        $('#patInput').val(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('[clipboard]'));
         $('#patInput').data('source', 'dataURL');
 
         const tempImage = new Image();
@@ -13220,14 +13801,14 @@ function patternPreload() {
     let path = $('#patInput').val();
     if ($('#patInput').data('source') !== 'dataURL') {
         if (!path.length) {
-            return toastr.error('Укажи изображение!');
+            return toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Choose a image!'));
         }
 
         if (utils.isURLValid(path) && utils.isURLImage(path)) {
             palUtils.link = path;
             patternatorStart(path);
         } else {
-            return toastr.error('Ссылка невалидная!');
+            return toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Invalid link!'));
         }
     } else {
         patternatorStart(patUtils.dataURL);
@@ -13235,13 +13816,7 @@ function patternPreload() {
 }
 
 function patternatorStart(url) {
-    //clearInterval(palUtils.converterInterval);
-    // иногда вызывает ошибку. наверное потому, что он уже очищен из памяти сборщиком
-    try {
-        clearTimeout(patUtils.converterInterval);
-    } catch (e) {
-        console.log(e);
-    }
+    clearImmediate(patUtils.converterInterval);
 
     let tempImg = new Image();
     tempImg.crossOrigin = 'anonymous';
@@ -13253,7 +13828,7 @@ function patternatorStart(url) {
         canvas.height = tempImg.height;
 
         if (canvas.width > 800 || canvas.height > 800) {
-            toastr.warning('Изображение больше 800 пикселей стороной, это может крашнуть темплейт.');
+            //toastr.warning('Image is wider than 800px, this can crash the page');
         }
 
         let ctx = canvas.getContext('2d');
@@ -13262,34 +13837,30 @@ function patternatorStart(url) {
         try {
             ctx.getImageData(0, 0, 1, 1);
         } catch (e) {
-            return toastr.error('Изображение загружено, но не хочет показывать себя. Скорее всего, виноват CORS. Рекомендую скачать эту картинку и повторить попытку через файл.', 'ОШИБКА ЗАГРУЗКИ ИЗОБРАЖЕНИЯ')
+            return toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Image is loaded, but pixels can not be gotten. Try to load it on Imgur or download->upload from file'))
         }
 
-        toastr.warning('Если изображение большое, после конвертации темплейт может зависнуть на время. Наберись терпения.');
+        toastr.warning(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('If your image is big, go make a tea and watch Doctor Who'));
         let convGen = patUtils.patternize(canvas);
 
         let startTime = Date.now();
-        patUtils.converterInterval = setTimeout(function rec() {
+        patUtils.converterInterval = setImmediate(function rec() {
             let loaded = convGen.next();
 
             if (loaded.done) {
                 onDone(loaded.value, 'patOut',
                     () => {
-                        toastr.info(`Завершено за ${(Date.now() - startTime)/1000}сек.`);
+                        toastr.info(`${Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Done in')} ${(Date.now() - startTime) / 1000}s.`);
                     });
             } else {
-                patUtils.converterInterval = setTimeout(rec);
+                patUtils.converterInterval = setImmediate(rec);
             }
         });
     }
 
     tempImg.onerror = () => {
-        toastr.error('Предыдущие проверки пройдены, так что скорее всего либо файла нет, либо cors(хотя не должОн)', 'ОШИБКА ЗАГРУЗКИ ИЗОБРАЖЕНИЯ')
+        toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Unknown image loading error. Maybe CORS, so try to upload on Imgur'))
     }
-}
-
-function imgurUpload(base64, cb) {
-    // todo
 }
 
 function createImgData(width, height) {
@@ -13301,7 +13872,7 @@ function createImgData(width, height) {
     return newImgData
 }
 
-function onDone(canvas, convClass, callback) {
+async function onDone(canvas, convClass, callback) {
     $(`#${convClass} > *`).remove();
 
     canvas.className = 'outputImg';
@@ -13317,18 +13888,48 @@ function onDone(canvas, convClass, callback) {
 
     $(`#${convClass}`).append(
         `<div class="afterImage">
-            <div class="line">Imgur upload is not supported yet</div>
-            ${convClass === 'patOut' ? `<div class="line">Итоговый размер картинки: ${canvas.width}x${canvas.height}</div>` : ''}
+            <div class="line"><button class="uploadButton"> ${Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Upload on imgur!')} </button></div>
+            <div class="line"><span class="imgurUrl"></span></div>
+            ${convClass === 'patOut' ? `<div class="line">${Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Final image size:')} ${canvas.width}x${canvas.height}</div>` : ''}
         </div>`
     );
+    _imgzoom__WEBPACK_IMPORTED_MODULE_7___default.a.createZoomHandler($(`#${convClass}`).children(0)[0]);
 
-    _imgzoom__WEBPACK_IMPORTED_MODULE_5___default.a.createZoomHandler($(`#${convClass}`).children(0)[0]);
+    $(`#${convClass} .uploadButton`).on('click', async () => {
+        $(`#${convClass} .uploadButton`).off('click');
+        $(`#${convClass} .imgurUrl`).text('Uploading...');
+
+        try {
+            const link = await Object(_imgur__WEBPACK_IMPORTED_MODULE_9__["upload"])(canvas.toDataURL().split(",")[1]);
+            const isPNG = link.endsWith('png');
+            $(`#${convClass} .imgurUrl`).html(
+                `<span style="color:${isPNG ? 'rgb(0, 190, 0)' : 'rgb(249, 141, 141)'}">${link}${convClass === 'patOut' ? `?width=${canvas.width / 7}` : ''}</span>`
+            )
+        } catch {
+            const text = Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Imgur upload failed, try upload manually and add this to a link:') +
+                (convClass == 'patOut' ? ` "?width=${canvas.width / 7}"` : '');
+
+            $(`#${convClass} .imgurUrl`).text(text)
+        }
+    });
 
     callback();
 }
 
-visualizePalette();
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"), __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js")))
+let palName;
+Object(_palettes__WEBPACK_IMPORTED_MODULE_5__["loadGamePalettes"])().then(() => {
+    palName = 'game.main'
+}).catch(() => {
+    toastr.error(Object(_translate__WEBPACK_IMPORTED_MODULE_10__["translate"])('Failed to load game palettes!'));
+    palName = 'pixelplanet'
+}).finally(() => {
+    applyPalettes(palName);
+    paletteRGB = _palettes__WEBPACK_IMPORTED_MODULE_5__["default"][palName];
+
+    palUtils.updatePalette();
+    visualizePalette();
+});
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"), __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js"), __webpack_require__(/*! ./../../../node_modules/timers-browserify/main.js */ "./node_modules/timers-browserify/main.js").clearImmediate, __webpack_require__(/*! ./../../../node_modules/timers-browserify/main.js */ "./node_modules/timers-browserify/main.js").setImmediate))
 
 /***/ }),
 
@@ -13381,15 +13982,12 @@ function openImage(callback) {
 /*!************************************!*\
   !*** ./src/js/convert/palettes.js ***!
   \************************************/
-/*! exports provided: default */
+/*! exports provided: loadGamePalettes, default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _shared_config_json__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../shared/config.json */ "./shared/config.json");
-var _shared_config_json__WEBPACK_IMPORTED_MODULE_0___namespace = /*#__PURE__*/__webpack_require__.t(/*! ../../../shared/config.json */ "./shared/config.json", 1);
-
-
+/* WEBPACK VAR INJECTION */(function(toastr) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "loadGamePalettes", function() { return loadGamePalettes; });
 let palettes = {
     pixelzone: [
         [38, 38, 38],
@@ -13565,11 +14163,25 @@ let palettes = {
     ]
 };
 
-_shared_config_json__WEBPACK_IMPORTED_MODULE_0__.canvases.forEach(canvas => {
-    palettes['game.' + canvas.name] = canvas.palette;
-});
+async function loadConfig(){
+    const resp = await fetch('/config.json');
+    return await resp.json();
+}
+
+async function loadGamePalettes(){
+    try{
+        const config = await loadConfig();
+        config.canvases.forEach(canvas => {
+            palettes['game.' + canvas.name] = canvas.palette;
+        });
+    }catch(e){
+        toastr.warning('Failed to load game palettes')
+    }
+}
+
 
 /* harmony default export */ __webpack_exports__["default"] = (palettes);
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js")))
 
 /***/ }),
 
@@ -14174,6 +14786,589 @@ const defaultPattern = [
 module.exports = {
     patterns,
     defaultPattern
+}
+
+/***/ }),
+
+/***/ "./src/js/convert/setImmediate.js":
+/*!****************************************!*\
+  !*** ./src/js/convert/setImmediate.js ***!
+  \****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
+    "use strict";
+
+    if (global.setImmediate) {
+        return;
+    }
+
+    var nextHandle = 1; // Spec says greater than zero
+    var tasksByHandle = {};
+    var currentlyRunningATask = false;
+    var doc = global.document;
+    var registerImmediate;
+
+    function setImmediate(callback) {
+      // Callback can either be a function or a string
+      if (typeof callback !== "function") {
+        callback = new Function("" + callback);
+      }
+      // Copy function arguments
+      var args = new Array(arguments.length - 1);
+      for (var i = 0; i < args.length; i++) {
+          args[i] = arguments[i + 1];
+      }
+      // Store and register the task
+      var task = { callback: callback, args: args };
+      tasksByHandle[nextHandle] = task;
+      registerImmediate(nextHandle);
+      return nextHandle++;
+    }
+
+    function clearImmediate(handle) {
+        delete tasksByHandle[handle];
+    }
+
+    function run(task) {
+        var callback = task.callback;
+        var args = task.args;
+        switch (args.length) {
+        case 0:
+            callback();
+            break;
+        case 1:
+            callback(args[0]);
+            break;
+        case 2:
+            callback(args[0], args[1]);
+            break;
+        case 3:
+            callback(args[0], args[1], args[2]);
+            break;
+        default:
+            callback.apply(undefined, args);
+            break;
+        }
+    }
+
+    function runIfPresent(handle) {
+        // From the spec: "Wait until any invocations of this algorithm started before this one have completed."
+        // So if we're currently running a task, we'll need to delay this invocation.
+        if (currentlyRunningATask) {
+            // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
+            // "too much recursion" error.
+            setTimeout(runIfPresent, 0, handle);
+        } else {
+            var task = tasksByHandle[handle];
+            if (task) {
+                currentlyRunningATask = true;
+                try {
+                    run(task);
+                } finally {
+                    clearImmediate(handle);
+                    currentlyRunningATask = false;
+                }
+            }
+        }
+    }
+
+    function installNextTickImplementation() {
+        registerImmediate = function(handle) {
+            process.nextTick(function () { runIfPresent(handle); });
+        };
+    }
+
+    function canUsePostMessage() {
+        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+        // where `global.postMessage` means something completely different and can't be used for this purpose.
+        if (global.postMessage && !global.importScripts) {
+            var postMessageIsAsynchronous = true;
+            var oldOnMessage = global.onmessage;
+            global.onmessage = function() {
+                postMessageIsAsynchronous = false;
+            };
+            global.postMessage("", "*");
+            global.onmessage = oldOnMessage;
+            return postMessageIsAsynchronous;
+        }
+    }
+
+    function installPostMessageImplementation() {
+        // Installs an event handler on `global` for the `message` event: see
+        // * https://developer.mozilla.org/en/DOM/window.postMessage
+        // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
+
+        var messagePrefix = "setImmediate$" + Math.random() + "$";
+        var onGlobalMessage = function(event) {
+            if (event.source === global &&
+                typeof event.data === "string" &&
+                event.data.indexOf(messagePrefix) === 0) {
+                runIfPresent(+event.data.slice(messagePrefix.length));
+            }
+        };
+
+        if (global.addEventListener) {
+            global.addEventListener("message", onGlobalMessage, false);
+        } else {
+            global.attachEvent("onmessage", onGlobalMessage);
+        }
+
+        registerImmediate = function(handle) {
+            global.postMessage(messagePrefix + handle, "*");
+        };
+    }
+
+    function installMessageChannelImplementation() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function(event) {
+            var handle = event.data;
+            runIfPresent(handle);
+        };
+
+        registerImmediate = function(handle) {
+            channel.port2.postMessage(handle);
+        };
+    }
+
+    function installReadyStateChangeImplementation() {
+        var html = doc.documentElement;
+        registerImmediate = function(handle) {
+            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
+            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
+            var script = doc.createElement("script");
+            script.onreadystatechange = function () {
+                runIfPresent(handle);
+                script.onreadystatechange = null;
+                html.removeChild(script);
+                script = null;
+            };
+            html.appendChild(script);
+        };
+    }
+
+    function installSetTimeoutImplementation() {
+        registerImmediate = function(handle) {
+            setTimeout(runIfPresent, 0, handle);
+        };
+    }
+
+    // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+    var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global);
+    attachTo = attachTo && attachTo.setTimeout ? attachTo : global;
+
+    // Don't get fooled by e.g. browserify environments.
+    if ({}.toString.call(global.process) === "[object process]") {
+        // For Node.js before 0.9
+        installNextTickImplementation();
+
+    } else if (canUsePostMessage()) {
+        // For non-IE10 modern browsers
+        installPostMessageImplementation();
+
+    } else if (global.MessageChannel) {
+        // For web workers, where supported
+        installMessageChannelImplementation();
+
+    } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+        // For IE 6–8
+        installReadyStateChangeImplementation();
+
+    } else {
+        // For older browsers
+        installSetTimeoutImplementation();
+    }
+
+    attachTo.setImmediate = setImmediate;
+    attachTo.clearImmediate = clearImmediate;
+}(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../../../node_modules/process/browser.js */ "./node_modules/process/browser.js")))
+
+/***/ }),
+
+/***/ "./src/js/translate.js":
+/*!*****************************!*\
+  !*** ./src/js/translate.js ***!
+  \*****************************/
+/*! exports provided: translate, init */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "translate", function() { return translate; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
+/* harmony import */ var _translates__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./translates */ "./src/js/translates.js");
+
+
+function translate(val){
+    return _translates__WEBPACK_IMPORTED_MODULE_0__["default"]._(val);
+}
+
+function init(){
+    // translate inner text
+    const els = [...document.getElementsByClassName('translate')];
+    for(let el of els){
+        let text = el.innerText;
+        // remove html padding
+        text = text.replace(/^[\n\s]+/, '').replace(/[\n\s]+$/,'')
+        const tr = translate(text);
+        el.innerText = tr;
+        console.log(el, tr)
+    }
+    // translate attributes
+    const allEls = $('*');
+    const transEls = allEls.filter((_, el) => el.dataset.translate);
+    for(let el of transEls){
+        try{
+            const text = el[el.dataset.translate];
+            const tr = translate(text);
+            el[el.dataset.translate] = tr;
+        }catch(e){}
+    }
+}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
+
+/***/ }),
+
+/***/ "./src/js/translates.js":
+/*!******************************!*\
+  !*** ./src/js/translates.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _utils_localStorage__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils/localStorage */ "./src/js/utils/localStorage.js");
+/* harmony import */ var _translates_en__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./translates/en */ "./src/js/translates/en.js");
+/* harmony import */ var _translates_ru__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./translates/ru */ "./src/js/translates/ru.js");
+
+
+function getLang(){
+    return (Object(_utils_localStorage__WEBPACK_IMPORTED_MODULE_0__["get"])('preferredLang') || navigator.language || navigator.userLanguage || 'en').substr(0, 2)
+}
+const lang = getLang();
+
+
+
+
+const languages = {
+    en: _translates_en__WEBPACK_IMPORTED_MODULE_1__["default"],
+    ru: _translates_ru__WEBPACK_IMPORTED_MODULE_2__["default"]
+}
+
+const userLanguage = languages[lang] || languages['en'];
+
+/* harmony default export */ __webpack_exports__["default"] = ({
+    _(value){
+        return userLanguage[value] || languages['en'][value] || value
+    }
+});
+
+/***/ }),
+
+/***/ "./src/js/translates/en.js":
+/*!*********************************!*\
+  !*** ./src/js/translates/en.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+    // main section
+    // html
+    'Goroxels': 'Goroxels',
+    'CHAT': 'CHAT',
+    'login to chat': 'login to chat',
+    'template': 'template',
+    'template url': 'template url',
+    'template opacity': 'template opacity',
+    'settings': 'settings',
+    'game settings': 'game settings',
+    'open window': 'open window',
+    'account settings': 'account settings',
+    'toolbinds settings': 'toolbinds settings',
+    'ui settings': 'ui settings',
+    'tools': 'tools',
+    'online': 'online',
+    'Send alerts': 'Send alerts',
+    // js and others
+    // tools subsection
+    'clicker': 'clicker',
+    'protector': 'protector',
+    'alt protector': 'alt protector',
+    'mover': 'mover',
+    'floodfill': 'floodfill',
+    'pipette': 'pipette',
+    'alt pipette': 'alt pipette',
+    'coords to chat': 'coords to chat',
+    'pixel info': 'pixel info',
+    'swap colors': 'swap colors',
+    'left color': 'left color',
+    'right color': 'right color',
+    'toggle chat': 'toggle chat',
+    'toggle menu': 'toggle menu',
+    'toggle everything': 'toggle everything',
+    'ctrlZ': 'ctrlZ',
+    'grid': 'grid',
+    'paste': 'paste',
+    'template 0/N opaq': 'template 0/N opaq',
+    'template 1/N opaq': 'template 1/N opaq',
+    'square': 'square',
+    '+brush size': '+brush size',
+    '-brush size': '-brush size',
+    'copy': 'copy',
+    // end tools subsection
+    'colors size': 'colors size',
+    'palette width': 'palette width',
+    'hide emojis': 'hide emojis',
+    'emoji list': 'emoji list',
+    'super secret button': 'super secret button',
+    'show placed pixels': 'show placed pixels',
+    'more emojis!': 'more emojis!',
+    'show protected': 'show protected',
+    'brush size': 'brush size',
+    'max saved pixels': 'max saved pixels',
+    'disable chat colors': 'disable chat colors',
+    'chat messages limit': 'chat messages limit',
+    'light grid': 'light grid',
+    'enable grid': 'enable grid',
+    'Case insensitive, 0/o i/l are same': 'Case insensitive, 0/o i/l are same',
+    'Can\'t recognize?': 'Can\'t recognize?',
+    'Captcha': 'Captcha',
+    'search users': 'search users',
+    'OR': 'OR',
+    'banned?': 'banned?',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+    '': '',
+
+
+    // converter section
+    // html
+    'Convert!': 'Convert!',
+    'Into palette': 'Into palette',
+    'GO!': 'GO!',
+    'Dithering': 'Dithering',
+    'None': 'None',
+    'Floyd-Steinberg': 'Floyd-Steinberg',
+    'Stuсki': 'Stuсki',
+    'Chess': 'Chess',
+    'Ordered (matrix)': 'Ordered (matrix)',
+    'Threshold': 'Threshold',
+    'Matrix size': 'Matrix size',
+    'Darken': 'Darken',
+    'Lighten': 'Lighten',
+    'Balance': 'Balance',
+    'Color function for ΔE': 'Color function for ΔE',
+    'RGB + luminance [very fast and dirty]': 'RGB + luminance [very fast and dirty]',
+    'ciede2000 [slow and accurate]': 'ciede2000 [slow and accurate]',
+    'CMC I:c [weird and slow]': 'CMC I:c [weird and slow]',
+    'Euclidian + color values [fast and dirty]': 'Euclidian + color values [fast and dirty]',
+    'brightness tune': 'brightness tune',
+    'reset': 'reset',
+    'constrast tune': 'constrast tune',
+    'resize preview automatically': 'resize preview automatically',
+    'serpentine (slightly suppresses dithering artefacts)': 'serpentine (slightly suppresses dithering artefacts)',
+    'Into patterns': 'Into patterns',
+    'Choose a palette': 'Choose a palette',
+    // js and others
+    'Image is loaded, but pixels can not be gotten. Try to load it on Imgur or download->upload from file': 'Image is loaded, but pixels can not be gotten. Try to load it on Imgur or download->upload from file',
+    '[clipboard]': '[clipboard]',
+    'Choose a image!': 'Choose a image!',
+    'Invalid link!': 'Invalid link!',
+    'Done in': 'Done in', //: Done in TIME ms
+    'ms.': 'ms.', // milliseconds
+    's.': 's.', // seconds
+    'Unknown image loading error. Maybe CORS, so try to upload on Imgur': 'Unknown image loading error. Maybe CORS, so try to upload on Imgur',
+    'If your image is big, go make a tea and watch Doctor Who': 'If your image is big, go make a tea and watch Doctor Who',
+    'Final image size:': 'Final image size:',
+    'Upload on imgur!': 'Upload on imgur!',
+    'Imgur upload failed, try upload manually and add this to a link:': 'Imgur upload failed, try upload manually',
+    'Failed to load game palettes!': 'Failed to load game palettes!',
+    'URL/file/clipboard': 'URL/file/clipboard',
+
+    // admin section
+    // html
+    'Backup Viewer': 'Backup Viewer',
+    'SELECT CANVAS': 'SELECT CANVAS',
+    'SELECT DAY': 'SELECT DAY',
+    'SELECT TIME': 'SELECT TIME',
+    'rollback': 'rollback',
+    'Show chunk grid': 'Show chunk grid',
+    'Crop chunks from': 'Crop chunks from',
+    'to': 'to',
+    'Crop rollback too': 'Crop rollback too',
+    'IP Actions': 'IP Actions',
+    'Blacklist': 'Blacklist',
+    'UnBlackist': 'UnBlackist',
+    'UnWhitelist': 'UnWhitelist',
+    'send': 'send',
+    'set captchaEnabled state': 'set captchaEnabled state',
+    'set': 'set',
+    'set afterJoinDelay value': 'set afterJoinDelay value',
+    'Canvas Actions': 'Canvas Actions',
+    'Canvas': 'Canvas',
+    'DO': 'DO',
+    'wipe': 'wipe',
+    'enlarge': 'enlarge',
+    'top': 'top',
+    'right': 'right',
+    'bottom': 'bottom',
+    'left': 'left',
+    // js and others TODO
+});
+
+/***/ }),
+
+/***/ "./src/js/translates/ru.js":
+/*!*********************************!*\
+  !*** ./src/js/translates/ru.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+    // main section
+    // html
+    'Goroxels': 'Goroxels',
+    'CHAT': 'CHAT',
+    'login to chat': 'login to chat',
+    'template': 'template',
+    'template url': 'template url',
+    'template opacity': 'template opacity',
+    'settings': 'settings',
+    'game settings': 'game settings',
+    'open window': 'open window',
+    'account settings': 'account settings',
+    'toolbinds settings': 'toolbinds settings',
+    'ui settings': 'ui settings',
+    'tools': 'tools',
+    'online': 'online',
+    'Send alerts': 'Send alerts',
+    // js and others
+    'change_name': 'Change nickname',
+    'role': 'Role',
+    'delete_account': 'Delete account',
+
+    // converter section
+    // html
+    'Convert!': 'Convert!',
+    'Into palette': 'Into palette',
+    'GO!': 'GO!',
+    'Dithering': 'Dithering',
+    'None': 'None',
+    'Floyd-Steinberg': 'Floyd-Steinberg',
+    'Stuсki': 'Stuсki',
+    'Chess': 'Chess',
+    'Ordered (matrix)': 'Ordered (matrix)',
+    'Threshold': 'Threshold',
+    'Matrix size': 'Matrix size',
+    'Darken': 'Darken',
+    'Lighten': 'Lighten',
+    'Balance': 'Balance',
+    'Color function for ΔE': 'Color function for ΔE',
+    'RGB + luminance [very fast and dirty]': 'RGB + luminance [very fast and dirty]',
+    'ciede2000 [slow and accurate]': 'ciede2000 [slow and accurate]',
+    'CMC I:c [weird and slow]': 'CMC I:c [weird and slow]',
+    'Euclidian + color values [fast and dirty]': 'Euclidian + color values [fast and dirty]',
+    'brightness tune': 'brightness tune',
+    'reset': 'reset',
+    'constrast tune': 'constrast tune',
+    'resize preview automatically': 'resize preview automatically',
+    'serpentine (slightly suppresses dithering artefacts)': 'serpentine (slightly suppresses dithering artefacts)',
+    'Into patterns': 'Into patterns',
+    'Choose a palette': 'Choose a palette',
+    // js and others
+    'Image is loaded, but pixels can not be gotten. Try to load it on Imgur or download->upload from file': 'Image is loaded, but pixels can not be gotten. Try to load it on Imgur or download->upload from file',
+    '[clipboard]': '[clipboard]',
+    'Choose a image!': 'Choose a image!',
+    'Invalid link!': 'Invalid link!',
+    'Done in': 'Done in', //: Done in TIME ms
+    'ms.': 'ms.', // milliseconds
+    's.': 's.', // seconds
+    'Unknown image loading error. Maybe CORS, so try to upload on Imgur': 'Unknown image loading error. Maybe CORS, so try to upload on Imgur',
+    'If your image is big, go make a tea and watch Doctor Who': 'If your image is big, go make a tea and watch Doctor Who',
+    'Final image size:': 'Final image size:',
+    'Upload on imgur!': 'Upload on imgur!',
+    'Imgur upload failed, try upload manually and add this to a link:': 'Imgur upload failed, try upload manually',
+    'Failed to load game palettes!': 'Failed to load game palettes!',
+    'URL/file/clipboard': 'URL/file/clipboard',
+
+    // admin section
+    // html
+    'Backup Viewer': 'Backup Viewer',
+    'SELECT CANVAS': 'SELECT CANVAS',
+    'SELECT DAY': 'SELECT DAY',
+    'SELECT TIME': 'SELECT TIME',
+    'rollback': 'rollback',
+    'Show chunk grid': 'Show chunk grid',
+    'Crop chunks from': 'Crop chunks from',
+    'to': 'to',
+    'Crop rollback too': 'Crop rollback too',
+    'IP Actions': 'IP Actions',
+    'Blacklist': 'Blacklist',
+    'UnBlackist': 'UnBlackist',
+    'UnWhitelist': 'UnWhitelist',
+    'send': 'send',
+    'set captchaEnabled state': 'set captchaEnabled state',
+    'set': 'set',
+    'set afterJoinDelay value': 'set afterJoinDelay value',
+    'Canvas Actions': 'Canvas Actions',
+    'Canvas': 'Canvas',
+    'DO': 'DO',
+    'wipe': 'wipe',
+    'enlarge': 'enlarge',
+    'top': 'top',
+    'right': 'right',
+    'bottom': 'bottom',
+    'left': 'left',
+    // js and others TODO
+});
+
+/***/ }),
+
+/***/ "./src/js/utils/localStorage.js":
+/*!**************************************!*\
+  !*** ./src/js/utils/localStorage.js ***!
+  \**************************************/
+/*! exports provided: getOrDefault, get, set */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getOrDefault", function() { return getOrDefault; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "get", function() { return get; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "set", function() { return set; });
+function getOrDefault(key, defaultVal){
+    // NOTE: empty strings are falsy too
+    return localStorage.getItem(key) || defaultVal
+}
+
+function get(value){
+    return localStorage.getItem(value);
+}
+
+function set(key, value){
+    return localStorage.setItem(key, value)
 }
 
 /***/ })

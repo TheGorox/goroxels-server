@@ -13,6 +13,16 @@ const ROLE = {
     ADMIN: 3
 }
 
+const ROLE_I = {};
+Object.keys(ROLE).forEach(x => ROLE_I[ROLE[x]] = x);
+
+const chatBucket = {
+    USER: [2000, 3],
+    TRUSTED: [1000, 4],
+    MOD: [500, 5],
+    ADMIN: [0, 32],
+}
+
 module.exports = {
     SECOND,
     MINUTE,
@@ -21,5 +31,8 @@ module.exports = {
     WEEK,
     MONTH,
 
-    ROLE
+    ROLE,
+    ROLE_I,
+
+    chatBucket
 }

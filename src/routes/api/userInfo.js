@@ -1,6 +1,9 @@
 const express = require('express');
 const User = require('../../db/models/User');
-const roleRequired = require('../roleRequired');
+const roleRequired = require('../../utils/roleRequired');
+const WSS = require('../../WebsocketServer');
+const { checkRole } = require('../../utils/role');
+const { ROLE } = require('../../constants');
 
 const router = express.Router();
 
@@ -10,37 +13,60 @@ function error(res, error) {
     })
 }
 
-router.use(roleRequired.user)
+// TODO rate limiter
+
+router.use(roleRequired.user);
 
 router.get('/', async (req, res) => {
-    if(req.query.id === undefined)
+    if (req.query.id === undefined)
         return error(res, 'Player id is not specified');
-
+        
     const id = parseInt(req.query.id, 10);
-    if(isNaN(id) || id < 0 || id === Infinity){
+    if (isNaN(id) || id < 0 || id === Infinity) {
         return error(res, 'Are you gay');
     }
 
-    const user = await User.findOne({
-        where: { id }
-    })
+    let properties;
+    if (!req.query.unreg) {
+        const user = await User.findOne({
+            where: { id }
+        })
 
-    if(!user){
-        return error(res, 'gay');
-    }
-    
-    // TODO add login type with id
-    let properties = {};
+        if (!user) {
+            return error(res, 'No such user');
+        }
 
-    switch(req.user.role){
-        case 'ADMIN':
-            properties.email = user.email;
-        case 'MOD': 
-            properties.ip = user.lastIp;
-        case 'USER':
-            properties.name = user.name;
-            properties.id = user.id;
-            properties.role = user.role;
+        // TODO add login type with id
+        properties = {};
+
+        if(req.user){
+            switch (req.user.role) {
+                case 'ADMIN':
+                    properties.email = user.email;
+                case 'MOD':
+                    properties.ip = user.lastIp;
+                    properties.cc = user.lastCC;
+                case 'USER':
+                    properties.name = user.name;
+                    properties.id = user.id;
+                    properties.role = user.role;
+            }
+        }
+    } else {
+        let client = WSS.getInstance().clients.get(id);
+        if(!client) client = WSS.getInstance().leaved.get(id);
+
+        if(!client){
+            return res.error('Socket with this id was closed long time ago or never opened')
+        }
+
+        properties = {
+            'registered': client.user ? 'yes' : 'no',
+        }
+
+        if(checkRole(req.user, ROLE.MOD)){
+            properties.ip = client.ip;
+        }
     }
 
     res.set({

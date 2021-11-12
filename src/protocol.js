@@ -8,22 +8,26 @@ const OPCODES = {
     place:   0x1,
     online:  0x2,
     canvas:  0x3,
-    pixels:  0x4
+    pixels:  0x4,
+    captcha: 0x5
 }
 
 const STRING_OPCODES = {
     error: 'e',
     userJoin: 'u',
     userLeave: 'l',
+    subscribeChat: 's',
     chatMessage: 'c',
-    alert: 'a'
+    alert: 'a',
+    me: 'm', // used only to get my id
+    reload: 'r'
 }
 
 const createPacket = {
     chunkSend: (x, y, compressedData) => {
         // Warning: max x/y cord is 0xFF=255
         // to increase, change data type from uint8 to uint16 (offsets too)
-        // btw max canvas coord is 4095
+        // btw max canvas coord is 4095, as designed at packPixel()
         const buf = Buffer.allocUnsafe(1 + 1 + 1 + compressedData.byteLength);
         buf.writeUInt8(OPCODES.chunk, 0);
         buf.writeUInt8(x, 1);
@@ -86,6 +90,17 @@ const createStringPacket = {
         return {
             c: STRING_OPCODES.alert,
             msg: message
+        }
+    },
+    me(id){
+        return {
+            c: STRING_OPCODES.me,
+            id
+        }
+    },
+    reload(){
+        return {
+            c: STRING_OPCODES.reload
         }
     }
 }

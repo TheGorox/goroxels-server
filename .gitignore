@@ -5,4 +5,8 @@ chunkdata
 .env
 backup
 src/db/database.sqlite
-db.log
+logs
+utils/netconfig.sh
+utils/commands.txt
+utils/net-updatecf.sh
+utils/recorder/out

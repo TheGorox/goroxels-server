@@ -13,19 +13,19 @@
 - [Mysql](https://www.mysql.com/downloads/) (опционально)
 
 
-Чтобы полноценно и удобно разрабатывать гороксели, нужно чтобы папки с обоими репозиториями находились в одной общей. Имена папок должны быть *goroxels-server* и *goroxels-client*
+Чтобы полноценно и удобно разрабатывать гороксели, нужно чтобы папки с обоими репозиториями находились в одной общей. Имена папок должны быть *goroxels-server* и *goroxels-client*:
 
 ```
 git clone https://github.com/TheGorox/goroxels-server.git ./goroxels-server
 git clone https://github.com/TheGorox/goroxels-client.git ./goroxels-client
 ```
 
-После скачивания, создай файл *sharedConfig.json* в общей папке и скопируй туда содержимое с *goroxels-server*/shared/config.json. Это упростит в будущем копирование конфига в клиент и в сервер.
+После скачивания, создай файл *sharedConfig.json* в общей папке и скопируй туда содержимое с *goroxels-server*/shared/config.json. Это упростит в будущем копирование конфига в клиент и в сервер:
 ```
 cp ./goroxels-server/shared/config.json sharedConfig.json
 ```
 
-Выполни `npm install` в обеих папках.
+Выполни `npm install` в обеих папках:
 ```
 npm install --prefix goroxels-server
 npm install --prefix goroxels-client
@@ -69,5 +69,7 @@ pm2 logs goroxels
 | AUTH_DC_CLIENT_SECRET | Ключ доступа прилы Discord       | discock      |
 | AUTH_VK_CLIENT_ID     | ID приложения Vkontakte          | leavevk      |
 | AUTH_VK_CLIENT_SECRET | Ключ доступа прилы VK            | durov123     |
+
+Выставляем их в *ecosystem.config.js* сервера, либо опциональным модулем *env* (`npm i env`) в файле .env сервера
 
 Хз, вроде должно работать

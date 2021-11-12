@@ -34,9 +34,14 @@ passport.deserializeUser(async function (id, done) {
 });
 
 async function login(options){
+    // TODO check is function protected
     const email = options.email;
 
     if(!email) throw new Error('No email in login function');
+    if(!options.name)
+        throw new Error('No name in login function');
+
+    options.name = options.name.slice(0, 32);
 
     let user = await User.findOne({ where: { email } });
     if(!user){

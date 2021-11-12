@@ -7,34 +7,51 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="keywords" content="porn, traps, pixel, art, gay">
 
-    <title>Goroxels</title>
-
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"> -->
-<link rel="shortcut icon" href="./favicon.ico"><link href="./not_a_bundle.css" rel="stylesheet"></head>
+    <title class="translate">Goroxels</title>
+<link rel="shortcut icon" href="./favicon.ico"><link href="./game.css" rel="stylesheet"></head>
 
 <body>
     <div id="viewport">
-        <img id="template" src="https://i.imgur.com/46fwf6C.png">
+        <img id="template" src="https://i.imgur.com/46fwf6C.png?width=50">
         <canvas id="board"></canvas>
         <canvas id="fx"></canvas>
     </div>
     <div id="ui">
+        <div id="chat" class="window">
+            <div id="chatHeader" class="windowHeader">
+                <div id="chatNick">CHAT</div>
+                <div id="hideChat"></div>
+            </div>
+            <div id="chatBody">
+                <div id="chatLog"></div>
+                <div id="emotions"></div>
+                <div id="myMessage">
+                    <input type="text" id="chatInput" data-translate="value" value="login to chat" disabled max="250">
+                </div>
+            </div>
+        </div>
+
         <div id="uiTop">
+            <div class="showChat"></div>
+            <div class="showMenu"></div>
             <div id="info" class="bubble"></div>
             <div id="coords" class="bubble"></div>
             <div id="topMenu">
                 <div class="header">
+                    <div class="miniBtn helpBtn"></div>
+                    <div style="color: gold;">GOROXELS</div>
                 </div>
                 <div class="content">
                     <div class="column" id="templateColumn">
                         <div class="columnHeader">
                             <div class="translate hd">template</div>
+                            <div class="hideMenu"></div>
                         </div>
                         <div class="columnContent scroll">
                             <table class="columnTable">
                                 <tr class="tableRow">
                                     <td>
-                                        <div class="translate fd">template_url</div>
+                                        <div class="translate fd">template url</div>
                                     </td>
                                     <td><input type="text" id="templateURL"></td>
                                 </tr>
@@ -48,7 +65,7 @@
                                 </tr>
                                 <tr class="tableRow">
                                     <td>
-                                        <div class="translate fd">template_opacity</div>
+                                        <div class="translate fd">template opacity</div>
                                     </td>
                                     <td><input type="range" min=0 max=1 step=0.01 id="templateOpacity"></td>
                                 </tr>
@@ -63,41 +80,51 @@
                             <table class="columnTable">
                                 <tr>
                                     <td>
-                                        <div class="translate fd">game_settings</div>
+                                        <div class="translate fd">game settings</div>
                                     </td>
                                     <td>
                                         <button id="canvasSettings" class="key">
-                                            <div class="translate fd">open_window</div>
+                                            <div class="translate fd">open window</div>
                                         </button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div class="translate fd">account_settings</div>
+                                        <div class="translate fd">account settings</div>
                                     </td>
                                     <td>
                                         <button id="accountSettings" class="key">
-                                            <div class="translate fd">open_window</div>
+                                            <div class="translate fd">open window</div>
                                         </button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div class="translate fd">toolbinds_settings</div>
+                                        <div class="translate fd">toolbinds settings</div>
                                     </td>
                                     <td>
                                         <button id="toolBinds" class="key">
-                                            <div class="translate fd">open_window</div>
+                                            <div class="translate fd">open window</div>
                                         </button>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div class="translate fd">ui_settings</div>
+                                        <div class="translate fd">ui settings</div>
                                     </td>
                                     <td>
                                         <button id="uiSettings" class="key">
-                                            <div class="translate fd">open_window</div>
+                                            <div class="translate fd">open window</div>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="translate fd">tools</div>
+                                    </td>
+                                    <td>
+                                        <button id="toolsB" class="key">
+                                            <div class="translate fd">open window</div>
                                         </button>
                                     </td>
                                 </tr>
@@ -121,18 +148,6 @@
             </div>
             <div id="settings" class="bubble"></div>
             <div id="tools" class="bubble"></div>
-            <div id="chat" class="window">
-                <div id="chatHeader" class="windowHeader">
-                    <div id="chatNick">CHAT</div>
-                </div>
-                <div id="chatBody">
-                    <div id="chatLog"></div>
-                    <div id="emotions"></div>
-                    <div id="myMessage">
-                        <input type="text" id="chatInput" value="login to chat" disabled max="250">
-                    </div>
-                </div>
-            </div>
             <div id="modMenu" class="mod">
                 <div>
                     <div class="body window">
@@ -154,6 +169,7 @@
                     </div>
                 </div>
             </div>
+            <div id="placedPixels" class="bubble"></div>
         </div>
         <div id="uiBottom">
             <div id="palette"></div>
@@ -161,6 +177,6 @@
     </div>
     <script type="text/javascript">
     </script>
-<script type="text/javascript" src="./not_a_bundle.bundle.js"></script></body>
+<script type="text/javascript" src="./game.bundle.js"></script></body>
 
 </html>

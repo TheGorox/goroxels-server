@@ -1,15 +1,16 @@
 const express = require('express');
+const { MINUTE } = require('../../constants');
 const User = require('../../db/models/User');
 const logger = require('../../logger')('API');
 
-const rateLimit = require('express-rate-limit');
-const roleRequired = require('../roleRequired');
+const { rateLimiter } = require('../../utils/express');
+const roleRequired = require('../../utils/roleRequired');
 
 const router = express.Router();
 
 // limit to 15 minutes
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
+const limiter = rateLimiter.byIdOrIp({
+    time: 15 * MINUTE,
     max: 3
 })
 
@@ -19,8 +20,9 @@ function error(res, error) {
     })
 }
 
-router.use(limiter);
+// TODO disconnect all sockets
 
+router.use(limiter);
 router.use(roleRequired.user)
 
 router.post('/', async (req, res) => {

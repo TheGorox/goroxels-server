@@ -1,5 +1,7 @@
-const pako = require('pako');
+const zlib = require('zlib');
 const logger = require('./logger')('CHUNK');
+
+_anus = []
 
 class Chunk{
     constructor(x, y, size, data){
@@ -13,6 +15,12 @@ class Chunk{
         this._compressed = null;
 
         this._needToSave = false;
+
+    }
+
+    upd(){
+        this._needUpdate = true;
+        this._needToSave = true;
     }
 
     get(x, y){
@@ -23,9 +31,15 @@ class Chunk{
         const i = x + y * this.size;
 
         this.data[i] = (this.data[i] & 0x80) + c;
-        
-        this._needUpdate = true;
-        this._needToSave = true;
+        this.upd();
+    }
+
+    setBuffer(buffer){
+        for(let i = 0; i < this.data.length; i++){
+            // protection is overwritten!
+            this.data[i] = buffer[i];
+        }
+        this.upd();
     }
 
     setProtection(x, y, state){
@@ -33,16 +47,28 @@ class Chunk{
         const col = this.data[i];
 
         this.data[i] = (state << 7) | (col & 0x7F);
+        this.upd();
     }
 
-    compress(){
+    async compress(){
         if(this._needUpdate){
             this._needUpdate = false;
 
-            this._compressed = pako.deflate(this.data);
+            return new Promise((res, rej) => {
+                zlib.deflate(this.data, (err, result) => {
+                    if(err) return rej(err);
+
+                    res(this._compressed=result);
+                });
+            })
         }
 
         return this._compressed
+    }
+
+    wipe(){
+        this.data = Chunk.createEmpty(this.size);
+        this.upd();
     }
 }
 

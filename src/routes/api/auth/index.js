@@ -1,11 +1,17 @@
 const express = require('express');
+const logout = require('./logout');
 
 const router = express.Router();
 
-const logger = require('../../../logger')('AUTH');
+const logger = require('../../../logger')('AUTH', 'debug');
+const adminLogger = require('../../../logger')('admin');
 
 function afterlogin(req, res){
-    req.user.lastIp = req.ip;
+    if(!req.user) return;
+    adminLogger.info(`user login (id${req.user.id}|${req.user.name}) at ${req.realIp}`)
+
+    req.user.lastIp = req.realIp;
+    req.user.lastCC = req.headers['cf-ipcountry'] || 'XX';
     req.user.save().catch(e => {
         logger.error(e);
     });
@@ -55,6 +61,8 @@ module.exports = (passport) => {
         }
         res.status(200).send(text);
     });
+
+    router.get('/logout', logout);
 
     return router;
 }

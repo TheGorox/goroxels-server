@@ -1,9 +1,10 @@
 class ChatChannel{
-    constructor(id){
+    constructor(name){
         this.maxLastMessages = 10;
         this.lastMessages = [];
 
-        this.id = id;
+        // for future use
+        this.name = name;
     }
 
     addMessage(name, message, isServer=false){
@@ -23,7 +24,6 @@ class ChatChannel{
 }
 
 class ChatMessage{
-    // TODO add attachments
     constructor(name, message, isServer){
         this.name = name;
         this.message = message;

@@ -2,14 +2,16 @@ const express = require('express');
 const User = require('../../../db/models/User')
 
 const logger = require('../../../logger')('API', 'debug');
+const adminLogger = require('../../../logger')('admin');
 
 const router = express.Router();
 
-const roleRequired = require('../../roleRequired');
+const roleRequired = require('../../../utils/roleRequired');
 
 const {
     ROLE
 } = require('../../../constants');
+const Server = require('../../../WebsocketServer');
 
 function error(res, error) {
     res.json({
@@ -46,10 +48,12 @@ router.post('/', async (req, res) => {
             errors: []
         });
 
-        logger.debug(`Set ${user.name}'s role to ${targetUserRole}`)
+        adminLogger.info(`Set ${user.name}'s role to ${targetUserRole} by ${req.user.name}`);
+        Server.getInstance().closeByUser(user);
+        // TODO add RELOAD or UPDATE_ME message
     }).catch(e => {
         logger.error(e);
-        error('unkown database error')
+        res.error('unkown database error')
     })
 })
 

@@ -86,6 +86,54 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "../goroxels-server/src/constants.js":
+/*!*******************************************!*\
+  !*** ../goroxels-server/src/constants.js ***!
+  \*******************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+const SECOND = 1000,
+    MINUTE = SECOND * 60,
+    HOUR = MINUTE * 60,
+    DAY = HOUR * 24,
+    WEEK = DAY * 7,
+    MONTH = DAY * 30;
+
+const ROLE = {
+    BANNED: -1,
+    USER: 0,
+    TRUSTED: 1,
+    MOD: 2,
+    ADMIN: 3
+}
+
+const ROLE_I = {};
+Object.keys(ROLE).forEach(x => ROLE_I[ROLE[x]] = x);
+
+const chatBucket = {
+    USER: [2000, 3],
+    TRUSTED: [1000, 4],
+    MOD: [500, 5],
+    ADMIN: [0, 32],
+}
+
+module.exports = {
+    SECOND,
+    MINUTE,
+    HOUR,
+    DAY,
+    WEEK,
+    MONTH,
+
+    ROLE,
+    ROLE_I,
+
+    chatBucket
+}
+
+/***/ }),
+
 /***/ "./node_modules/jquery/dist/jquery.js":
 /*!********************************************!*\
   !*** ./node_modules/jquery/dist/jquery.js ***!
@@ -18665,17 +18713,6 @@ module.exports = function() {
 
 /***/ }),
 
-/***/ "./shared/config.json":
-/*!****************************!*\
-  !*** ./shared/config.json ***!
-  \****************************/
-/*! exports provided: canvases, default */
-/***/ (function(module) {
-
-module.exports = JSON.parse("{\"canvases\":[{\"name\":\"main\",\"cooldown\":{\"GUEST\":[0,32],\"USER\":[0,32]},\"chunkSize\":200,\"boardWidth\":2,\"boardHeight\":2,\"palette\":[[255,255,255],[0,0,0],[14,14,55],[22,56,84],[19,120,120],[30,198,99],[156,255,106],[255,246,120],[238,117,33],[182,43,56],[103,13,61],[42,4,38],[80,18,35],[146,55,55],[206,132,100],[255,215,176],[85,255,241],[39,150,219],[36,61,171],[27,27,92],[23,7,43],[64,11,103],[137,19,147],[218,79,188],[255,170,207],[178,207,205],[113,136,143],[56,62,81]]},{\"name\":\"test\",\"cooldown\":{\"GUEST\":[100,16],\"USER\":[50,32]},\"chunkSize\":512,\"boardWidth\":8,\"boardHeight\":8,\"palette\":[[255,255,255],[127,127,127],[0,0,0]]}]}");
-
-/***/ }),
-
 /***/ "./src/js/admin/main.js":
 /*!******************************!*\
   !*** ./src/js/admin/main.js ***!
@@ -18685,15 +18722,15 @@ module.exports = JSON.parse("{\"canvases\":[{\"name\":\"main\",\"cooldown\":{\"G
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* WEBPACK VAR INJECTION */(function($, toastr) {/* harmony import */ var _node_modules_toastr_build_toastr_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../node_modules/toastr/build/toastr.css */ "./node_modules/toastr/build/toastr.css");
-/* harmony import */ var _shared_config_json__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../shared/config.json */ "./shared/config.json");
-var _shared_config_json__WEBPACK_IMPORTED_MODULE_1___namespace = /*#__PURE__*/__webpack_require__.t(/*! ../../../shared/config.json */ "./shared/config.json", 1);
-/* harmony import */ var querystring__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! querystring */ "./node_modules/querystring-es3/index.js");
-/* harmony import */ var querystring__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(querystring__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _convert_color__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../convert/color */ "./src/js/convert/color.js");
-/* harmony import */ var _convert_color__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_convert_color__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var pako__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! pako */ "./node_modules/pako/index.js");
-/* harmony import */ var pako__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(pako__WEBPACK_IMPORTED_MODULE_4__);
+/* WEBPACK VAR INJECTION */(function(toastr, $) {/* harmony import */ var _node_modules_toastr_build_toastr_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../node_modules/toastr/build/toastr.css */ "./node_modules/toastr/build/toastr.css");
+/* harmony import */ var querystring__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! querystring */ "./node_modules/querystring-es3/index.js");
+/* harmony import */ var querystring__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(querystring__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _convert_color__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../convert/color */ "./src/js/convert/color.js");
+/* harmony import */ var _convert_color__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_convert_color__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var pako__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! pako */ "./node_modules/pako/index.js");
+/* harmony import */ var pako__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(pako__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _goroxels_server_src_constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../../goroxels-server/src/constants */ "../goroxels-server/src/constants.js");
+/* harmony import */ var _goroxels_server_src_constants__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_goroxels_server_src_constants__WEBPACK_IMPORTED_MODULE_4__);
 // TODO add protected pixels support
 
 
@@ -18703,17 +18740,14 @@ var _shared_config_json__WEBPACK_IMPORTED_MODULE_1___namespace = /*#__PURE__*/__
 
 
 
-for (let i = 0; i < _shared_config_json__WEBPACK_IMPORTED_MODULE_1__["canvases"].length; i++) {
-    const canvas = _shared_config_json__WEBPACK_IMPORTED_MODULE_1__["canvases"][i];
-    $('#canvasSelect').append(
-        `<option value="${i}" ${i === 0 ? 'selected' : ''}>${canvas.name}</option>`
-    )
-}
+let canvases;
 
-async function apiRequest(path, args) {
-    const query = querystring__WEBPACK_IMPORTED_MODULE_2___default.a.stringify(args)
+async function apiRequest(path, args, isPost = false) {
+    const query = querystring__WEBPACK_IMPORTED_MODULE_1___default.a.stringify(args)
 
-    const resp = await fetch('/api/' + path + '?' + query);
+    const resp = await fetch('/api/' + path + '?' + query, {
+        method: isPost ? 'POST' : 'GET'
+    });
     const json = await resp.json();
 
     if (json.errors) {
@@ -18724,252 +18758,506 @@ async function apiRequest(path, args) {
     return json
 }
 
-async function updateDays(canvas) {
-    let days = await apiRequest('admin/backup/getDays', { canvas });
-    if (!days) return false;
+async function initBackup() {
 
-    days = sortDates(days);
 
-    $('#dateSelect option').remove();
 
-    for (let day of days) {
-        const el = `<option>${day}</option>`;
-        $('#dateSelect').append(el);
+    for (let i = 0; i < canvases.length; i++) {
+        const canvas = canvases[i];
+        $('#canvasSelect').append(
+            `<option value="${i}" ${i === 0 ? 'selected' : ''}>${canvas.name}</option>`
+        )
     }
 
-    $('#dateSelect option:last-child').attr('selected', true);
+    async function updateDays(canvas) {
+        let days = await apiRequest('admin/backup/getDays', { canvas });
+        if (!days) return false;
 
-    return days
-}
+        days = sortDates(days);
 
-async function updateTimes(canvas, day) {
-    const times = await apiRequest('admin/backup/getTimes', { canvas, day })
-    if (!times) return false;
+        $('#dateSelect option').remove();
 
-    $('#timeSelect option').remove();
+        for (let day of days) {
+            const el = `<option>${day}</option>`;
+            $('#dateSelect').append(el);
+        }
 
-    for (let time of times) {
-        const el = `<option value="${time}">${time.replace(/-/g, ':')}</option>`;
-        $('#timeSelect').append(el);
+        $('#dateSelect option:last-child').attr('selected', true);
+
+        return days
     }
 
-    $('#timeSelect option:last-child').attr('selected', true);
+    async function updateTimes(canvas, day) {
+        const times = await apiRequest('admin/backup/getTimes', { canvas, day })
+        if (!times) return false;
 
-    return times
-}
+        $('#timeSelect option').remove();
 
-let lastData = {};
-async function updateBackup(canvas, day, time, forceUpdate) {
-    if(forceUpdate){
-        lastData = await apiRequest('admin/backup/getBackup', { canvas, day, time })
-        if (!lastData) return false;
+        for (let time of times) {
+            const el = `<option value="${time}">${time.replace(/-/g, ':')}</option>`;
+            $('#timeSelect').append(el);
+        }
+
+        $('#timeSelect option:last-child').attr('selected', true);
+
+        return times
     }
 
-    const timer = Date.now();
-    renderBackup(lastData.chunks, lastData.metadata, getCurrentChunkCrop(), isUseGrid());
-    console.log('renderBackup in ' + (Date.now() - timer));
-}
+    let lastData = {};
+    async function updateBackup(canvas, day, time, forceUpdate) {
+        // TODO cache rendered and uncompressed canvas instead?
+        if (forceUpdate) {
+            lastData = await apiRequest('admin/backup/getBackup', { canvas, day, time })
+            if (!lastData) return false;
+        }
 
-function renderBackup(chunks, metadata, crop, useGrid) {
-    const chunkSize = metadata.chunkSize;
-
-    let width = chunkSize * metadata.width,
-        height = chunkSize * metadata.height;
-
-    let offX = 0,
-        offY = 0;
-
-    if (crop !== null) {
-        crop.startX = Math.min(metadata.width, crop.startX);
-        crop.startY = Math.min(metadata.height, crop.startY);
-        crop.endX = Math.min(metadata.width, crop.endX);
-        crop.endY = Math.min(metadata.height, crop.endY);
-
-        offX = -(crop.startX * chunkSize);
-        offY = -(crop.startY * chunkSize);
-
-        width = ((crop.endX + 1) - crop.startX) * chunkSize;
-        height = ((crop.endY + 1) - crop.startY) * chunkSize;
+        const timer = Date.now();
+        renderBackup(lastData.chunks, lastData.metadata, getCurrentChunkCrop(), isUseGrid());
+        console.log('renderBackup in ' + (Date.now() - timer));
     }
 
-    const encodedPal = metadata.palette.map(x => Object(_convert_color__WEBPACK_IMPORTED_MODULE_3__["rgb2uint32"])(x));
+    function renderBackup(chunks, metadata, crop, useGrid) {
+        const chunkSize = metadata.chunkSize;
 
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+        let width = chunkSize * metadata.width,
+            height = chunkSize * metadata.height;
 
-    const ctx = canvas.getContext('2d');
-    const imgData = ctx.createImageData(width, height);
-    const u32a = new Uint32Array(imgData.data.buffer);
+        let offX = 0,
+            offY = 0;
 
-    let rawData = new Uint8Array(chunkSize * chunkSize),
-        encodedBuf;
-
-    Object.keys(chunks).forEach(chunkId => {
-        const [cx, cy] = chunkId.split(',').map(x => +x);
         if (crop !== null) {
-            if (cx < crop.startX || cx > crop.endX ||
-                cy < crop.startY || cy > crop.endY) {
-                return
+            crop.startX = Math.min(metadata.width, crop.startX);
+            crop.startY = Math.min(metadata.height, crop.startY);
+            crop.endX = Math.min(metadata.width, crop.endX);
+            crop.endY = Math.min(metadata.height, crop.endY);
+
+            offX = -(crop.startX * chunkSize);
+            offY = -(crop.startY * chunkSize);
+
+            width = ((crop.endX + 1) - crop.startX) * chunkSize;
+            height = ((crop.endY + 1) - crop.startY) * chunkSize;
+        }
+
+        const encodedPal = metadata.palette.map(x => Object(_convert_color__WEBPACK_IMPORTED_MODULE_2__["rgb2uint32"])(x));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.createImageData(width, height);
+        const u32a = new Uint32Array(imgData.data.buffer);
+
+        let rawData = new Uint8Array(chunkSize * chunkSize),
+            encodedBuf;
+
+        Object.keys(chunks).forEach(chunkId => {
+            const [cx, cy] = chunkId.split(',').map(x => +x);
+            if (crop !== null) {
+                if (cx < crop.startX || cx > crop.endX ||
+                    cy < crop.startY || cy > crop.endY) {
+                    return
+                }
+            }
+
+            let encodedData = chunks[chunkId];
+            encodedData = atob(encodedData);
+            encodedBuf = new Uint8Array(encodedData.length);
+
+            for (let i = 0; i < encodedData.length; i++) {
+                encodedBuf[i] = encodedData.charCodeAt(i);
+            }
+
+            rawData = pako__WEBPACK_IMPORTED_MODULE_3___default.a.inflate(encodedBuf);
+
+            let color, i = 0, j, preY;
+
+            const startX = cx * chunkSize + offX,
+                endX = startX + chunkSize;
+            const startY = cy * chunkSize + offY,
+                endY = startY + chunkSize;
+
+            for (let y = startY; y < endY; y++) {
+                preY = y * width
+                for (let x = startX; x < endX; x++) {
+                    color = encodedPal[rawData[i++] & 0x7F];
+                    j = x + preY;
+
+                    u32a[j] = color;
+                }
+            }
+        })
+
+        ctx.putImageData(imgData, 0, 0);
+
+        if (useGrid) {
+            ctx.beginPath();
+
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = width / 133.3;
+            ctx.setLineDash([ctx.lineWidth / 0.75, ctx.lineWidth / 0.66666]);
+
+            for (let y = chunkSize; y < height - 1; y += chunkSize) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(width - 1, y);
+            }
+            for (let x = chunkSize; x < width - 1; x += chunkSize) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height - 1);
+            }
+
+            ctx.stroke();
+            ctx.closePath();
+
+            ctx.setLineDash([]);
+
+            const halfChunk = chunkSize / 2,
+                fontHei = chunkSize / 4;
+            ctx.font = fontHei + 'px sans-serif';
+            ctx.fillStyle = 'red'
+            ctx.strokeStyle = 'white';
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.lineWidth = fontHei / 6;
+
+            let text,
+                offx = 0, offy = 0;
+            if (crop) {
+                offx = crop.startX || 0;
+                offy = crop.startY || 0;
+            }
+
+            const cw = canvas.width / chunkSize,
+                ch = canvas.height / chunkSize;
+            for (let cy = 0; cy < ch; cy++) {
+                for (let cx = 0; cx < cw; cx++) {
+                    console.log(cx + offx, cy + offy)
+                    text = `(${cx + offx}, ${cy + offy})`;
+
+                    let x = (cx * chunkSize) + halfChunk,
+                        y = (cy * chunkSize) + halfChunk;
+
+                    ctx.strokeText(text, x, y);
+                    ctx.fillText(text, x, y);
+                }
             }
         }
 
-        let encodedData = chunks[chunkId];
-        encodedData = atob(encodedData);
-        encodedBuf = new Uint8Array(encodedData.length);
+        $('#backupContainer *').remove();
+        $('#backupContainer').append(canvas);
 
-        for (let i = 0; i < encodedData.length; i++) {
-            encodedBuf[i] = encodedData.charCodeAt(i);
+        // убрать
+        $('body').scrollTop(999);
+    }
+
+    function getCurrentCanvas() {
+        return $('#canvasSelect').val()
+    }
+
+    function getCurrentDay() {
+        return $('#dateSelect').val()
+    }
+
+    function getCurrentTime() {
+        return $('#timeSelect').val()
+    }
+
+    function isUseGrid() {
+        return $('#gridCB').is(':checked')
+    }
+
+    function getCurrentChunkCrop() {
+        if (!$("#cropCB").is(':checked')) return null;
+
+        let cropXstart = +$('#cropXStart').val() || 0;
+        let cropYstart = +$('#cropYStart').val() || 0;
+        let cropXend = +$('#cropXEnd').val() || 0;
+        let cropYend = +$('#cropYEnd').val() || 0;
+
+        if (cropXstart < 0 || cropXstart > cropXend ||
+            cropYstart < 0 || cropYstart > cropYend) {
+            return null
+        }
+        return {
+            startX: cropXstart,
+            startY: cropYstart,
+            endX: cropXend,
+            endY: cropYend
+        }
+    }
+
+    async function initialRequest() {
+        await onCanvasUpdated();
+    }
+
+    function onSomethingChanged(forceUpdate) {
+        const curCanvas = getCurrentCanvas();
+        const curDay = getCurrentDay();
+        const curTime = getCurrentTime();
+
+        if ([curCanvas, curDay, curTime].some(x => x == "")) {
+            return
         }
 
-        rawData = pako__WEBPACK_IMPORTED_MODULE_4___default.a.inflate(encodedBuf);
+        updateBackup(curCanvas, curDay, curTime, forceUpdate);
+    }
 
-        let color, i = 0, j, prey;
+    async function onCanvasUpdated() {
+        const canvas = getCurrentCanvas();
 
-        const startX = cx * chunkSize + offX,
-            endX = startX + chunkSize;
-        const startY = cy * chunkSize + offY,
-            endY = startY + chunkSize;
+        const days = await updateDays(canvas),
+            day = days[days.length - 1];
+        const times = await updateTimes(canvas, day),
+            time = times[times.length - 1]
 
-        for (let y = startY; y < endY; y++) {
-            prey = y * width
-            for (let x = startX; x < endX; x++) {
-                color = encodedPal[rawData[i++] & 0x7F];
-                j = x + prey;
+        await updateBackup(canvas, day, time, true);
+    }
 
-                u32a[j] = color;
-            }
+    $('#gridCB, #cropCB, #timeSelect, .cropInput').on('change', e => {
+        if (e.className == 'cropInput' && !$("#cropCB").is(':checked')) return;
+        onSomethingChanged(e.target.id === 'timeSelect');
+    });
+
+    // just to add and remove "disabled" attr from/to rollback checkbock
+    $('#cropCB').on('change', () => {
+        const enabled = $("#cropCB").is(':checked');
+        if (enabled)
+            $('#cropRollbackCB').removeAttr('disabled');
+        else
+            $('#cropRollbackCB').attr('disabled', '');
+    })
+
+    $('#canvasSelect').on('change', onCanvasUpdated);
+    $('#dateSelect').on('change', async () => {
+        await updateTimes(getCurrentCanvas(), getCurrentDay());
+        onSomethingChanged(true);
+    });
+
+    function sortDates(dates) {
+        return dates.sort((a, b) => {
+            return dateToInt(a) - dateToInt(b)
+        });
+    }
+
+    function dateToInt(date) {
+        const [
+            day,
+            month,
+            year
+        ] = date.split('.').map(x => parseInt(x, 10));
+
+        let int = 0;
+
+        int += year * 365;
+        int += month * 31;
+        int += day;
+
+        return int
+    }
+
+    $('#rollback').on('click', async () => {
+        const canvas = getCurrentCanvas();
+        const day = getCurrentDay();
+        const time = getCurrentTime();
+        const crop = getCurrentChunkCrop();
+
+        if ([canvas, day, time].some(x => x == "")) {
+            return
+        }
+
+        const cropEnabled = crop && $("#cropRollbackCB").is(':checked');
+
+        // let p = prompt('Are you sure?');
+        // if(p == null) return;
+
+        const resp = await apiRequest('/admin/backup/rollback', {
+            canvas, day, time,
+            crop: cropEnabled ? [crop.startX, crop.startY, crop.endX, crop.endY].join(',') : ''
+        }, true);
+        const json = await resp.json();
+        if (json.success) toastr.success('Rollbacked!');
+        else toastr.error(json.errors);
+    })
+
+    initialRequest().catch(e => {
+        console.error(e);
+        toastr.error(e);
+    });
+}
+function initIP() {
+    $('#sendIps').on('click', async () => {
+        const act = $('input[name="ipAction"]:checked').val();
+        let ips = $('#ips').val();
+
+        ips = ips.split('\n');
+
+        if (ips.length == 0) {
+            toastr.error('All ips are invalid');
+            return
+        }
+
+        const resp = await fetch('/api/admin/ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ips, action: act })
+        });
+        const json = await resp.json();
+
+        for (let error of json.errors)
+            toastr.error(error);
+
+        if (json.success) toastr.success('Success');
+        else toastr.error('Bad luck');
+    })
+}
+function initOther() {
+    $('#sendCaptchaEnabled').on('click', async () => {
+        const state = $('#captchaState')[0].checked;
+
+        const resp = await fetch('/api/admin/config/captchaState', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ state })
+        })
+
+        const json = await resp.json();
+        if (json.success) {
+            toastr.success('Success');
+        } else {
+            toastr.error('Failed');
+            console.log(json);
+        }
+    });
+
+    $('#sendJoinDelay').on('click', async () => {
+        const value = $('#joinDelay').val();
+        if (!value) return;
+
+        const parsed = parseInt(value, 10);
+        if (parsed < 0 || isNaN(parsed)) return;
+
+        const resp = await fetch('/api/admin/config/afterJoinDelay', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ value: parsed })
+        })
+
+        const json = await resp.json();
+        if (json.success) {
+            toastr.success('Success');
+        } else {
+            toastr.error('Failed');
+            console.log(json);
+        }
+    });
+}
+function initCanvasActions() {
+    canvases.forEach((canv, id) => {
+        $('#selectActCanvas').append(`<option value="${id}">${canv.name}</option>`);
+    })
+
+    $('#canvasAction').on('change', () => {
+        const act = $('#canvasAction').val();
+        // hide all (if will be more in future)
+        $('.hidden.enlargeConfig').addClass('hidden');
+        // and then show one
+        if (act === 'enlarge') {
+            $('.hidden.enlargeConfig').removeClass('hidden');
         }
     })
 
-    ctx.putImageData(imgData, 0, 0);
+    $('#doCanvasAction').on('click', async () => {
+        const act = $('#canvasAction').val();
+        if (!act) return;
 
-    if (useGrid) {
-        ctx.beginPath();        
+        const canv = $('#selectActCanvas').val();
+        if (!canv) return;
 
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = width/133.3;
-        ctx.setLineDash([ctx.lineWidth/0.75, ctx.lineWidth/0.66666]);
+        if (act === 'wipe')
+            await wipeCanvas(canv);
+        if (act === 'enlarge') {
+            const t = $('#enTop').val();
+            const r = $('#enRight').val();
+            const b = $('#enBot').val();
+            const l = $('#enLeft').val();
 
-        for (let y = chunkSize; y < height - 1; y += chunkSize) {
-            ctx.moveTo(0, y);
-            ctx.lineTo(width-1, y);
+            if ([t, r, b, l].some(x => x > 254))
+                return toastr.error('Max canvas size is 255!');
+            if ([t, r, b, l].some(x => x < 0))
+                return toastr.error('ENLARGE only, one way road');
+
+            await enlargeCanvas(canv, t, r, b, l);
         }
-        for (let x = chunkSize; x < width - 1; x += chunkSize) {
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height-1);
-        }
+    })
 
-        // добавлять ли цифры чанков?
-        // TODO
-
-        ctx.stroke();
-        ctx.closePath();
+    async function wipeCanvas(id) {
+        await apiRequest('admin/canvas/wipe', {
+            canvas: id
+        }, true);
+        toastr.success('Canvas ' + canvases[id].name + ' wiped!')
     }
 
-    $('#backupContainer *').remove();
-    $('#backupContainer').append(canvas);
-}
+    async function enlargeCanvas(id, t, r, b, l) {
+        // TODO check for errors
+        await apiRequest('admin/canvas/enlarge', {
+            canvas: id,
 
-function getCurrentCanvas() {
-    return $('#canvasSelect').val()
-}
-
-function getCurrentDay() {
-    return $('#dateSelect').val()
-}
-
-function getCurrentTime() {
-    return $('#timeSelect').val()
-}
-
-function isUseGrid() {
-    return $('#gridCB').is(':checked')
-}
-
-function getCurrentChunkCrop() {
-    if (!$("#cropCB").is(':checked')) return null;
-
-    let cropXstart = +$('#cropXStart').val() || 0;
-    let cropYstart = +$('#cropYStart').val() || 0;
-    let cropXend = +$('#cropXEnd').val() || 0;
-    let cropYend = +$('#cropYEnd').val() || 0;
-
-    if (cropXstart < 0 || cropXstart > cropXend ||
-        cropYstart < 0 || cropYstart > cropYend) {
-        return null
-    }
-    return {
-        startX: cropXstart,
-        startY: cropYstart,
-        endX: cropXend,
-        endY: cropYend
+            top: t,
+            right: r,
+            bottom: b,
+            left: l
+        }, true);
+        toastr.success('Canvas ' + canvases[id].name + ' enlarged!')
     }
 }
 
-async function initialRequest() {
-    await onCanvasUpdated();
+async function loadConfig() {
+    const resp = await fetch('/config.json');
+    return await resp.json();
 }
 
-function onSomethingChanged(forceUpdate){
-    const curCanvas = getCurrentCanvas();
-    const curDay = getCurrentDay();
-    const curTime = getCurrentTime();
-
-    if([curCanvas, curDay, curTime].some(x => x=="")){
+(async () => {
+    let resp;
+    try {
+        resp = await fetch('/api/me');
+    } catch (e) {
+        toastr.error(e)
+        return toastr.error('Error while fetching /api/me:')
+    }
+    const me = await resp.json();
+    if (me.role < _goroxels_server_src_constants__WEBPACK_IMPORTED_MODULE_4__["ROLE"].MOD) {
+        location.href = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
         return
     }
 
-    updateBackup(curCanvas, curDay, curTime, forceUpdate);
-}
+    canvases = (await loadConfig()).canvases;
 
-async function onCanvasUpdated(){
-    const canvas = getCurrentCanvas();
+    switch (me.role) {
+        case _goroxels_server_src_constants__WEBPACK_IMPORTED_MODULE_4__["ROLE"].ADMIN:
+            $('.admin').show();
+        case _goroxels_server_src_constants__WEBPACK_IMPORTED_MODULE_4__["ROLE"].MOD:
+            $('.mod').show();
+        default: {
+            if (me.id == 1) {
+                $('.superadmin').show();
+            }
+            break
+        }
+    }
 
-    const days = await updateDays(canvas),
-    day = days[days.length - 1];
-    const times = await updateTimes(canvas, day),
-        time = times[times.length - 1]
-
-    await updateBackup(canvas, day, time, true);
-}
-
-$('#gridCB, #cropCB, #timeSelect').on('change', e => {
-    onSomethingChanged(e.target.id === 'timeSelect');
-});
-
-$('#canvasSelect').on('change', onCanvasUpdated);
-$('#dateSelect').on('change', () => {
-    updateTimes(getCurrentCanvas(), getCurrentDay())
-});
-
-function sortDates(dates){
-    return dates.sort((a, b) => {
-        return dateToInt(a) - dateToInt(b)
-    });
-}
-
-function dateToInt(date){
-    const [
-        day,
-        month,
-        year
-    ] = date.split('.').map(x => parseInt(x, 10));
-
-    let int = 0;
-
-    int += year*365;
-    int += month*31;
-    int += day;
-
-    return int
-}
-
-initialRequest().catch(e => {
-    console.error(e);
-    toastr.error(e);
-})
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js"), __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js")))
+    initBackup();
+    initIP();
+    initOther();
+    initCanvasActions()
+})()
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! toastr */ "./node_modules/toastr/toastr.js"), __webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery.js")))
 
 /***/ }),
 

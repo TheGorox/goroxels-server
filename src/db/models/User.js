@@ -16,7 +16,7 @@ const User = sequelize.define('user', {
     },
 
     role: {
-        type: Sequelize.ENUM('BANNED', 'USER', 'MOD', 'ADMIN'),
+        type: Sequelize.ENUM('BANNED', 'USER', 'TRUSTED', 'MOD', 'ADMIN'),
         allowNull: false,
         defaultValue: 'USER'
     },
@@ -37,12 +37,17 @@ const User = sequelize.define('user', {
     },
 
     lastIp: {
-        type: Sequelize.STRING(15),
+        type: Sequelize.STRING(45),
+        allowNull: true
+    },
+
+    lastCC: {
+        type: Sequelize.CHAR(2),
         allowNull: true
     }
 }, {
     createdAt: 'creationDate',
-    updatedAt: 'updateDate'
+    updatedAt: 'updateDate',
 });
 
 User.sync();

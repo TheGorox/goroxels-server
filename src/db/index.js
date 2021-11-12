@@ -2,13 +2,15 @@ const Sequelize = require('sequelize').Sequelize;
 
 const logger = require('../logger')('DB', 'info');
 
+console.log(process.env.DB_ISLOCAL, process.env.DB_HOST)
+
 const config = {
     host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: process.env.DB_ISLOCAL === '0' ? 'postgres' : 'sqlite',
+    port: process.env.DB_PORT ? +process.env.DB_PORT : undefined,
+    dialect: process.env.DB_ISLOCAL === '0' ? 'mysql' : 'sqlite',
     storage: __dirname + '/database.sqlite',
     dialectOptions: {
-        charset: 'UNICODE'
+        charset: 'utf8'
     },
     pool: {
         max: 15,

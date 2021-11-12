@@ -2,6 +2,7 @@
 
 const config = require('./config');
 const fs = require('fs');
+const path = require('path');
 
 function packPixel(x, y, col){
     return (x << 12 | y) << 7 | col
@@ -73,11 +74,18 @@ function randint(min, max){
     return ((Math.random() * (max - min)) + min) | 0
 }
 
+function savePublicConfig(){
+    const str = JSON.stringify(config.public);
+    fs.writeFileSync(path.join(__dirname, '/../data/config.json'), str);
+}
+
 module.exports = {
     packPixel,
     unpackPixel,
     randomNameGenerator,
     getFancyDate,
     getFancyTime,
-    randint
+    randint,
+
+    savePublicConfig
 }

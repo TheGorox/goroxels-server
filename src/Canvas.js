@@ -1,5 +1,4 @@
 const ChunkManager = require('./ChunkManager');
-const ChatChannel = require('./ChatChannel');
 
 class Canvas{
     constructor(id, canvasOptions){
@@ -7,14 +6,21 @@ class Canvas{
 
         Object.assign(this, canvasOptions);
 
-        this.width = this.boardWidth; // todo wtf
+        this.width = this.boardWidth;
         this.height = this.boardHeight;
 
         this.realWidth = this.width * this.chunkSize;
         this.realHeight = this.height * this.chunkSize;
 
         this.chunkManager = new ChunkManager(this);
-        this.textChannel = new ChatChannel(this.id);
+    }
+
+    updateSize(w, h){
+        this.width = w;
+        this.realWidth = this.width * this.chunkSize;
+
+        this.height = h;
+        this.realHeight = this.height * this.chunkSize;
     }
 
     init(){

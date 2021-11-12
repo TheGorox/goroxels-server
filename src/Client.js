@@ -4,8 +4,11 @@ let lastId = 0;
 // todo replace it with.. something
 
 const {
-    STRING_OPCODES
-} = require('./protocol')
+    STRING_OPCODES,
+    OPCODES
+} = require('./protocol');
+
+const logger = require('./logger')('CLIENT', 'debug');
 
 const CLIENT_STATES = {
     CANVAS_NOT_CHOSEN: 0,
@@ -24,19 +27,17 @@ class Client extends EventEmitter{
 
         this.id = ++lastId;
 
-        this.user = null;   
-        
-        this.__state = 0;
-    }
+        this.user = null;
 
-    set state(value){
-        this.__state = value;
+        this.joinTime = 0;
+        this.isAlive = true;
 
-        this.emit('statechange', this.__state);
-    }
+        this.subscribedChs = [];
+        this.chatBuckets = {};
 
-    get state(){
-        return this.__state;
+        this.socket.on('pong', () => {
+            this.heartbeat();
+        })
     }
 
     setCanvas(canvas){
@@ -48,8 +49,28 @@ class Client extends EventEmitter{
     }
 
     sendError(message){
-        const str = JSON.stringify([STRING_OPCODES.error, message]);
-        this.socket.send(str);
+        const str = JSON.stringify({c: STRING_OPCODES.error, errors: [message]});
+        this.send(str);
+    }
+
+    sendCaptcha(){
+        let buf = Buffer.allocUnsafe(1);
+        buf.writeUInt8(OPCODES.captcha, 0);
+
+        this.send(buf);
+    }
+
+    kill(){
+        this.socket.close();
+    }
+
+    ping(){
+        this.socket.ping();
+        this._pingTime = Date.now();
+    }
+
+    heartbeat(){
+        this.isAlive = true;
     }
 }
 
