@@ -3,8 +3,8 @@
         {
             "name": "main",
             "cooldown": {
-                "GUEST": [1000, 10],
-                "USER": [2000, 40],
+                "GUEST": [100, 25],
+                "USER": [30, 40],
                 "MOD": [0, 32]
             },
             "chunkSize": 256,
