@@ -1,12 +1,13 @@
 module.exports = {
   apps: [{
     name: "goroxels",
-    script: './src/devStart.js',
+    script: './src/index.js',
+    restart_delay: 5000,
     env: {
       DB_LOG: 1,
       DB_LOG_PATH: './logs/db.log',
 
-      DB_ISLOCAL: 0,
+      DB_ISLOCAL: 1,
 
       DB_HOST: 'localhost',
       DB_PORT: 3306,

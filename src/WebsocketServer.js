@@ -69,7 +69,8 @@ class Server {
     run() {
         const wss = new WebSocketServer({
             noServer: true,
-            maxPayload: 65536
+            maxPayload: 65536,
+            // TODO add verifyClient to track too many connections
         });
 
         this.channels.global = new ChatChannel('global');
@@ -128,6 +129,10 @@ class Server {
             }
 
             socket.onmessage = (event) => this.onmessage(client, event);
+
+            socket.on('error', err => {
+                logger.error('Socket client error: ' + err.message)
+            })
 
             if (needCaptcha(client.ip, client)) {
                 client.sendCaptcha();
