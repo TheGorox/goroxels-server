@@ -2,8 +2,6 @@ const Sequelize = require('sequelize').Sequelize;
 
 const logger = require('../logger')('DB', 'info');
 
-console.log(process.env.DB_ISLOCAL, process.env.DB_HOST)
-
 const config = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT ? +process.env.DB_PORT : undefined,
