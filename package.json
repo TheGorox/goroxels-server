@@ -32,7 +32,7 @@
     "express-session": "^1.17.2",
     "http-proxy-agent": "^4.0.1",
     "ip-address": "^7.1.0",
-    "log4js": "^6.3.0",
+    "log4js": "^6.4.0",
     "mysql2": "^2.3.1",
     "node-cleanup": "^2.1.2",
     "pako": "^2.0.4",
