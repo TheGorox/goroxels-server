@@ -3,7 +3,8 @@ class Bucket{
         this._allowance = 0;
 
         this.delay = delay;
-        this.max = max;
+        // "lost pixel" workaround
+        this.max = max+1;
 
         this.lastCheck = Date.now();
     }

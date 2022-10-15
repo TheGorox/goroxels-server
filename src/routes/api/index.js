@@ -8,10 +8,9 @@ const auth = require('./auth');
 const me = require('./me');
 const changeName = require('./changename');
 const userInfo = require('./userInfo');
-
 const admin = require('./admin');
-
 const captcha = require('./captcha');
+const online = require('./online');
 
 const router = express.Router();
 
@@ -38,6 +37,7 @@ router.use('/me', me);
 router.use('/changename', changeName);
 router.use('/userInfo', userInfo);
 router.use('/captcha', captcha);
+router.use('/online', online);
 
 router.use('/admin', admin);
 

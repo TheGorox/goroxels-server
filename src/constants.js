@@ -7,10 +7,11 @@ const SECOND = 1000,
 
 const ROLE = {
     BANNED: -1,
-    USER: 0,
-    TRUSTED: 1,
-    MOD: 2,
-    ADMIN: 3
+    GUEST: 0,
+    USER: 1,
+    TRUSTED: 2,
+    MOD: 3,
+    ADMIN: 4
 }
 
 const ROLE_I = {};

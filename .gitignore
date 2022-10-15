@@ -9,4 +9,4 @@ logs
 utils/netconfig.sh
 utils/commands.txt
 utils/net-updatecf.sh
-utils/recorder/out
+utils/recorder/

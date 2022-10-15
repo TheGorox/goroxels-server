@@ -117,6 +117,11 @@ function startServer(port) {
                 return
             }
     
+            if(!webSocketServer.verifyClient(request, socket)){
+                socket.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
+                socket.destroy();
+                return
+            }
             user = await verifyUser(request);
             logger.debug('Going to upgrade ip ' + socket.realIp + ' with user ' + (user ? user.name : null));
         }

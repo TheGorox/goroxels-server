@@ -2,7 +2,7 @@
  * use if want to record every pixel placed to data
  * decoded and translated to frames with render.js
  * 
- * use: node recorder.js canvasId
+ * use: node recorder.js canvasId|canvasName
  * 
  * p.s. may crash if large amount of data recorded
  * can be optimized, but i'm lazy to do it now
@@ -14,6 +14,7 @@ const zlib = require('zlib');
 const EventEmitter = require('events');
 const fs = require('fs');
 const pathlib = require('path');
+const { randomBytes } = require('crypto');
 
 function packPixel(x, y, col) {
     return (x << 12 | y) << 7 | col
@@ -34,6 +35,8 @@ class WSClient extends EventEmitter{
 
         this.addr = local ? 'ws://localhost/' : 'wss://goroxels.ru/'
         this.ws = null;
+		
+		this.reconnected = false;
     }
 
     connect(cb=null){
@@ -43,10 +46,18 @@ class WSClient extends EventEmitter{
             this.ws.close();
         }
 
-        this.ws = new WebSocketClient(this.addr);
+        const headers = {};
+        if(apisocketkey){
+            headers.authorization = `Bearer ${apisocketkey}`
+        }
+        this.ws = new WebSocketClient(this.addr, { headers });
         this.ws.onopen = cb;
-        this.ws.onclose = () => setTimeout(this.connect.bind(this), 50, cb);
+        this.ws.onclose = () => {
+			setTimeout(this.connect.bind(this), 1000, cb);
+			this.reconnected = true;
+		}
         this.ws.onmessage = this.onmessage.bind(this);
+        this.ws.onerror = (e) => { console.log(e.message) };
     }
 
     send(...args){
@@ -116,32 +127,45 @@ async function wait(ms){
     return new Promise(res => setTimeout(res, ms));
 }
 
+function pseudorandomHash(){
+    return randomBytes(3).toString('hex');
+}
+
 class Recorder{
     constructor(isLocal, canvas){
         this.local = isLocal;
         this.canvas = canvas;
+        this.canvasId = null;
         this.client = new WSClient(isLocal);
+
+        this.hash = pseudorandomHash();
 
         this.canvasCfg = null;
 
         this.startChunkData = {};
         this.pixels = [];
 
-        this.init();
+        this.needToSave = false;
+
+        this.init().catch(e => {
+            console.log('init error: ' + e.message);
+        });
     }
 
     async init(){
-        this.canvasCfg = await this.fetchCanvasData(this.canvas)
+        [this.canvasCfg, this.canvasId] = await this.fetchCanvasData(this.canvas);
         this.client.connect(this.onconnect.bind(this));
 
         this.client.on('place', (x, y, c) => {
-            //console.log(`place on ${x} x ${y} color ${c}`);
             this.pixels.push([packPixel(x, y, c), Date.now()]);
+            this.needToSave = true;
         })
 
         this.client.on('chunk', (cx, cy, cd) => {
+			if(this.client.reconnected) return;
             console.log(`got chunk ${cx} x ${cy}`);
             this.startChunkData[cx + ' ' + cy] = cd;
+            this.needToSave = true;
         })
 
         setInterval(this.save.bind(this), 5 * 1000 * 60, true);
@@ -152,16 +176,23 @@ class Recorder{
         });
     }
 
-    async fetchCanvasData(cid){
+    async fetchCanvasData(canvas){
         const baseurl = this.local ? 'http://localhost' : 'https://goroxels.ru';
 
         const resp = await axios.get(baseurl + '/config.json');
-        return resp.data.canvases[cid]
+
+        const isName = isNaN(parseInt(canvas));
+        if(isName){
+            const id = resp.data.canvases.findIndex(c => c.name === canvas);
+            return [resp.data.canvases[id], id];
+        }else{
+            return [resp.data.canvases[canvas], canvas];
+        }
     }
 
     onconnect(){
         console.log('connected');
-        this.client.sendCanvasReg(this.canvas)
+        this.client.sendCanvasReg(this.canvasId);
         setTimeout(async () => {
             for(let x = 0; x < this.canvasCfg.boardWidth; x++){
                 for(let y = 0; y < this.canvasCfg.boardHeight; y++){
@@ -173,11 +204,14 @@ class Recorder{
     }
 
     save(temp){
+        if(!this.needToSave) return;
+        this.needToSave = false;
+
         let foldername;
         if(temp){ // backup
-            foldername = this.canvasCfg.name + '.' + Date.now();
-        }else{
             foldername = this.canvasCfg.name + '-temp';
+        }else{
+			foldername = this.canvasCfg.name + '-' + this.hash;
         }
         console.log('saving into out/' + foldername);
 
@@ -213,9 +247,12 @@ class Recorder{
     savePixels(dest){
         const buf = Buffer.allocUnsafe(8*this.pixels.length);
         let i = 0;
+        let lastTime = null
         for(let [pixel, time] of this.pixels){
+            if(!lastTime) lastTime = time;
             buf.writeUInt32BE(pixel, i);
-            buf.writeUInt32BE(time%0xffffffff, i+4);
+            buf.writeUInt32BE(time-lastTime, i+4);
+            lastTime = time
             i += 8;
         }
 
@@ -227,7 +264,8 @@ class Recorder{
     }
 }
 
-const isLocal = false;
+const isLocal = process.argv[3]==='true' || false;
+const apisocketkey = process.argv[4] || null;
 
 let canvas = process.argv[2];
 if(!canvas) throw new Error('no canvas in argv')

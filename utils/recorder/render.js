@@ -11,11 +11,21 @@
 const fs = require('fs');
 const pathlib = require('path');
 const PNG = require('pngjs').PNG;
+const sharp = require('sharp');
 
 const HOP = 300; // ms
 
 const dir = process.argv[2];
 if(!dir) throw new Error('Dir must be provided to argv');
+
+let startNum = 0;
+if(process.argv[3]){
+	const overrideStartNum = parseInt(process.argv[3]);
+	if(!isNaN(overrideStartNum)){
+		startNum = overrideStartNum;
+		console.log('set startNum to', overrideStartNum)
+	}
+}
 
 const basedir = pathlib.join(__dirname, dir);
 
@@ -106,6 +116,16 @@ class Canvas{
             png.pack().pipe(fs.createWriteStream(path)).on('error', rej).on('close', res);
         })
     }
+
+    async saveFast(path) {
+		await sharp(Buffer.from(this.data32.buffer), {
+			raw: {
+				width: this.width,
+				height: this.height,
+				channels: 4
+			}
+		}).toFile(path)
+	}
 }
 
 (async () => {
@@ -115,31 +135,32 @@ class Canvas{
     
     console.log(`Will save to frames/${saveName}`)
     
-    let frame = 0;
+    let frame = startNum;
     let i = 0;
 
-    let lastDate = null
+    let stackedTime = 0;
     for(let _i = 0; _i < pixels.length; _i+=8){
         const pixel = pixels.readUInt32BE(_i);
         const time = pixels.readUInt32BE(_i+4);
 
-        if(!lastDate) lastDate = time;
+        stackedTime += time;
 
         const [x, y, c] = unpackPixel(pixel);
 
         
         canvas.set(x, y, c);
 
-        if(Math.abs(time - lastDate) >= HOP || _i == (pixels.length-8)){
+        if(stackedTime >= HOP || _i == (pixels.length-8)){
             lastDate = time
             try{
-                await canvas.save(pathlib.join(outDir, `${frame++}.png`))
+                await canvas.saveFast(pathlib.join(outDir, `${frame++}.png`))
 
                 let perc = (_i/4)/(pixels.length/4)*100
                 console.log(`Saved frame ${frame}, pixels drawn ${_i/8}/${pixels.length/8} | ${perc|0}%`)
             }catch(e){
-                console.error(e);
+                console.error(e)
             }
+            stackedTime = 0;
         }
     }
 

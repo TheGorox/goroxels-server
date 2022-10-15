@@ -26,11 +26,11 @@
             <div class="line">
                 <select id="ditheringMode" style="height: 24px;font-size: 12px;">
                     <option disabled class="translate">Dithering</option>
-                    <option value="none">None</option>
-                    <option value="f-s">Floyd-Steinberg</option>
-                    <option value="stuki">Stuсki</option>
-                    <option value="check">Chess</option>
-                    <option value="ordered">Ordered (matrix)</option>
+                    <option value="none" class="translate">None</option>
+                    <option value="f-s" class="translate">Floyd-Steinberg</option>
+                    <option value="stuki" class="translate">Stuсki</option>
+                    <option value="check" class="translate">Chess</option>
+                    <option value="ordered" class="translate">Ordered (matrix)</option>
                 </select>
             </div>
             <div class="line hidden" id="thresoldDiv">
@@ -38,14 +38,14 @@
                     value="25" autocomplete="nope">
                 </div>
             <div class="line hidden" id="ordMatrix">
-                <span>Matrix size</span>&nbsp;
+                <span class="translate">Matrix size</span>&nbsp;
                 <select id="ordMatrixSelect" style="height: 24px;font-size: 12px;">
-                    <option value="4">Bayer 4x4</option>
-                    <option value="8" selected>Bayer 8x8</option>
-                    <option value="16">Bayer 16x16 (shit)</option>
-                    <option value="c7">Custom 7x7</option>
-                    <option value="c4">Sha(fallos) 4x4</option>
-                    <option value="c8">Sha(fallos) 8x8</option>
+                    <option value="4" class="translate">Bayer 4x4</option>
+                    <option value="8" selected class="translate">Bayer 8x8</option>
+                    <option value="16" class="translate">Bayer 16x16 (shit)</option>
+                    <option value="c7" class="translate">Custom 7x7</option>
+                    <option value="c4" class="translate">Sha(fallos) 4x4</option>
+                    <option value="c8" class="translate">Sha(fallos) 8x8</option>
                 </select>
                 <select id="ordMatrixModeSelect" style="height: 24px;font-size: 12px;">
                     <option value="des" class="translate">Darken</option>
@@ -55,11 +55,11 @@
             </div>
             <div class="line" id="labDiv" style="display: inline-block">
                 <select id="colorfunc">
-                    <option disabled>Color function for ΔE</option>
-                    <option value="lwrgbde">RGB + luminance [very fast and dirty]</option>
-                    <option value="ciede2000">ciede2000 [slow and accurate]</option>
-                    <option value="cmcic">CMC I:c [weird and slow]</option>
-                    <option value="eucl">Euclidian + color values [fast and dirty]</option>
+                    <option disabled class="translate">Color function for ΔE</option>
+                    <option value="lwrgbde" class="translate">RGB + luminance [very fast and dirty]</option>
+                    <option value="ciede2000" class="translate">ciede2000 [slow and accurate]</option>
+                    <option value="cmcic" class="translate">CMC I:c [weird and slow]</option>
+                    <option value="eucl" class="translate">Euclidian + color values [fast and dirty]</option>
                 </select><br>
             </div>
             <div class="line">
@@ -88,7 +88,7 @@
                 <label><br>
             </div>
 
-            <div class="line hidden">
+            <div class="line opaque">
                 <div id="palLB" class="loadingBar">
                     <div class="barProgress"></div>
                 </div>
@@ -134,6 +134,6 @@
             </div>
         </div>
     </div>
-<script type="text/javascript" src="./converters.19ffb0d6d8125467d390.js"></script></body>
+<script type="text/javascript" src="./converters.6f6268ba362eb62121dc.js"></script></body>
 
 </html>

@@ -1,4 +1,3 @@
-const { off } = require('process');
 const readline = require('readline');
 const Server = require('./WebsocketServer');
 const logger = require('./logger')('COMMANDS');

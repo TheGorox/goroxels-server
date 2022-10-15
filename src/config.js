@@ -3,9 +3,6 @@ const publicConfig = require('../data/config.json');
 
 const config = {
     port: 80,
-    // FIXME: rework this
-    // because this restrictions should be
-    // per-canvas (or make it per canvas and more strict)
     MAX_CLIENTS_PER_IP: {
         GUEST: 3,
         USER: 4,

@@ -184,10 +184,11 @@ router.post('/rollback', (req, res) => {
         })
     }
 
-    const canvasName = global.canvases[canvas].name;
+    const canvasInst = global.canvases[canvas];
+    const canvasName = canvasInst.name;
 
     WSS.getInstance().channels[canvasName].addMessage(null, 'Rollback!', true);
-    WSS.getInstance().broadcastReload(canvas);
+    WSS.getInstance().broadcastReload(canvasInst);
 
     adminLogger.info(
         `${req.user.name} rollbacks ${canvasName} to ${day} ${time} `+

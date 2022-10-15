@@ -43,7 +43,6 @@ function parseProxy(proxy) {
         }
 
         if (host.length < 7 || host.length > 15) {
-            logger.warn('Wrong body length: ' + proxy);
             return null;
         }
 

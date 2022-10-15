@@ -9,7 +9,6 @@ verifyRouter.use(session);
 verifyRouter.use(passport.initialize());
 verifyRouter.use(passport.session());
 
-// TODO add ip check
 function verifyClient(req){
     return new Promise(res => {
         verifyRouter(req, {}, () => {

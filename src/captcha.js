@@ -33,7 +33,7 @@ function needCaptcha(ip, client=null){
 function updateCaptcha(ip){
     const generated = generateCaptcha();
 
-    captcha = captchas[ip] || {}
+    let captcha = captchas[ip] || {}
 
     captcha.svg = generated.data;
     captcha.text = generated.text;

@@ -41,7 +41,7 @@ module.exports = (passport) => {
     router.get('/vk', passport.authenticate('vkontakte', {
         scope: ['email']
     }));
-    router.get('/vkCallback', passport.authenticate('vkontakte', {
+    router.get('/vk/return', passport.authenticate('vkontakte', {
         failureRedirect: '/api/auth/failure',
         failureFlash: true,
         // successRedirect: '/',

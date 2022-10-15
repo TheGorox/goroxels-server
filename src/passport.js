@@ -131,12 +131,15 @@ if(auth.vkontakte.use){
         try {
             logger.info(profile);
             const {
-                displayName: name
+                displayName: name,
+                id: vkId
             } = profile;
             const {
                 email
             } = params;
-            const user = await oauthLogin(email, name);
+            const user = await login({
+                email, name, vkId
+            });
             done(null, user);
         } catch (err) {
             done(err);

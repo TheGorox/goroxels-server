@@ -40,7 +40,7 @@ const CONDITION = {
 }
 
 const notValidPixel = 0xffffffff;
-function writeInvalidPixel(buffer, i){
+function writeInvalidPixel(buffer, i) {
     buffer.writeUInt32BE(notValidPixel, i)
 }
 
@@ -60,17 +60,31 @@ class Server {
 
         this.clients = new Map();
         this.leaved = new Map();
+        this.connections = {
+            TOTAL: {}
+        }
+        this.onlineStats = {};
 
         this.wss = null;
 
         instance = this;
+
+        setInterval(this.updateOnlineStats.bind(this), 30000);
+    }
+
+    verifyClient(request, socket) {
+        const ip = socket.realIp;
+        if (this.connections['TOTAL'][ip] && this.connections['TOTAL'][ip] > 50)
+            return false
+        return true
     }
 
     run() {
+        this.startTime = Date.now();
+
         const wss = new WebSocketServer({
             noServer: true,
-            maxPayload: 65536,
-            // TODO add verifyClient to track too many connections
+            maxPayload: 65536
         });
 
         this.channels.global = new ChatChannel('global');
@@ -78,20 +92,12 @@ class Server {
         this.canvases.forEach(canvas => {
             this.channels[canvas.name] = new ChatChannel(canvas.name);
             this.channels[canvas.name].canvas = canvas;
+
+            this.connections[canvas.name] = {};
         })
 
         wss.on('connection', (socket, request, user) => {
             const ip = getIPv6Subnet(getIPFromRequest(request));
-
-            const role = user ? user.role : 'GUEST';
-
-
-            if (ipConns[ip] >= MAX_CLIENTS_PER_IP[role]) {
-                let msg = createStringPacket.error('conn_limit');
-                socket.send(JSON.stringify(msg));
-
-                return socket.close();
-            }
 
             const client = new Client(socket, ip);
             client.user = user;
@@ -99,30 +105,31 @@ class Server {
 
             this.clients.set(client.id, client);
 
-            if (ipConns[ip])
-                ipConns[ip] += 1;
+            if (this.connections['TOTAL'][ip])
+                this.connections['TOTAL'][ip] += 1;
             else
-                ipConns[ip] = 1;
+                this.connections['TOTAL'][ip] = 1;
 
             socket.onclose = () => {
                 // won't let users use reconnection to reset cd or spam
                 setTimeout(() => {
-                    ipConns[ip]--;
+                    this.connections['TOTAL'][ip]--;
+                    client.canvas && this.connections[client.canvas.name][ip]--
                 }, 900);
 
-                if(!client.user || !client.user.isApiSocket){
-                   if(client.canvas){
-                    const packet = {
-                        c: STRING_OPCODES.userLeave,
-                        id: client.id
+                if (!client.user || !client.user.isApiSocket) {
+                    if (client.canvas) {
+                        const packet = {
+                            c: STRING_OPCODES.userLeave,
+                            id: client.id
+                        };
+                        this.broadcastString(JSON.stringify(packet), CONDITION.sameCanvas(client));
                     };
-                    this.broadcastString(JSON.stringify(packet), CONDITION.sameCanvas(client));
-                };
 
-                this.leaved.set(client.id, client);
+                    this.leaved.set(client.id, client);
                 }
 
-                this.clients.delete(client.id);                 
+                this.clients.delete(client.id);
                 socket = null;
 
                 this.broadcastOnline();
@@ -137,8 +144,6 @@ class Server {
             if (needCaptcha(client.ip, client)) {
                 client.sendCaptcha();
             }
-
-            this.broadcastOnline();
         });
         wss.on('error', err => {
             logger.error(err);
@@ -147,7 +152,7 @@ class Server {
         this.wss = wss;
         setInterval(this.ping.bind(this), 45000);
     }
- 
+
     checkUser(client) {
         return !!client.user
     }
@@ -192,13 +197,13 @@ class Server {
             try {
                 this.handleStringMessage(message, client);
             } catch (e) {
-                logger.error(e, client.user)
+                logger.error(e.message)
             }
         } else {
             try {
                 this.handleBinaryMessage(message, client);
             } catch (e) {
-                logger.error(e, client.user)
+                logger.error(e.message)
             }
         }
     }
@@ -217,7 +222,7 @@ class Server {
                     return client.sendError('Chunk coordinates out of bounds');
                 }
 
-                function send(){
+                function send() {
                     chunkManager.getChunkData(cx, cy).then(chunkData => {
                         client.send(createPacket.chunkSend(cx, cy, chunkData));
                     });
@@ -250,16 +255,20 @@ class Server {
 
                 const oldPixel = canvas.chunkManager.getChunkPixel(x, y);
 
-                // protected and (no user or user<mod) or
-                // old pixel id = new pixel id
-                if (((oldPixel & 0x80) && (!client.user || ROLE[client.user.role] < ROLE.MOD)) ||
-                    (oldPixel & 0x7F === c)) {
-                    return;
+                // is protected
+                if (oldPixel & 0x80) {
+                    if (!client.user ||
+                        ROLE[client.user.role] < ROLE.MOD) {
+                        return
+                    }
                 }
+
+                if (oldPixel & 0x7F === c)
+                    return;
 
                 canvas.chunkManager.setChunkPixel(x, y, c);
 
-                const pixel = createPacket.pixelSend(x, y, c & 0x7F, client.id);
+                const pixel = createPacket.pixelSend(x, y, c, client.id);
                 this.broadcastPixel(canvas, pixel);
 
                 break
@@ -279,12 +288,12 @@ class Server {
                 const {
                     realWidth, realHeight
                 } = client.canvas;
-                const max = isProtect ? 1 : client.canvas.palette.length-1;
+                const max = isProtect ? 1 : client.canvas.palette.length - 1;
 
                 const pxlsCount = (message.length - 6) / 4;
 
                 if (!isProtect && client.bucket.allowance < pxlsCount) {
-                    return 
+                    return
                 }
                 client.bucket.spend(pxlsCount);
 
@@ -318,7 +327,7 @@ class Server {
                     }
                 }
 
-                message.writeUInt32BE(client.id, 2);
+                if(!client.user.isApiSocket) message.writeUInt32BE(client.id, 2);
 
                 this.broadcastPixels(client.canvas, message);
 
@@ -334,7 +343,7 @@ class Server {
                     return client.sendError('Wrong canvas number');
                 }
 
-                if(!this.checkCanvasRequires(client, this.canvases[canvas]))
+                if (!this.checkCanvasRequires(client, this.canvases[canvas]))
                     return client.sendError('Access for this canvas is restricted');
 
                 client.canvas = this.canvases[canvas];
@@ -376,8 +385,18 @@ class Server {
                     return client.sendError('invalid channel');
                 }
 
-                if(!this.checkCanvasRequires(client, this.channels[msg.ch].canvas)){
+                if (!this.checkCanvasRequires(client, this.channels[msg.ch].canvas)) {
                     return client.sendError('Access for this channel is restricted')
+                }
+
+                // for the moment it's the only way to detect if
+                // client is reconnected after server reload
+                if (msg.reconnect) {
+                    if (Date.now() - this.startTime < 10000){
+                        const packet = createStringPacket.reload();
+                        client.send(JSON.stringify(packet));
+                        return
+                    }
                 }
 
                 const ch = this.channels[msg.ch];
@@ -386,8 +405,8 @@ class Server {
                     return
 
                 client.subscribedChs.push(ch);
-                if(this.checkUser(client)){
-                    if(!client.chatBuckets[ch.name]){
+                if (this.checkUser(client)) {
+                    if (!client.chatBuckets[ch.name]) {
                         client.chatBuckets[ch.name] = new Bucket(...chatBucket[client.user.role]);
                     }
                 }
@@ -406,15 +425,15 @@ class Server {
                 const channel = this.channels[msg.ch];
                 if (!channel) return;
 
-                if(!this.checkCanvasRequires(client, this.channels[msg.ch].canvas)){
+                if (!this.checkCanvasRequires(client, this.channels[msg.ch].canvas)) {
                     return client.sendError('Access for this channel is restricted')
                 }
 
                 const nick = client.user.name;
                 const message = msg.msg.trim();
 
-                let maxLen = 200, user=client.user;
-                switch(true){
+                let maxLen = 200, user = client.user;
+                switch (true) {
                     case checkRole(user, ROLE.TRUSTED): maxLen = 250;
                     case checkRole(user, ROLE.MOD): maxLen = 400;
                     case checkRole(user, ROLE.ADMIN): maxLen = Infinity;
@@ -422,7 +441,7 @@ class Server {
 
                 if (!message.length || message.length > maxLen) return;
 
-                if(!client.chatBuckets[channel.name].spend(1)){
+                if (!client.chatBuckets[channel.name].spend(1)) {
                     // TODO replace with chat warnings
                     return client.sendError('Chat limit')
                 }
@@ -457,12 +476,9 @@ class Server {
                 if (msg.to === 'all' && ROLE[client.user.role] === ROLE.ADMIN) {
                     this.clients.forEach(client => client.send(packet));
                 } else if (!isNaN(msg.to)) {
-                    console.log(1)
                     const id = +msg.to;
                     const client = this.clients.get(id);
-                    console.log(client, id, this.clients, [...this.clients.keys()])
                     if (!client) return;
-                    console.log(2)
 
                     client.send(packet);
                 }
@@ -473,9 +489,9 @@ class Server {
     }
 
     broadcastOnline() {
-        let online = this.clients.size;
+        let online = [...this.clients.values()].reduce((s, c) => c.canvas?s+1:s, 0);
 
-        let buf = Buffer.allocUnsafe(1 + 3);
+        let buf = Buffer.alloc(1 + 3);
         buf.writeUInt8(OPCODES.online, 0);
         buf.writeUInt16BE(online, 1);
 
@@ -508,7 +524,7 @@ class Server {
         });
     }
 
-     broadcastPixel(canvas, pixel) {
+    broadcastPixel(canvas, pixel) {
         const frame = WebSocket.Sender.frame(pixel, {
             readOnly: true,
             mask: false,
@@ -534,7 +550,7 @@ class Server {
         });
     }
 
-    broadcastReload(canvas){
+    broadcastReload(canvas) {
         const packet = createStringPacket.reload();
         this.broadcastString(JSON.stringify(packet), canvas ? c => c.canvas == canvas : null);
     }
@@ -545,13 +561,13 @@ class Server {
     }
 
     broadcastString(msg, checkFunc) {
-        if(checkFunc)
+        if (checkFunc)
             this.broadcastStringByCond(msg, checkFunc);
         else
             this.clients.forEach(client => client.send(msg));
     }
 
-    broadcastStringByCond(msg, checkFunc){
+    broadcastStringByCond(msg, checkFunc) {
         this.clients.forEach(client => checkFunc(client) && client.send(msg));
     }
 
@@ -581,7 +597,7 @@ class Server {
         }
     }
 
-    sendServerMessage(message, channel, addToLog=true){
+    sendServerMessage(message, channel, addToLog = true) {
         const packet = createStringPacket.chatMessage({
             nick: '',
             message
@@ -594,18 +610,28 @@ class Server {
     }
 
     onCanvasChosen(canvas, client) {
+        const role = client.user ? client.user.role : 'GUEST';
+        if (!this.connections[canvas.name][client.ip])
+            this.connections[canvas.name][client.ip] = 1;
+        else
+            this.connections[canvas.name][client.ip]++;
+
+        if (this.connections[canvas.name][client.ip] > MAX_CLIENTS_PER_IP[role]) {
+            client.sendError('connections limit');
+            return client.kill();
+        }
         const packet = createStringPacket.userJoin(client);
 
         client.joinTime = Date.now();
 
         // send join to all clients on this canvas
-        if(!client.user || !client.user.isApiSocket)
+        if (!client.user || !client.user.isApiSocket)
             this.broadcastString(JSON.stringify(packet), CONDITION.sameCanvas(client));
 
         this.clients.forEach(_client => {
-            if(!_client.user || _client.user.isApiSocket) return;
+            if (!_client.user || _client.user.isApiSocket) return;
 
-            if(_client == client){
+            if (_client == client) {
                 const mePacket = createStringPacket.me(client.id);
                 client.send(JSON.stringify(mePacket));
             } else if (_client.canvas === canvas) {
@@ -618,6 +644,8 @@ class Server {
                 client.send(JSON.stringify(packet));
             }
         });
+
+        this.broadcastOnline();
     }
 
     // close any socket by condition function
@@ -639,19 +667,30 @@ class Server {
         this.closeBy(client => client.user && client.user.id === user.id);
     }
 
-    setChunk(canvasId, cx, cy, data){
+    setChunk(canvasId, cx, cy, data) {
         const canvas = this.canvases[canvasId];
         canvas.chunkManager.setChunkData(cx, cy, data);
     }
 
-    ping(){
+    ping() {
         this.clients.forEach(client => {
-            if(!client.isAlive){
+            if (!client.isAlive) {
                 return client.kill();
             }
             client.ping();
             client.isAlive = false;
         })
+    }
+
+    updateOnlineStats(){
+        for(let key of Object.keys(this.connections)){
+            let totalPerCanvas = 0;
+            for(let ipConns of Object.values(this.connections[key])){
+                if(ipConns == 0) continue;
+                totalPerCanvas++;
+            }
+            this.onlineStats[key] = totalPerCanvas;
+        }
     }
 }
 

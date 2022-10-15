@@ -119,18 +119,17 @@ input[type=number] {
         display: none;
     }
     #chat {
-        top: 0px;
+        top: -100vh;
         left: 0px;
         padding: 0px;
         width: 100vw;
-        height: -webkit-fill-available;
+        height: var(--gorox-chat-height);
         z-index: 23;
         border-radius: 0;
         display: flex;
         flex-flow: column;
-    }
-    #chat {
-        top: -100vh;
+        min-width: unset;
+        
     }
     #chatHeader {
         margin-bottom: 0;
@@ -352,6 +351,7 @@ body {
     width: 24px;
     height: 24px;
     display: inline-block;
+    position: relative;
 }
 
 .paletteColor.dark {
@@ -365,11 +365,13 @@ body {
 .paletteColor.selected {
     border: 1px solid black;
     transform: scale(1.1);
+    z-index: 2;
 }
 
 .paletteColor.selectedSecond {
     border: 1px solid crimson;
     transform: scale(1.1);
+    z-index: 1;
 }
 
 #tools {
@@ -520,7 +522,7 @@ input[type=text] {
 }
 
 button:active, button:focus, input:active, input:focus, input[type=range]:focus {
-    outline: 0
+    /* outline: 0 */
 }
 
 input[type='range'] {
@@ -592,7 +594,7 @@ input[type=range]::-moz-range-thumb {
     border-width: 1px;
     border-style: outset;
     z-index: 6;
-    min-width: 150px;
+    min-width: max-content;
 }
 
 .windowBody {
@@ -813,9 +815,13 @@ input {
     background-repeat: no-repeat;
     background-position: center;
 }
+
+.mobile {
+    display: none;
+}
 @media (max-width: 651px) {
     /* костыль для отображения иконки помощи */
-    .header>:not(.miniBtn){
+    .header{
         display: none;
     }
     .helpBtn {
@@ -823,6 +829,19 @@ input {
         top: 5px;
         left: 5px;
     }
+    
+    .desktop {
+        display: none;
+    }
+    .mobile {
+        display: inherit;
+    }
+}
+
+#rightTopPart {
+    margin-left: auto;
+    margin-right: 6px;
+    display: flex;
 }
 
 #discordBtn { 
@@ -830,10 +849,50 @@ input {
     background-size: 25px;
     background-repeat: no-repeat;
     background-position: center;
-    margin-left: auto;
-    margin-right: 6px;
     width: 25px;
     height: 25px;
+    align-self: center
+}
+
+.authBtn.desktop { 
+    margin-right: 20px;
+}
+.authBtn.mobile{
+    position: absolute;
+    left: 34px;
+}
+
+
+/* user name in online tab */
+span.name{
+    cursor: pointer;
+}
+
+.modalBg{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1d1d1d;
+    z-index: 5553535;
+}
+.modalCont{
+    border-radius: 5px;
+    background-color: #333;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.imageLink{
+    text-decoration: underline;
+    cursor: zoom-in;
+}
+.chatImg {
+    max-width: 100%;
+    cursor: zoom-out;
 }
 .toast-title {
   font-weight: bold;

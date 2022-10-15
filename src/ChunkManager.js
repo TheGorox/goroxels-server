@@ -8,6 +8,7 @@ const util = require('util');
 const zlib = require('zlib');
 
 const Chunk = require('./Chunk');
+const async = require('async');
 
 const PNG = require('pngjs').PNG;
 
@@ -15,7 +16,15 @@ const { getFancyDate, getFancyTime, randint, savePublicConfig } = require('./uti
 const config = require('./config');
 const { MINUTE, SECOND } = require('./constants');
 
-util.promisify(fs.writeFile)
+util.promisify(fs.writeFile);
+async function deflateAsync(buffer){
+    return new Promise((res, rej) => {
+        zlib.deflate(buffer, (err, result) => {
+            if(err) return rej(err);
+            res(result);
+        })
+    })
+}
 
 const chunkdataPath = path.resolve(__dirname, '../chunkdata');
 const backupPath = path.resolve(__dirname, '../backup/');
@@ -45,7 +54,6 @@ class ChunkManager extends EventEmitter {
         }, randint(0, 60000));
 
         this.loadAll();
-        this.backup();
     }
 
     async enlargeBy(top, right, bottom, left) {
@@ -125,7 +133,7 @@ class ChunkManager extends EventEmitter {
         if (fs.existsSync(chunkPath)) {
             chunkData = Chunk.fromBuffer(fs.readFileSync(chunkPath).buffer);
             if (chunkData.length != this.chunkSize * this.chunkSize) {
-                logger.warn(`Wrong chunk size. Removing (${x}, ${y}) chunk`);
+                logger.warn(`Wrong chunk size (${this.canvas.name}). Removing (${x}, ${y}) chunk`);
 
                 fs.unlinkSync(chunkPath);
 
@@ -133,7 +141,6 @@ class ChunkManager extends EventEmitter {
             }
         } else {
             chunkData = Chunk.createEmpty(this.canvas.chunkSize);
-            this.needToBackup = true;
         }
 
         return new Chunk(x, y, this.canvas.chunkSize, chunkData)
@@ -187,30 +194,26 @@ class ChunkManager extends EventEmitter {
         const metadata = {
             chunkSize: canvas.chunkSize,
             palette: canvas.palette,
-            width: canvas.boardWidth,
-            height: canvas.boardHeight
+            width: canvas.width,
+            height: canvas.width
         }
 
         const metaPath = path.resolve(timeFolder, 'metadata');
         const metaStr = JSON.stringify(metadata);
         fs.writeFileSync(metaPath, metaStr);
 
-        logger.debug(`Check time+meta ${Date.now() - timer}ms`)
+        logger.debug(`${this.canvas.name} check time+meta ${Date.now() - timer}ms`)
 
-        for (let key in this.chunks) {
-            const chunk = this.chunks[key];
-
+        await async.eachLimit(Object.values(this.chunks), 3, async (chunk) => {
             const filekey = `${chunk.x},${chunk.y}.dat`;
             const fullPath = path.resolve(timeFolder, filekey);
 
-            // FIXME: use chunk compress method
-            // FIXME: make async
-            const data = zlib.deflateSync(chunk.data)
+            const data = await deflateAsync(chunk.data)
 
             await fs.promises.writeFile(fullPath, data)
-        }
+        })
 
-        logger.debug('backup done in ' + (Date.now() - timer) + 'ms')
+        logger.debug(`${this.canvas.name} backup done in ${(Date.now() - timer)}ms`)
     }
 
     chunkToImage(chunk) { // for debugging only
@@ -259,7 +262,6 @@ class ChunkManager extends EventEmitter {
     setChunkPixel(x, y, c) {
         this.needToBackup = true;
 
-        // FIXME: check is .apply() works faster 
         const key = this.getChunkKey(...this.cordToChunk(x, y));
         this.chunks[key].set(x % this.chunkSize, y % this.chunkSize, c)
     }

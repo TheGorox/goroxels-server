@@ -57,13 +57,13 @@ html, body{
     display: none;
 }
 
+.opaque{
+    opacity: 0;
+}
+
 .output{
     text-align: -webkit-auto;
     align-items: start;
-}
-
-.hidden{
-    display: none;
 }
 
 a, a:visited{
