@@ -53,6 +53,6 @@
     "fs-extra": "^8.1.0",
     "sequelize-cli": "^6.2.0",
     "sharp": "^0.28.3",
-    "sqlite3": "^5.0.0"
+    "sqlite3": "^5.1.2"
   }
 }
