@@ -36,6 +36,11 @@ const User = sequelize.define('user', {
         allowNull: true
     },
 
+    fbId: {
+        type: Sequelize.CHAR(18),
+        allowNull: true
+    },
+
     lastIp: {
         type: Sequelize.STRING(45),
         allowNull: true
