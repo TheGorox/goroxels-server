@@ -62,24 +62,34 @@ async function login(options){
     return user
 }
 
-// passport.use(new FacebookStrategy({
-//     ...auth.facebook,
-//     callbackURL: '/api/auth/facebook/return',
-//     proxy: true,
-//     profileFields: ['displayName', 'email'],
-// }, async (req, accessToken, refreshToken, profile, done) => {
-//     try {
-//         const {
-//             displayName: name,
-//             emails
-//         } = profile;
-//         const email = emails[0].value;
-//         const user = await oauthLogin(email, name);
-//         done(null, user);
-//     } catch (err) {
-//         done(err);
-//     }
-// }));
+if(auth.facebook.use){
+    passport.use(new FBStrategy({
+        clientID: auth.facebook.id,
+        clientSecret: auth.facebook.secret,
+        callbackURL: '/api/auth/facebookCallback',
+        proxy: true,
+        profileFields: ['displayName', 'email'],
+    }, async (req, accessToken, refreshToken, profile, done) => {
+        try {
+            const {
+                displayName: name,
+                emails,
+                id: fbId
+            } = profile;
+
+            console.log(profile);
+
+            const email = emails[0].value;
+            const user = await login({
+                email, name,
+                fbId
+            });
+            done(null, user);
+        } catch (err) {
+            done(err);
+        }
+    }));
+}
 
 if(auth.discord.use){
     passport.use(new DiscordStrategy({

@@ -1,0 +1,9 @@
+{
+  "development": {
+    "username": "goroxels_usr",
+    "password": "yourpassword",
+    "database": "goroxels",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
