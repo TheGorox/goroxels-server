@@ -3,13 +3,13 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.addColumn('goroxels', 'fbId', {
+    await queryInterface.addColumn('Users', 'fbId', {
       type: Sequelize.CHAR(18),
       allowNull: true
     })
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.removeColumn('goroxels', 'dbId');
+    await queryInterface.removeColumn('Users', 'dbId');
   }
 };

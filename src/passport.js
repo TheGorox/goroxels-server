@@ -73,14 +73,16 @@ if(auth.facebook.use){
         try {
             const {
                 displayName: name,
-                emails
+                emails,
+                id: fbId
             } = profile;
 
             console.log(profile);
 
             const email = emails[0].value;
             const user = await login({
-                email, name
+                email, name,
+                fbId
             });
             done(null, user);
         } catch (err) {
