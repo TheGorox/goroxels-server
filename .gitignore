@@ -10,4 +10,5 @@ utils/netconfig.sh
 utils/commands.txt
 utils/net-updatecf.sh
 utils/recorder/
+src/db/config/config.json
 package-lock.json
