@@ -8,7 +8,7 @@ const config = {
     dialect: process.env.DB_ISLOCAL === '0' ? 'mysql' : 'sqlite',
     storage: __dirname + '/database.sqlite',
     dialectOptions: {
-        charset: 'utf8'
+        charset: 'utf8',
     },
     pool: {
         max: 15,

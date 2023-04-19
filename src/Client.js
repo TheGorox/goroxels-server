@@ -1,11 +1,10 @@
 const EventEmitter = require('events');
-
-let lastId = 0;
-// todo replace it with.. something
+const ChatMessage = require('./ChatMessage');
 
 const {
     STRING_OPCODES,
-    OPCODES
+    OPCODES,
+    createStringPacket
 } = require('./protocol');
 
 const logger = require('./logger')('CLIENT', 'debug');
@@ -17,6 +16,8 @@ const CLIENT_STATES = {
 }
 
 class Client extends EventEmitter{
+    static lastId = 0;
+    
     constructor(socket){
         super();
         
@@ -25,7 +26,7 @@ class Client extends EventEmitter{
 
         this.canvas = null;
 
-        this.id = ++lastId;
+        this.id = ++Client.lastId;
 
         this.user = null;
 
@@ -35,7 +36,13 @@ class Client extends EventEmitter{
         this.subscribedChs = [];
         this.chatBuckets = {};
 
-        this.socket.on('pong', () => {
+        // these are described in ChunkPlaceInfo.js
+        // concretely there they are just to not determine placer flag/id
+        // every time player places a pixel
+        this.placeInfoFlag = 0;
+        this.placeInfoNumber = 0;
+
+        this.on('pong', () => {
             this.heartbeat();
         })
     }
@@ -53,6 +60,18 @@ class Client extends EventEmitter{
         this.send(str);
     }
 
+    sendChatWarn(msg, channel){
+        const chatMessage = new ChatMessage('', `[b][WARN] ${msg}[/b]`, true);
+        const packet = createStringPacket.chatMessage(chatMessage, channel);
+        this.send(JSON.stringify(packet));
+    }
+
+    sendChat(name, msg, channel, isServer){
+        const chatMessage = new ChatMessage(name, msg, isServer);
+        const packet = createStringPacket.chatMessage(chatMessage, channel);
+        this.send(JSON.stringify(packet));
+    }
+
     sendCaptcha(){
         let buf = Buffer.allocUnsafe(1);
         buf.writeUInt8(OPCODES.captcha, 0);
@@ -65,7 +84,7 @@ class Client extends EventEmitter{
     }
 
     ping(){
-        this.socket.ping();
+        this.send(Buffer.from([OPCODES.ping]));
         this._pingTime = Date.now();
     }
 

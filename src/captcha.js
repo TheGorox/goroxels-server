@@ -3,6 +3,7 @@ const { ROLE, MINUTE, SECOND } = require('./constants');
 const logger = require('./logger')('CAPTCHA', 'debug');
 const { checkRole } = require('./utils/role');
 const config = require('./config');
+const { randint } = require('./utils');
 
 const CAPTCHA_ALLOWANCE_TIME = 30*MINUTE;
 
@@ -12,8 +13,13 @@ const CAPTCHA_ALLOWANCE_TIME = 30*MINUTE;
 const captchas = {};
 
 function generateCaptcha(){
-    // TODO configure this
-    return svgCaptcha.create();
+    return svgCaptcha.create({
+        size: randint(3, 4+1),
+        background: '#00000000',
+        stroke: 'white',
+        style: 'stroke-width: 2px;',
+        connectionPathDeviation: 15
+    });
 }
 
 function needCaptcha(ip, client=null){
@@ -75,7 +81,7 @@ function equal(c, uc){
 function checkAnswer(uText, text){
     if(uText.length != text.length) return false;
 
-    for(let i = 0; i < captcha.text.length; i++){
+    for(let i = 0; i < text.length; i++){
         const uc = uText[i],
             c = text[i];
 

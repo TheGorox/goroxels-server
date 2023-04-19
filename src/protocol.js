@@ -4,12 +4,14 @@ const {
 } = require('./utils')
 
 const OPCODES = {
-    chunk:   0x0,
-    place:   0x1,
-    online:  0x2,
-    canvas:  0x3,
-    pixels:  0x4,
-    captcha: 0x5
+    chunk:      0x0,
+    place:      0x1,
+    online:     0x2,
+    canvas:     0x3,
+    pixels:     0x4,
+    captcha:    0x5,
+    ping:       0x6,
+    placeBatch: 0x7
 }
 
 const STRING_OPCODES = {
@@ -19,8 +21,9 @@ const STRING_OPCODES = {
     subscribeChat: 's',
     chatMessage: 'c',
     alert: 'a',
-    me: 'm', // used only to get my id
-    reload: 'r'
+    me: 'm', // rn used only to get my id
+    reload: 'r',
+    reloadChunks: 'rc'
 }
 
 const createPacket = {
@@ -35,6 +38,15 @@ const createPacket = {
         buf.set(compressedData, 3);
 
         return buf
+    },
+
+    pixelSendQueueBufferSize: 8,
+    pixelSendEnqueue: (x, y, col, uid, targBuffer, targBufferOffset) => {
+        const offs = targBufferOffset;
+        targBuffer.writeUInt32BE(packPixel(x, y, col), offs);
+        targBuffer.writeUInt32BE(uid, offs+4);
+
+        return null
     },
     pixelSend: (x, y, col, uid) => {
         const buf = Buffer.allocUnsafe(1 + 4 + 4);
@@ -69,7 +81,8 @@ const createStringPacket = {
             nick: client.user ? client.user.name : null,
             userId: client.user ? client.user.id : null,
             id: client.id,
-            registered: !!client.user
+            registered: !!client.user,
+            role: client.user ? client.user.role : null
         }
     },
     userLeave: (client) => {
@@ -83,6 +96,7 @@ const createStringPacket = {
             c: STRING_OPCODES.chatMessage,
             nick: message.name,
             msg: message.message,
+            server: message.isServer,
             ch: channel
         }
     },
@@ -101,6 +115,11 @@ const createStringPacket = {
     reload(){
         return {
             c: STRING_OPCODES.reload
+        }
+    },
+    chunksReload(){
+        return {
+            c: STRING_OPCODES.reloadChunks
         }
     }
 }

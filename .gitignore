@@ -12,3 +12,6 @@ utils/net-updatecf.sh
 utils/recorder/
 src/db/config/config.json
 package-lock.json
+chunkinfo/dump.js
+chunkinfo/shit.txt
+chunkinfo/

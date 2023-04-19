@@ -16,7 +16,6 @@ const config = {
     // why? to help modders operatively
     // ban massive proxy attack(joke) or annoying
     // griefers who can change their ip
-    // TODO: think with Great Minds about practical benefit of this
     afterJoinDelay: 0,
     generateUsernamesFromFile: false,
     generateUsernamesFilePath: __dirname + '/../tests/sanitizedNames.txt',

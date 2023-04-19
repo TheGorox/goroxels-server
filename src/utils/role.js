@@ -4,6 +4,8 @@ const { ROLE } = require("../constants");
 function checkRole(user, role, exact=false){
     if(!user) return false;
 
+    
+
     // TODO maybe superadmin id shouldn't
     // be hardcoded?
     

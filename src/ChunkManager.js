@@ -15,6 +15,7 @@ const PNG = require('pngjs').PNG;
 const { getFancyDate, getFancyTime, randint, savePublicConfig } = require('./utils');
 const config = require('./config');
 const { MINUTE, SECOND } = require('./constants');
+const { backup } = require('./backup');
 
 util.promisify(fs.writeFile);
 async function deflateAsync(buffer){
@@ -73,6 +74,7 @@ class ChunkManager extends EventEmitter {
             for (let x = this.boardWidth-1; x >= 0; x--) {
                 for (let y = this.boardHeight-1; y >= 0; y--) {
                     this._renameChunk(x, y, x + left, y + top)
+                    this._renamePlaceData(x, y, x + left, y + top)
                 }
             }
         }
@@ -93,11 +95,24 @@ class ChunkManager extends EventEmitter {
     _renameChunk(x, y, x1, y1) {
         const key = `${x},${y}.dat`;
         const newKey = `${x1},${y1}.dat`;
+
         const chunkPath = path.resolve(this.dataPath, key);
         const newChunkPath = path.resolve(this.dataPath, newKey);
 
         if (fs.existsSync(chunkPath)) {
             fs.renameSync(chunkPath, newChunkPath);
+        }
+    }
+
+    _renamePlaceData(x, y, x1, y1){
+        const oldName = `${x},${y}.dat`;
+        const newName = `${x1},${y1}.dat`;
+
+        const dataPath = path.resolve(this.dataPath, `../../chunkinfo/${this.canvas.id}`, oldName);
+        const newDataPath = path.resolve(this.dataPath, `../../chunkinfo/${this.canvas.id}`, newName);
+
+        if (fs.existsSync(dataPath)) {
+            fs.renameSync(dataPath, newDataPath);
         }
     }
 
@@ -112,13 +127,18 @@ class ChunkManager extends EventEmitter {
         for (let cx = 0; cx < this.boardWidth; cx++) {
             for (let cy = 0; cy < this.boardHeight; cy++) {
                 const key = this.getChunkKey(cx, cy);
-                if (!this.chunks[key])
+                if (!this.chunks[key]){
                     this.chunks[key] = this.loadChunk(cx, cy);
+                    this.chunks[key].placeInfo.load();
+                }
             }
         }
 
         this.loaded = true;
-        this.emit('loaded');
+        // kostyl` because chunks aren't compressed just after restart
+        setTimeout(() => {
+            this.emit('loaded');
+        }, 100)
     }
 
     getChunkKey(x, y) {
@@ -143,7 +163,36 @@ class ChunkManager extends EventEmitter {
             chunkData = Chunk.createEmpty(this.canvas.chunkSize);
         }
 
-        return new Chunk(x, y, this.canvas.chunkSize, chunkData)
+        return new Chunk(x, y, this.canvas.chunkSize, chunkData, this.canvas.id)
+    }
+
+    setPlacerDataRaw(x, y, flag, data){
+        const [cx, cy] = this.cordToChunk(x, y);
+        const [offx, offy] = this.cordToChunkOffset(x, y);
+
+        const chunk = this.getChunk(cx, cy);
+        if(chunk.placeInfo){
+            chunk.placeInfo.setRaw(offx, offy, flag, data);
+        }
+    }
+
+    getPlaceDataRaw(x, y){
+        const [cx, cy] = this.cordToChunk(x, y);
+        const [offx, offy] = this.cordToChunkOffset(x, y);
+
+        const chunk = this.getChunk(cx, cy);
+        if(chunk.placeInfo){
+            return chunk.placeInfo.getRaw(offx, offy);
+        }else {
+            return null
+        }
+    }
+
+    flushPlacersChunkdata(cx, cy){
+        const chunk = this.getChunk(cx, cy);
+        if(!chunk) return;
+
+        chunk.placeInfo.initEmpty();
     }
 
     async saveAll() {
@@ -162,6 +211,8 @@ class ChunkManager extends EventEmitter {
 
             const filekey = `${chunk.x},${chunk.y}.dat`;
             await fs.promises.writeFile(path.resolve(this.dataPath, filekey), Buffer.from(chunk.data));
+            await chunk.placeInfo.save();
+
             saved += 1
 
             chunk._needToSave = false;
@@ -170,7 +221,18 @@ class ChunkManager extends EventEmitter {
         saved > 0 && logger.debug(`Saved ${saved} chunks in ${Date.now() - timer}ms`);
     }
 
-    async backup() {
+    async backup(){
+        if (!this.needToBackup) return;
+        this.needToBackup = false;
+
+        try {
+            await backup(this);   
+        } catch (e) {
+            console.trace(e);
+        }
+    }
+
+    async oldbackup() {
         if (!this.needToBackup) return;
         this.needToBackup = false;
 
@@ -253,10 +315,16 @@ class ChunkManager extends EventEmitter {
             throw new Error('New buffer does not match chunk size');
 
         chunk.setBuffer(buffer);
+        chunk.upd();
+        this.needToBackup = true;
     }
 
     cordToChunk(x, y) {
         return [x / this.chunkSize | 0, y / this.chunkSize | 0]
+    }
+
+    cordToChunkOffset(x, y){
+        return [x % this.chunkSize, y % this.chunkSize]
     }
 
     setChunkPixel(x, y, c) {
@@ -282,6 +350,10 @@ class ChunkManager extends EventEmitter {
         const key = this.getChunkKey(...this.cordToChunk(x, y));
         const pixel = this.chunks[key].get(x % this.chunkSize, y % this.chunkSize)
         return pixel & 0x80 > 0
+    }
+
+    getChunk(cx, cy){
+        return this.chunks[this.getChunkKey(cx, cy)];
     }
 }
 

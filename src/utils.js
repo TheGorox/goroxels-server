@@ -16,14 +16,14 @@ function unpackPixel(num){
     ]
 }
 
-function split(str){
+function splitByNewline(str){
     // crossplatform split
     return str.split('\r\n').join('\n').split('\n');
 }
 
 let nicknames;
 if(config.generateUsernamesFromFile){
-    nicknames = split(fs.readFileSync(config.generateUsernamesFilePath).toString());
+    nicknames = splitByNewline(fs.readFileSync(config.generateUsernamesFilePath).toString());
 }
 function randomNameGenerator(originalName){
     if(config.generateUsernamesFromFile){

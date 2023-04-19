@@ -101,23 +101,29 @@ input[type=number] {
         flex-direction: column;
         align-items: center;
     }
+
     #topMenu {
         max-height: 30vh;
         scrollbar-width: none !important;
     }
+
     #topMenu::-webkit-scrollbar {
         display: none !important;
     }
+
     .column {
         width: 100% !important;
         border-right: none !important;
     }
+
     .columnContent {
         height: auto !important;
     }
+
     #uiBottom.chatOpened {
         display: none;
     }
+
     #chat {
         top: -100vh;
         left: 0px;
@@ -129,34 +135,40 @@ input[type=number] {
         display: flex;
         flex-flow: column;
         min-width: unset;
-        
+
     }
+
     #chatHeader {
         margin-bottom: 0;
     }
 
-    #chatBody{
+    #chatBody {
         flex: 1 1;
 
         display: flex;
         flex-flow: column;
     }
+
     #chatLog {
         flex: 1 1 auto;
         width: 100%;
     }
-    #myMessage{
+
+    #myMessage {
         padding: 0px 3px;
     }
-    .showMenu, .showChat, .hideMenu, #hideChat {
+
+    .bubbleBtn, .hideMenu, #hideChat {
         border-radius: 50%;
         background-size: 100%;
         background-repeat: no-repeat;
         position: absolute;
     }
+
     .showMenu, .hideMenu, #hideChat {
         background-image: url(./img/arrow.svg);
     }
+
     .showMenu, .showChat, #hideChat {
         width: 40px;
         height: 40px;
@@ -165,14 +177,21 @@ input[type=number] {
         background-position: center;
         top: 5px;
     }
+
     .showMenu {
         right: 5px;
     }
+
     .showChat {
-        background-image: url(./img/chat.svg);
         right: 50px;
+        background-image: url(./img/chat.svg);
     }
-    #hideChat{
+    
+    .showChat-notify{
+        background-image: url(./img/chat-notif.svg);
+    }
+
+    #hideChat {
         display: block !important;
         width: 70px;
         height: 26px;
@@ -187,6 +206,7 @@ input[type=number] {
     .columnHeader {
         position: relative;
     }
+
     .hideMenu {
         width: 35px;
         height: inherit;
@@ -194,11 +214,19 @@ input[type=number] {
         bottom: 2px;
         transform: rotate(180deg);
     }
+
     #placedPixels {
         top: 11px;
         right: 95px;
     }
-    #showChat {}
+
+    .discordBtn.mobile {
+        display: block;
+        background-image: url(./img/discord.svg);
+        left: 40px;
+        background-size: 74%;
+        background-position: center;
+    }
 }
 
 @media screen and (min-width: 651px) {
@@ -208,19 +236,21 @@ input[type=number] {
         line-height: 30px;
         font-size: x-large;
         font-weight: bold;
-        text-shadow: 2px 2px 0 #000;
         background-color: #4C4C4C;
         display: flex;
         align-items: center;
     }
-    .header>div{
+
+    .header>div {
         margin-left: 5px;
     }
+
     .content {
         width: 100%;
         display: flex;
         position: relative;
     }
+
     #placedPixels {
         top: 15px;
         right: 15px;
@@ -456,6 +486,10 @@ body {
     width: 50%;
 }
 
+.columnTable td>* {
+    vertical-align: middle;
+}
+
 .columnTable td:first-child {
     text-align: center;
     border-top-left-radius: 10px;
@@ -669,7 +703,7 @@ input[type=range]::-moz-range-thumb {
     word-break: break-word;
 }
 
-#hideChat { 
+#hideChat {
     display: none;
 }
 
@@ -717,12 +751,16 @@ input[type=range]::-moz-range-thumb {
     font-weight: normal;
 }
 
+#modMenu:hover {
+    right: 0;
+}
+
 #modMenu {
     margin: 0;
     transform: translate(0, -50%);
     position: absolute;
     top: 50%;
-    right: 0;
+    right: -20px;
     transition: right ease-in-out .2s;
 }
 
@@ -801,40 +839,49 @@ input {
 }
 
 .miniBtn {
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background-color: #0000008a;
     padding: 3px;
 
     cursor: pointer;
 }
+
+@media (min-width: 651px) {
+    .miniBtn {
+        width: 25px;
+        height: 25px;
+    }
+}
+
 .helpBtn {
     background-image: url(./img/question.svg);
-    background-size: 18px;
+    background-size: 67%;
     background-repeat: no-repeat;
     background-position: center;
 }
 
-.mobile {
-    display: none;
+@media (min-width: 651px) {
+    .mobile {
+        display: none !important;
+    }
 }
+
 @media (max-width: 651px) {
+
     /* костыль для отображения иконки помощи */
-    .header{
+    .header {
         display: none;
     }
+
     .helpBtn {
         position: absolute;
-        top: 5px;
         left: 5px;
     }
-    
+
     .desktop {
         display: none;
-    }
-    .mobile {
-        display: inherit;
     }
 }
 
@@ -844,31 +891,41 @@ input {
     display: flex;
 }
 
-#discordBtn { 
+.discordBtn.desktop {
     background-image: url(./img/discord.svg);
     background-size: 25px;
     background-repeat: no-repeat;
     background-position: center;
     width: 25px;
     height: 25px;
-    align-self: center
+    align-self: center;
 }
 
-.authBtn.desktop { 
+.authBtn {
+    font-size: 19px;
+    border: 2px solid var(--light-text);
+    border-radius: 7px;
+    height: 27px;
+    line-height: 24px;
+    padding: 0px 5px;
+}
+
+.authBtn.desktop {
     margin-right: 20px;
 }
-.authBtn.mobile{
+
+.authBtn.mobile {
     position: absolute;
-    left: 34px;
+    right: 50px;
 }
 
 
 /* user name in online tab */
-span.name{
+span.name {
     cursor: pointer;
 }
 
-.modalBg{
+.modalBg {
     position: absolute;
     top: 0;
     left: 0;
@@ -877,7 +934,8 @@ span.name{
     background-color: #1d1d1d;
     z-index: 5553535;
 }
-.modalCont{
+
+.modalCont {
     border-radius: 5px;
     background-color: #333;
     position: absolute;
@@ -886,13 +944,146 @@ span.name{
     transform: translate(-50%, -50%);
 }
 
-.imageLink{
+.imageLink {
     text-decoration: underline;
     cursor: zoom-in;
 }
+
 .chatImg {
     max-width: 100%;
     cursor: zoom-out;
+}
+
+#loginButtons {
+    height: inherit;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+#loginButtons a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+#loginButtons a:nth-child(n+2) {
+    margin-left: 13px;
+}
+
+#loginButtons img {
+    height: 90%;
+    border: 2px solid white;
+    border-radius: 50%;
+    background-color: white;
+}
+
+table .authLogo {
+    height: 30px;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.verticalAligned {
+    margin: auto;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+
+#menuResizer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background-color: none;
+    height: 7px;
+    transition: .1s linear height;
+}
+
+#resizingStripes {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    opacity: 0;
+    transition: .1s linear opacity;
+    user-select: none;
+}
+
+#showCanvases {
+    height: inherit;
+    position: absolute;
+    left: 0px;
+    cursor: pointer;
+}
+
+#showCanvases>img {
+    height: inherit;
+    padding: 8px;
+}
+
+.helpWithVideoCont {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+}
+
+.helpWithVideoCont>div:nth-child(1) {
+    width: 50%;
+}
+
+.helpWithVideoCont>div:nth-child(2) {
+    padding-left: 10px;
+}
+
+@media (max-width: 651px) {
+    .helpWithVideoCont>div:nth-child(1) {
+        width: 100%;
+    }
+}
+
+.roleBadge {
+    height: 24px;
+    vertical-align: middle;
+}
+
+.userInfoBtn {
+    border: none;
+    display: inline-flex;
+    padding: 5px 8px;
+}
+
+/* pixel info bubble */
+
+.infoBubble {
+    position: absolute;
+    top: 300px;
+    left: 50px;
+    padding: 1em;
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 6px;
+    width: max-content;
+    z-index: 999;
+    box-shadow: 0 1px 5px 0 rgb(0 0 0 / 12%);
+}
+
+.infoBubble::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 0;
+    margin-left: -.66em;
+    bottom: -1em;
+    left: 50%;
+    box-sizing: border-box;
+    border: 0.5em solid #000;
+    border-color: transparent transparent #fff #fff;
+    transform-origin: 0 0;
+    transform: rotate(-45deg);
+    box-shadow: -3px 3px 4px 0 rgb(0 0 0 / 8%);
 }
 .toast-title {
   font-weight: bold;

@@ -90,5 +90,25 @@ function handleCommand(command, args){
             Server.getInstance().broadcastReload(canvas);
             break
         }
+        case 'MOTD': {
+            if(args.length < 1)
+                throw new Error('arguments length must be at least 1 (message)');
+
+            let message = args.join(' ');
+
+            if(!message.length)
+                throw new Error('message is empty');
+
+            if(message === 'reset'){
+                Server.getInstance().MOTD = null;    
+                logger.info('Reset motd');
+                break
+            }
+
+            Server.getInstance().MOTD = message;
+
+            logger.info('Set motd to ' + message);
+            break
+        }
     }
 }

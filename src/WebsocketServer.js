@@ -25,10 +25,11 @@ const {
 } = require('./config');
 const { ROLE, ROLE_I, MINUTE, chatBucket } = require('./constants');
 const { needCaptcha } = require('./captcha');
-const { getIPFromRequest, getIPv6Subnet } = require('./utils/ip');
+const { getIPFromRequest, getIPv6Subnet, ipToInt } = require('./utils/ip');
 const config = require('./config');
 const { checkCanvasConditions } = require('./utils/canvas');
 const { checkRole } = require('./utils/role');
+const ChatMessage = require('./ChatMessage');
 
 const ipConns = {};
 
@@ -39,6 +40,8 @@ const CONDITION = {
     sameCanvas: client => _c => _c.canvas == client.canvas
 }
 
+// this number is used for masking/hiding invalid pixels
+// in opcodes.pixels message
 const notValidPixel = 0xffffffff;
 function writeInvalidPixel(buffer, i) {
     buffer.writeUInt32BE(notValidPixel, i)
@@ -53,6 +56,8 @@ class Server {
         return instance
     }
 
+    static PIXEL_SEND_INTERVAL = 20;
+
     constructor() {
         this.canvases = global.canvases;
         // chat channels
@@ -65,11 +70,16 @@ class Server {
         }
         this.onlineStats = {};
 
+        this.broadcastPixelQueue = new Map();
+
         this.wss = null;
 
         instance = this;
 
-        setInterval(this.updateOnlineStats.bind(this), 30000);
+        // motd can be set through console command
+        this.MOTD = null;
+
+        setInterval(this.updateOnlineStats.bind(this), 10000);
     }
 
     verifyClient(request, socket) {
@@ -94,14 +104,27 @@ class Server {
             this.channels[canvas.name].canvas = canvas;
 
             this.connections[canvas.name] = {};
+
+            const pixelSize = createPacket.pixelSendQueueBufferSize;
+            const maxPixelQueue = 1000,
+                bufferLimit = pixelSize*maxPixelQueue;
+            this.broadcastPixelQueue.set(canvas, {
+                maxOffset: bufferLimit-pixelSize,
+                // extra 1 is for OP
+                buffer: Buffer.alloc(bufferLimit+1),
+                curOffset: 0
+            });
+            this.initPixelQueueBroadcastInterval(canvas);
         })
 
         wss.on('connection', (socket, request, user) => {
             const ip = getIPv6Subnet(getIPFromRequest(request));
+            const ipInt = ipToInt(ip);
 
-            const client = new Client(socket, ip);
+            const client = new Client(socket);
             client.user = user;
             client.ip = ip;
+            client.ipInt = ipInt;
 
             this.clients.set(client.id, client);
 
@@ -151,6 +174,21 @@ class Server {
 
         this.wss = wss;
         setInterval(this.ping.bind(this), 45000);
+    }
+
+    initPixelQueueBroadcastInterval(canvas){
+        const objPixelQueueRef = this.broadcastPixelQueue.get(canvas);
+
+        // this byte is never changed later and writer preserves it
+        objPixelQueueRef.buffer.writeUint8(OPCODES.placeBatch, 0);
+
+        setInterval(() => {
+            if(objPixelQueueRef.curOffset){
+                let subBuffer = objPixelQueueRef.buffer.subarray(0, objPixelQueueRef.curOffset+1);
+                this.broadcastForCanvasFast(canvas, subBuffer);
+                objPixelQueueRef.curOffset = 0;
+            }
+        }, Server.PIXEL_SEND_INTERVAL);
     }
 
     checkUser(client) {
@@ -208,6 +246,12 @@ class Server {
         }
     }
 
+    broadcastReloadChunks(canvas){
+        const packet = createStringPacket.chunksReload();
+        const packetStr = JSON.stringify(packet);
+        this.broadcastStringByCond(packetStr, CONDITION.sameCanvas({canvas}));
+    }
+
     handleBinaryMessage(message, client) {
         switch (message.readUInt8(0)) {
             case OPCODES.chunk: {
@@ -263,13 +307,22 @@ class Server {
                     }
                 }
 
-                if (oldPixel & 0x7F === c)
+                if ((oldPixel & 0x7F) === c)
                     return;
 
                 canvas.chunkManager.setChunkPixel(x, y, c);
+            
+                const broadcastQueue = this.broadcastPixelQueue.get(canvas);
+                if(broadcastQueue.curOffset <= broadcastQueue.maxOffset){
+                    createPacket.pixelSendEnqueue(x, y, c, client.id, broadcastQueue.buffer, broadcastQueue.curOffset+1)
+                    broadcastQueue.curOffset += createPacket.pixelSendQueueBufferSize;
+                }else{
+                    // we'll just send a single pixel in case that queue buffer is overflowed
+                    const pixel = createPacket.pixelSend(x, y, c, client.id);
+                    this.broadcastForCanvasFast(canvas, pixel);
+                }
 
-                const pixel = createPacket.pixelSend(x, y, c, client.id);
-                this.broadcastPixel(canvas, pixel);
+                canvas.chunkManager.setPlacerDataRaw(x, y, client.placeInfoFlag, client.placeInfoNumber);
 
                 break
             }
@@ -281,7 +334,6 @@ class Server {
 
                 const isProtect = !!message.readUInt8(1);
                 if (isProtect && ROLE[client.user.role] < ROLE.MOD) {
-                    logger.info(`User ${client.user.name} tried to protect many pixels`);
                     return
                 }
 
@@ -324,12 +376,15 @@ class Server {
                         client.canvas.chunkManager.setPixelProtected(x, y, clr);
                     } else {
                         client.canvas.chunkManager.setChunkPixel(x, y, clr);
+                        client.canvas.chunkManager.setPlacerDataRaw(x, y, client.placeInfoFlag, client.placeInfoNumber);
                     }
+
+
                 }
 
                 if(!client.user.isApiSocket) message.writeUInt32BE(client.id, 2);
 
-                this.broadcastPixels(client.canvas, message);
+                this.broadcastForCanvasFast(client.canvas, message);
 
                 break
             }
@@ -338,7 +393,6 @@ class Server {
 
                 const canvas = message.readUInt8(1);
 
-                // unsigned but "doverai no proverai"
                 if (canvas < 0 || canvas >= this.canvases.length) {
                     return client.sendError('Wrong canvas number');
                 }
@@ -364,6 +418,10 @@ class Server {
                 this.onCanvasChosen(client.canvas, client);
 
                 break
+            }
+            case OPCODES.ping: {
+                client.emit('pong');
+                break;
             }
         }
     }
@@ -442,8 +500,25 @@ class Server {
                 if (!message.length || message.length > maxLen) return;
 
                 if (!client.chatBuckets[channel.name].spend(1)) {
-                    // TODO replace with chat warnings
-                    return client.sendError('Chat limit')
+                    return client.sendChatWarn('You\'ve been hit chat limit. Wait')
+                }
+
+                if(msg.whisper){
+                    let target = null;
+                    for(let [_, client] of this.clients.entries()){
+                        if(client.user && client.user.id == msg.whisper && client.subscribedChs.includes(channel)){
+                            target = client;
+                            break
+                        }
+                    }
+
+                    if(!target){
+                        return client.sendChatWarn(`User with id "${msg.whisper}" is not online on this canvas`);
+                    }
+
+                    // why span? name color tags which aren't closed will spread to the message
+                    target.sendChat(`[w] ${client.user.name}`, `[i]${message}[/i]`, channel.name, false);
+                    return
                 }
 
                 const chatMessage = channel.addMessage(nick, message);
@@ -498,34 +573,11 @@ class Server {
         this.broadcastBinary(buf);
     }
 
-    broadcastPixels(canvas, buffer) {
+    broadcastForCanvasFast(canvas, buffer) {
+        // we create a frame manually
+        // to avoid object recreation
+        // for every receiver
         const frame = WebSocket.Sender.frame(buffer, {
-            readOnly: true,
-            mask: false,
-            rsv1: false,
-            opcode: 2,
-            fin: true,
-        });
-
-        this.clients.forEach(client => {
-            if (client.canvas !== canvas) {
-                return
-            }
-
-            const ws = client.socket;
-
-            frame.forEach((buffer) => {
-                try {
-                    ws._socket.write(buffer);
-                } catch (error) {
-                    logger.error(`WebSocket broadcast error: ${error.message}`);
-                }
-            });
-        });
-    }
-
-    broadcastPixel(canvas, pixel) {
-        const frame = WebSocket.Sender.frame(pixel, {
             readOnly: true,
             mask: false,
             rsv1: false,
@@ -574,6 +626,7 @@ class Server {
     onChatSubscribed(ch, client) {
         logger.debug(client.ip + ' subscribed ' + ch.name);
 
+        // this single instance is used all below
         const message = createStringPacket.chatMessage({}, ch.name);
 
         ch.getMessages().forEach(msg => {
@@ -584,15 +637,18 @@ class Server {
             client.send(JSON.stringify(message));
         });
 
-        // send welcome
-        message.nick = '';
-        message.server = true;
+        if(this.MOTD){
+            // change to motd
+            message.nick = '';
+            message.server = true;
+            message.msg = '[b]MOTD: ' + this.MOTD + '[/b]';
+            client.send(JSON.stringify(message));
+        }else{
+            // change to welcome
+            message.nick = '';
+            message.server = true;
 
-        message.msg = `Welcome to the [#00f986]Goroxels[], server ${ch.name}!`;
-        client.send(JSON.stringify(message));
-
-        if (!client.user) {
-            message.msg = `Use <a href="/api/auth/discord">Discord</a> to log in!`;
+            message.msg = `Welcome to the [#00f986]Goroxels[], server ${ch.name}!`;
             client.send(JSON.stringify(message));
         }
     }
@@ -620,8 +676,25 @@ class Server {
             client.sendError('connections limit');
             return client.kill();
         }
-        const packet = createStringPacket.userJoin(client);
 
+        let placeInfoFlag, placeInfoNumber;
+        if(client.user){
+            placeInfoFlag = 2;
+            placeInfoNumber = client.user.id;
+        }else{
+            if(typeof client.ipInt === 'bigint'){
+                placeInfoFlag = 3;
+            }else{
+                placeInfoFlag = 1
+            }
+            
+            placeInfoNumber = client.ipInt;
+        }
+
+        client.placeInfoFlag = placeInfoFlag;
+        client.placeInfoNumber = placeInfoNumber;
+
+        const packet = createStringPacket.userJoin(client);
         client.joinTime = Date.now();
 
         // send join to all clients on this canvas
@@ -629,7 +702,7 @@ class Server {
             this.broadcastString(JSON.stringify(packet), CONDITION.sameCanvas(client));
 
         this.clients.forEach(_client => {
-            if (!_client.user || _client.user.isApiSocket) return;
+            if (_client.user && _client.user.isApiSocket) return;
 
             if (_client == client) {
                 const mePacket = createStringPacket.me(client.id);
@@ -640,6 +713,7 @@ class Server {
 
                 packet.id = _client.id;
                 packet.registered = !!_client.user;
+                packet.role = _client.user ? _client.user.role : null;
 
                 client.send(JSON.stringify(packet));
             }
@@ -665,11 +739,6 @@ class Server {
 
     closeByUser(user) {
         this.closeBy(client => client.user && client.user.id === user.id);
-    }
-
-    setChunk(canvasId, cx, cy, data) {
-        const canvas = this.canvases[canvasId];
-        canvas.chunkManager.setChunkData(cx, cy, data);
     }
 
     ping() {

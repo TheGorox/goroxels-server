@@ -1,26 +1,56 @@
 const zlib = require('zlib');
+const ChunkPlaceInfo = require('./ChunkPlaceInfo');
 const logger = require('./logger')('CHUNK');
 
 _anus = []
 
 class Chunk{
-    constructor(x, y, size, data){
+    constructor(x, y, size, data, canvasId){
         this.x = x;
         this.y = y;
 
         this.size = size;
 
         this.data = data;
-        this._needUpdate = true;
+        this.__needUpdate = true;
         this._compressed = null;
 
-        this._needToSave = false;
+        this.__needToSave = false;
+        this.__needBackup = false;
 
+        this._updLatch = false;
+
+        this.placeInfo = new ChunkPlaceInfo(canvasId, this);
+    }
+
+    resetUpdLatch(){
+        this._updLatch = false;
+    }
+
+    // this looks so ugly! :D
+    get _needToSave(){ return this.__needToSave }
+    set _needToSave(value){
+        this.__needToSave = value;
+        if(!value) this.resetUpdLatch();
+    }
+    get _needBackup(){ return this.__needBackup }
+    set _needBackup(value){
+        this.__needBackup = value;
+        if(!value) this.resetUpdLatch();
+    }
+    get _needUpdate(){ return this.__needUpdate }
+    set _needUpdate(value){
+        this.__needUpdate = value;
+        if(!value) this.resetUpdLatch();
     }
 
     upd(){
-        this._needUpdate = true;
-        this._needToSave = true;
+        if(!this._updLatch){
+            this._needUpdate = true;
+            this._needToSave = true;
+            this._needBackup = true;
+            this._updLatch = true;
+        }
     }
 
     get(x, y){
@@ -31,6 +61,14 @@ class Chunk{
         const i = x + y * this.size;
 
         this.data[i] = (this.data[i] & 0x80) + c;
+        this.upd();
+    }
+
+    // the same as above, but with protection overwrite
+    setP(x, y, c){
+        const i = x + y * this.size;
+
+        this.data[i] = c;
         this.upd();
     }
 
@@ -68,7 +106,16 @@ class Chunk{
 
     wipe(){
         this.data = Chunk.createEmpty(this.size);
+        this.placeInfo.initEmpty();
         this.upd();
+    }
+
+    clone(){
+        return new Chunk(this.x, this.y, this.size, new Uint8Array(this.data));
+    }
+    
+    getChunkKey(){
+        return this.x << 4 | this.y
     }
 }
 

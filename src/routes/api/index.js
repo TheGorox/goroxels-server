@@ -11,6 +11,7 @@ const userInfo = require('./userInfo');
 const admin = require('./admin');
 const captcha = require('./captcha');
 const online = require('./online');
+const pixelInfo = require('./pixelInfo');
 
 const router = express.Router();
 
@@ -38,6 +39,7 @@ router.use('/changename', changeName);
 router.use('/userInfo', userInfo);
 router.use('/captcha', captcha);
 router.use('/online', online);
+router.use('/pixelInfo', pixelInfo);
 
 router.use('/admin', admin);
 

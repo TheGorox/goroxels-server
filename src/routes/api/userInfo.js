@@ -3,7 +3,8 @@ const User = require('../../db/models/User');
 const roleRequired = require('../../utils/roleRequired');
 const WSS = require('../../WebsocketServer');
 const { checkRole } = require('../../utils/role');
-const { ROLE } = require('../../constants');
+const { ROLE, MINUTE } = require('../../constants');
+const { rateLimiter } = require('../../utils/express');
 
 const router = express.Router();
 
@@ -13,9 +14,13 @@ function error(res, error) {
     })
 }
 
-// TODO rate limiter
+const limiter = rateLimiter.byIdOrIp({
+    time: 1 * MINUTE,
+    max: 5
+})
 
 router.use(roleRequired.user);
+router.use(limiter);
 
 router.get('/', async (req, res) => {
     if (req.query.id === undefined)
@@ -46,11 +51,14 @@ router.get('/', async (req, res) => {
                 case 'MOD':
                     properties.ip = user.lastIp;
                     properties.cc = user.lastCC;
+                case 'TRUSTED':
                 case 'USER':
                     properties.name = user.name;
                     properties.id = user.id;
                     properties.role = user.role;
             }
+        }else{
+            console.log('shieeeettt')
         }
     } else {
         let client = WSS.getInstance().clients.get(id);

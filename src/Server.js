@@ -13,7 +13,7 @@ const verifyUser = require('./verifySocket');
 const { api } = require('./routes/')
 
 const Socket = require('./WebsocketServer');
-const { getIPFromRequest, getIPv6Subnet } = require('./utils/ip');
+const { getIPFromRequest, getIPv6Subnet, ipToInt } = require('./utils/ip');
 
 const path = require('path');
 const fs = require('fs');
@@ -104,25 +104,29 @@ function startServer(port) {
                 role: 'ADMIN',
                 isApiSocket: true
             }
-        }else{
-            const isBanned = proxyCheck(socket.realIp, () => {
-                wss.clients.forEach(client => {
-                    if (client.ip === socket.realIp) {
-                        client.close();
-                    }
-                })
-            });
-    
-            if (isBanned){
-                return
-            }
-    
+        }else{    
             if(!webSocketServer.verifyClient(request, socket)){
                 socket.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
                 socket.destroy();
                 return
             }
             user = await verifyUser(request);
+
+            if(!user || user.role === 'USER'){
+                // will defer socket closing if proxy isn't cached
+                const isBanned = proxyCheck(socket.realIp, () => {
+                    wss.clients.forEach(client => {
+                        if (client.ip === socket.realIp) {
+                            client.close();
+                        }
+                    })
+                });
+
+                if (isBanned){
+                    return
+                }
+            }
+
             logger.debug('Going to upgrade ip ' + socket.realIp + ' with user ' + (user ? user.name : null));
         }
         

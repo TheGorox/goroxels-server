@@ -34,7 +34,6 @@ passport.deserializeUser(async function (id, done) {
 });
 
 async function login(options){
-    // TODO check is function protected
     const email = options.email;
 
     if(!email) throw new Error('No email in login function');
@@ -76,8 +75,6 @@ if(auth.facebook.use){
                 emails,
                 id: fbId
             } = profile;
-
-            console.log(profile);
 
             const email = emails[0].value;
             const user = await login({

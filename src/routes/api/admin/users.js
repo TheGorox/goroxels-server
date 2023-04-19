@@ -16,11 +16,11 @@ const { sequelize } = require('../../../db/models/User');
 const { Op } = require('sequelize');
 
 router.use(rateLimiter.byIp({
-    max: 3, // 1 per second
-    time: 3000
+    max: 12, // 2 per second
+    time: 6000
 }))
 router.use(rateLimiter.global({
-    max: 30, // 3 per second globally
+    max: 40, // 4 per second globally
     time: 10000
 }))
 

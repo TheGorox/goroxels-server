@@ -25,6 +25,35 @@ function checkCanvasConditions(user, condition) {
     }
 }
 
+function applyProtectMask(startX, startY, canvasId, maskObj){
+    const canvas = global.canvases[canvasId];
+    
+    if(!canvas){
+        throw new Error(`Canvas with id ${canvasId} not found in global.canvases`);
+    }
+
+    const {
+        width, height, mask
+    } = maskObj;
+
+    const maxX = Math.min(startX + width, canvas.realWidth);
+    const maxY = Math.min(startY + height, canvas.realHeight);
+    for(let i = 0; i < width*height; i++){
+        const maskX = i % width;
+        const maskY = i / width | 0;
+
+        const absX = startX + maskX;
+        const absY = startY + maskY;
+        if(absX >= maxX || absY >= maxY){
+            continue
+        }
+
+        const flag = !!mask[i];
+        canvas.chunkManager.setPixelProtected(absX, absY, flag);
+    }
+}
+
 module.exports = {
-    checkCanvasConditions
+    checkCanvasConditions,
+    applyProtectMask
 }

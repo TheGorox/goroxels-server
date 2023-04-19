@@ -64,3 +64,6 @@ These are not all variables used in code, others will be added soon (or not :)).
 Put them in server's *ecosystem.config.js* if pm2 used, or to .env file (server folder) if `dotenv` is in use.
 
 Canvas data can be changed at *data/config.json*.
+
+Current restrictions(making these ones above the limit may make server/client behave unpredictable):
+Max colors count: 64 (0b00111111) with protection or 128 (0b01111111) without
