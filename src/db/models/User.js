@@ -21,6 +21,10 @@ const User = sequelize.define('user', {
         defaultValue: 'USER'
     },
 
+    badges: {
+        type: Sequelize.STRING(255)
+    },
+
     email: {
         type: Sequelize.STRING,
         allowNull: true
