@@ -296,7 +296,13 @@ async function backup(chunkManager) {
             // if keyframe pick current chunk, with all data is just pixels
             // otherwise we'll use masked data from conjuctChunks
             // (masked data will significantly improve zip speed and effectiveness)
-            const curChunk = keyframe ? prevState.chunks[key] : chunks[key];
+
+            if(!prevState.chunks[key]){
+                prevState.chunks[key] = chunkManager.getChunk(cx, cy).clone();
+            }
+            
+            let curChunk = keyframe ? prevState.chunks[key] : chunks[key];
+
             if(changedBits[i]){
                 
                 Buffer.from(curChunk.data.buffer).copy(seqBuffer, curOffset);
