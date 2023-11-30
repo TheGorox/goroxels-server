@@ -40,19 +40,23 @@ const createPacket = {
         return buf
     },
 
-    pixelSendQueueBufferSize: 8,
+    pixelSendQueueBufferSize: 9,
     pixelSendEnqueue: (x, y, col, uid, targBuffer, targBufferOffset) => {
         const offs = targBufferOffset;
-        targBuffer.writeUInt32BE(packPixel(x, y, col), offs);
-        targBuffer.writeUInt32BE(uid, offs+4);
+        targBuffer.writeUInt16BE(x, offs);
+        targBuffer.writeUInt16BE(y, offs+2);
+        targBuffer.writeUInt8(col, offs+4);
+        targBuffer.writeUInt32BE(uid, offs+5);
 
         return null
     },
     pixelSend: (x, y, col, uid) => {
-        const buf = Buffer.allocUnsafe(1 + 4 + 4);
+        const buf = Buffer.allocUnsafe(1 + 9);
         buf.writeUInt8(OPCODES.place, 0);
-        buf.writeUInt32BE(packPixel(x, y, col), 1);
-        buf.writeUInt32BE(uid, 5);
+        buf.writeUint16BE(x, 1);
+        buf.writeUint16BE(y, 3);
+        buf.writeUint8(col, 5);
+        buf.writeUInt32BE(uid, 6);
 
         return buf
     },
@@ -82,7 +86,8 @@ const createStringPacket = {
             userId: client.user ? client.user.id : null,
             id: client.id,
             registered: !!client.user,
-            role: client.user ? client.user.role : null
+            role: client.user ? client.user.role : null,
+            badges: client.user ? client.user.badges : null
         }
     },
     userLeave: (client) => {

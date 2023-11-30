@@ -42,9 +42,11 @@ const CONDITION = {
 
 // this number is used for masking/hiding invalid pixels
 // in opcodes.pixels message
-const notValidPixel = 0xffffffff;
+const notValidPixel = 0xffff;
 function writeInvalidPixel(buffer, i) {
-    buffer.writeUInt32BE(notValidPixel, i)
+    // TODO: rework this
+    buffer.writeUInt16BE(0xffff, i);
+    buffer.writeUInt16BE(0xffff, i+2);
 }
 
 class Server {
@@ -94,7 +96,7 @@ class Server {
 
         const wss = new WebSocketServer({
             noServer: true,
-            maxPayload: 65536
+            maxPayload: 262175
         });
 
         this.channels.global = new ChatChannel('global');
@@ -107,11 +109,11 @@ class Server {
 
             const pixelSize = createPacket.pixelSendQueueBufferSize;
             const maxPixelQueue = 1000,
-                bufferLimit = pixelSize*maxPixelQueue;
+                bufferLimit = pixelSize * maxPixelQueue;
             this.broadcastPixelQueue.set(canvas, {
-                maxOffset: bufferLimit-pixelSize,
+                maxOffset: bufferLimit - pixelSize,
                 // extra 1 is for OP
-                buffer: Buffer.alloc(bufferLimit+1),
+                buffer: Buffer.alloc(bufferLimit + 1),
                 curOffset: 0
             });
             this.initPixelQueueBroadcastInterval(canvas);
@@ -176,19 +178,23 @@ class Server {
         setInterval(this.ping.bind(this), 45000);
     }
 
-    initPixelQueueBroadcastInterval(canvas){
+    initPixelQueueBroadcastInterval(canvas) {
         const objPixelQueueRef = this.broadcastPixelQueue.get(canvas);
 
         // this byte is never changed later and writer preserves it
         objPixelQueueRef.buffer.writeUint8(OPCODES.placeBatch, 0);
 
         setInterval(() => {
-            if(objPixelQueueRef.curOffset){
-                let subBuffer = objPixelQueueRef.buffer.subarray(0, objPixelQueueRef.curOffset+1);
+            if (objPixelQueueRef.curOffset) {
+                let subBuffer = objPixelQueueRef.buffer.subarray(0, objPixelQueueRef.curOffset + 1);
                 this.broadcastForCanvasFast(canvas, subBuffer);
                 objPixelQueueRef.curOffset = 0;
             }
         }, Server.PIXEL_SEND_INTERVAL);
+    }
+
+    initOnlineBroadcast() {
+        // todo
     }
 
     checkUser(client) {
@@ -246,10 +252,10 @@ class Server {
         }
     }
 
-    broadcastReloadChunks(canvas){
+    broadcastReloadChunks(canvas) {
         const packet = createStringPacket.chunksReload();
         const packetStr = JSON.stringify(packet);
-        this.broadcastStringByCond(packetStr, CONDITION.sameCanvas({canvas}));
+        this.broadcastStringByCond(packetStr, CONDITION.sameCanvas({ canvas }));
     }
 
     handleBinaryMessage(message, client) {
@@ -291,7 +297,9 @@ class Server {
 
                 const canvas = client.canvas;
 
-                const [x, y, c] = unpackPixel(message.readUInt32BE(1));
+                const x = message.readUInt16BE(1);
+                const y = message.readUInt16BE(3);
+                const c = message.readUInt8(5);
 
                 if (x < 0 || x >= canvas.realWidth ||
                     y < 0 || y >= canvas.realHeight ||
@@ -311,12 +319,12 @@ class Server {
                     return;
 
                 canvas.chunkManager.setChunkPixel(x, y, c);
-            
+
                 const broadcastQueue = this.broadcastPixelQueue.get(canvas);
-                if(broadcastQueue.curOffset <= broadcastQueue.maxOffset){
-                    createPacket.pixelSendEnqueue(x, y, c, client.id, broadcastQueue.buffer, broadcastQueue.curOffset+1)
+                if (broadcastQueue.curOffset <= broadcastQueue.maxOffset) {
+                    createPacket.pixelSendEnqueue(x, y, c, client.id, broadcastQueue.buffer, broadcastQueue.curOffset + 1)
                     broadcastQueue.curOffset += createPacket.pixelSendQueueBufferSize;
-                }else{
+                } else {
                     // we'll just send a single pixel in case that queue buffer is overflowed
                     const pixel = createPacket.pixelSend(x, y, c, client.id);
                     this.broadcastForCanvasFast(canvas, pixel);
@@ -349,10 +357,10 @@ class Server {
                 }
                 client.bucket.spend(pxlsCount);
 
-                for (let i = 6; i < message.length; i += 4) {
-                    let [
-                        x, y, clr
-                    ] = unpackPixel(message.readUInt32BE(i));
+                for (let i = 6; i < message.length; i += 5) {
+                    const x = message.readUInt16BE(i);
+                    const y = message.readUInt16BE(i+2);
+                    const clr = message.readUInt8(i+4);
 
                     // TODO client side pixel validation
 
@@ -382,7 +390,7 @@ class Server {
 
                 }
 
-                if(!client.user.isApiSocket) message.writeUInt32BE(client.id, 2);
+                if (!client.user.isApiSocket) message.writeUInt32BE(client.id, 2);
 
                 this.broadcastForCanvasFast(client.canvas, message);
 
@@ -404,6 +412,9 @@ class Server {
 
                 let cooldown;
                 if (client.user) {
+                    if(client.user.role === 'BANNED'){
+                        client.kill()
+                    }
                     if (client.user.role == 'ADMIN')
                         cooldown = [0, 32]
                     else {
@@ -450,7 +461,7 @@ class Server {
                 // for the moment it's the only way to detect if
                 // client is reconnected after server reload
                 if (msg.reconnect) {
-                    if (Date.now() - this.startTime < 10000){
+                    if (Date.now() - this.startTime < 10000) {
                         const packet = createStringPacket.reload();
                         client.send(JSON.stringify(packet));
                         return
@@ -468,7 +479,7 @@ class Server {
                         client.chatBuckets[ch.name] = new Bucket(...chatBucket[client.user.role]);
                     }
                 }
-                if (ch.name !== 'global' && !msg.reconnect) {
+                if (!msg.reconnect) {
                     this.onChatSubscribed(ch, client);
                 }
 
@@ -503,16 +514,16 @@ class Server {
                     return client.sendChatWarn('You\'ve been hit chat limit. Wait')
                 }
 
-                if(msg.whisper){
+                if (msg.whisper) {
                     let target = null;
-                    for(let [_, client] of this.clients.entries()){
-                        if(client.user && client.user.id == msg.whisper && client.subscribedChs.includes(channel)){
+                    for (let [_, client] of this.clients.entries()) {
+                        if (client.user && client.user.id == msg.whisper && client.subscribedChs.includes(channel)) {
                             target = client;
                             break
                         }
                     }
 
-                    if(!target){
+                    if (!target) {
                         return client.sendChatWarn(`User with id "${msg.whisper}" is not online on this canvas`);
                     }
 
@@ -564,7 +575,7 @@ class Server {
     }
 
     broadcastOnline() {
-        let online = [...this.clients.values()].reduce((s, c) => c.canvas?s+1:s, 0);
+        let online = [...this.clients.values()].reduce((s, c) => c.canvas ? s + 1 : s, 0);
 
         let buf = Buffer.alloc(1 + 3);
         buf.writeUInt8(OPCODES.online, 0);
@@ -637,13 +648,13 @@ class Server {
             client.send(JSON.stringify(message));
         });
 
-        if(this.MOTD){
+        if (this.MOTD) {
             // change to motd
             message.nick = '';
             message.server = true;
             message.msg = '[b]MOTD: ' + this.MOTD + '[/b]';
             client.send(JSON.stringify(message));
-        }else{
+        } else {
             // change to welcome
             message.nick = '';
             message.server = true;
@@ -678,16 +689,16 @@ class Server {
         }
 
         let placeInfoFlag, placeInfoNumber;
-        if(client.user){
+        if (client.user) {
             placeInfoFlag = 2;
             placeInfoNumber = client.user.id;
-        }else{
-            if(typeof client.ipInt === 'bigint'){
+        } else {
+            if (typeof client.ipInt === 'bigint') {
                 placeInfoFlag = 3;
-            }else{
+            } else {
                 placeInfoFlag = 1
             }
-            
+
             placeInfoNumber = client.ipInt;
         }
 
@@ -714,6 +725,7 @@ class Server {
                 packet.id = _client.id;
                 packet.registered = !!_client.user;
                 packet.role = _client.user ? _client.user.role : null;
+                packet.badges = _client.user ? _client.user.badges : null;
 
                 client.send(JSON.stringify(packet));
             }
@@ -751,11 +763,11 @@ class Server {
         })
     }
 
-    updateOnlineStats(){
-        for(let key of Object.keys(this.connections)){
+    updateOnlineStats() {
+        for (let key of Object.keys(this.connections)) {
             let totalPerCanvas = 0;
-            for(let ipConns of Object.values(this.connections[key])){
-                if(ipConns == 0) continue;
+            for (let ipConns of Object.values(this.connections[key])) {
+                if (ipConns == 0) continue;
                 totalPerCanvas++;
             }
             this.onlineStats[key] = totalPerCanvas;
