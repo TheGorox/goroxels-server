@@ -2,6 +2,10 @@
     --primary: #4C4C4C;
     --darken: #404040;
     --dark: #333;
+    --lighten: #5a5a5a;
+    --light: #7a7a7a;
+
+    --very-light-text: white;
     --light-text: #d2d2d2;
     --bg-text: gray;
 }
@@ -698,6 +702,26 @@ input[type=range]::-moz-range-thumb {
     /* height: 50px; */
 }
 
+#chatHeader.logged {
+    justify-content: space-around;
+}
+
+#chatChannels {
+    display: inline-flex;
+    overflow: hidden;
+    border-radius: 3px;
+}
+#chatChannels > div {
+    cursor: pointer;
+    
+    padding: 2px 5px;
+    background-color: var(--lighten);
+    color: var(--very-light-text);
+}
+#chatChannels > div.selected {
+    background-color: var(--light);
+}
+
 #chatNick {
     text-align: center;
     word-break: break-word;
@@ -721,6 +745,9 @@ input[type=range]::-moz-range-thumb {
 
 #chatInput {
     width: 100%;
+    height: 17px;
+    border-radius: 7px;
+    padding-left: 4px;
 }
 
 .chatMessage {
@@ -1084,6 +1111,39 @@ table .authLogo {
     transform-origin: 0 0;
     transform: rotate(-45deg);
     box-shadow: -3px 3px 4px 0 rgb(0 0 0 / 8%);
+}
+
+.miniWindow {
+    position: absolute;
+    z-index: 9;
+
+    background-color: #333;
+
+    border-radius: 5px;
+    padding: 5px;
+
+    display: flex;
+    flex-direction: column;
+
+    color: white;
+}
+
+.miniWindowTitle {
+    text-align: center;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    height: 17px;
+}
+
+.miniWindowButtons {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+textarea {
+    padding: 1px;
 }
 .toast-title {
   font-weight: bold;

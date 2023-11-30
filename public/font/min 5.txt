@@ -1,0 +1,285 @@
+{
+    "name": "Minimal 5px",
+    "defaultWidth": 3,
+    "fixedHeight": 5,
+    "letters": [{
+            "letter": "A"
+        },
+        {
+            "letter": "B"
+        },
+        {
+            "letter": "C"
+        },
+        {
+            "letter": "D"
+        },
+        {
+            "letter": "E"
+        },
+        {
+            "letter": "F"
+        },
+        {
+            "letter": "G"
+        },
+        {
+            "letter": "H"
+        },
+        {
+            "letter": "I",
+            "width": 1
+        },
+        {
+            "letter": "J"
+        },
+        {
+            "letter": "K"
+        },
+        {
+            "letter": "L"
+        },
+        {
+            "letter": "M",
+            "width": 5
+        },
+        {
+            "letter": "N",
+            "width": 4
+        },
+        {
+            "letter": "O"
+        },
+        {
+            "letter": "P"
+        },
+        {
+            "letter": "Q"
+        },
+        {
+            "letter": "R"
+        },
+        {
+            "letter": "S"
+        },
+        {
+            "letter": "T"
+        },
+        {
+            "letter": "U"
+        },
+        {
+            "letter": "V"
+        },
+        {
+            "letter": "W",
+            "width": 5
+        },
+        {
+            "letter": "X"
+        },
+        {
+            "letter": "Y"
+        },
+        {
+            "letter": "Z"
+        },
+        {
+            "letter": "А"
+        },
+        {
+            "letter": "Б"
+        },
+        {
+            "letter": "В"
+        },
+        {
+            "letter": "Г"
+        },
+        {
+            "letter": "Д",
+            "width": 5
+        },
+        {
+            "letter": "Е"
+        },
+        {
+            "letter": "Ё"
+        },
+        {
+            "letter": "Ж",
+            "width": 5
+        },
+        {
+            "letter": "З"
+        },
+		{
+            "letter": "Й",
+            "width": 4
+        },
+        {
+            "letter": "И",
+            "width": 4
+        },
+        {
+            "letter": "К"
+        },
+        {
+            "letter": "Л"
+        },
+        {
+            "letter": "М",
+            "width": 5
+        },
+        {
+            "letter": "Н"
+        },
+        {
+            "letter": "О"
+        },
+        {
+            "letter": "П"
+        },
+        {
+            "letter": "Р"
+        },
+        {
+            "letter": "С"
+        },
+        {
+            "letter": "Т"
+        },
+        {
+            "letter": "У"
+        },
+        {
+            "letter": "Ф",
+            "width": 5
+        },
+        {
+            "letter": "Х"
+        },
+        {
+            "letter": "Ц",
+            "width": 4
+        },
+        {
+            "letter": "Ч"
+        },
+        {
+            "letter": "Ш",
+			"width": 5
+        },
+        {
+            "letter": "Щ",
+            "width": 5
+        },
+        {
+            "letter": "Ъ",
+            "width": 4
+        },
+        {
+            "letter": "Ы",
+            "width": 5
+        },
+        {
+            "letter": "Ь"
+        },
+        {
+            "letter": "Э"
+        },
+        {
+            "letter": "Ю",
+            "width": 5
+        },
+        {
+            "letter": "Я"
+        },
+        {
+            "letter": "1",
+            "width": 2
+        },
+        {
+            "letter": "2"
+        },
+        {
+            "letter": "3"
+        },
+        {
+            "letter": "4"
+        },
+        {
+            "letter": "5"
+        },
+        {
+            "letter": "6"
+        },
+        {
+            "letter": "7"
+        },
+        {
+            "letter": "8"
+        },
+        {
+            "letter": "9"
+        },
+        {
+            "letter": "0"
+        },
+        {
+            "letter": "!",
+            "width": 1
+        },
+        {
+            "letter": "#",
+            "width": 5
+        },
+        {
+            "letter": "$"
+        },
+        {
+            "letter": "%",
+            "width": 5
+        },
+        {
+            "letter": "^"
+        },
+        {
+            "letter": "*",
+            "width": 5
+        },
+        {
+            "letter": "(",
+            "width": 2
+        },
+        {
+            "letter": ")",
+            "width": 2
+        },
+        {
+            "letter": "-"
+        },
+        {
+            "letter": "+"
+        },
+		{
+            "letter": ".",
+            "width": 1
+        },
+		{
+            "letter": ",",
+            "width": 1
+        },
+		{
+            "letter": ";",
+            "width": 1
+        },
+		{
+            "letter": ":",
+            "width": 1
+        },
+		{
+            "letter": "?"
+        }
+    ]
+}
