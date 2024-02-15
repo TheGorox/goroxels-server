@@ -296,16 +296,17 @@ class ChunkManager extends EventEmitter {
         return image
     }
 
-    async getChunkData(cx, cy) {
+    async getChunkData(cx, cy, compress=true) {
         const chunkKey = this.getChunkKey(cx, cy);
 
         if (this.chunks.hasOwnProperty(chunkKey)) {
-            return await this.chunks[chunkKey].compress()
+            const chunk = this.chunks[chunkKey];
+            return compress ? (await chunk.compress()) : (chunk.data);
         } else {
             let newChunk = this.loadChunk(cx, cy);
             this.chunks[chunkKey] = newChunk;
 
-            return await newChunk.compress();
+            return compress ? (await newChunk.compress()) : (newChunk.data);
         }
     }
 
