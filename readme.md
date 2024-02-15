@@ -39,7 +39,7 @@ npm run devBuild --prefix goroxels-client && pm2 startOrRestart ./goroxels-serve
 To show application logs, type `pm2 logs goroxels --raw`
 
 Now take a look at this wonderful environment variables.
-All variables is optional.
+All variables are optional.
 
 | NAME                  | DESCRIPTION                      | EXAMPLE       |
 | --------------------- | -------------------------------- | ------------  |
