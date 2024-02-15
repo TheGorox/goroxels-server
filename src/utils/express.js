@@ -1,6 +1,5 @@
 const rateLimiter = require('express-rate-limit');
 
-
 function rateLimit(generator, time, max, headers){
     const limiter = rateLimiter({
         windowMs: time,
@@ -9,7 +8,7 @@ function rateLimit(generator, time, max, headers){
         headers
     });
 
-    return limiter
+    return limiter;
 }
 
 const limiter = {

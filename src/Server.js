@@ -30,7 +30,7 @@ function startServer(port) {
     let httpsOptions = {};
     let key, cert;
     let httpServer = http;
-    try { // probably doesn't work
+    try { // probably doesn't work, we use Cloudflare for ssl
         key = fs.readFileSync(process.env.SSL_KEY, 'utf-8');
         cert = fs.readFileSync(process.env.SSL_CERT, 'utf-8');
         httpsOptions.key = key;
@@ -95,24 +95,24 @@ function startServer(port) {
 
         let user;
 
-        if(request.headers.authorization){
-            if(request.headers.authorization !== `Bearer ${APIKEY}`)
+        if (request.headers.authorization) {
+            if (request.headers.authorization !== `Bearer ${APIKEY}`)
                 return logger.warn(`${socket.realIp} tried to connect apisocket`);
 
-            user = { 
+            user = {
                 id: 0,
                 role: 'ADMIN',
                 isApiSocket: true
             }
-        }else{    
-            if(!webSocketServer.verifyClient(request, socket)){
+        } else {
+            if (!webSocketServer.verifyClient(request, socket)) {
                 socket.write('HTTP/1.1 429 Too Many Requests\r\n\r\n');
                 socket.destroy();
                 return
             }
             user = await verifyUser(request);
 
-            if(!user || user.role === 'USER'){
+            if (!user || user.role === 'USER') {
                 // will defer socket closing if proxy isn't cached
                 const isBanned = proxyCheck(socket.realIp, () => {
                     wss.clients.forEach(client => {
@@ -122,14 +122,14 @@ function startServer(port) {
                     })
                 });
 
-                if (isBanned){
+                if (isBanned) {
                     return
                 }
             }
 
             logger.debug('Going to upgrade ip ' + socket.realIp + ' with user ' + (user ? user.name : null));
         }
-        
+
 
         wss.handleUpgrade(request, socket, head, function done(ws) {
             wss.emit('connection', ws, request, user);
