@@ -19,11 +19,11 @@ router.get('/', async (req, res) => {
     }
 
     const canvas = canvases[canvasId];
-    if (canvas.require && !checkCanvasConditions(req.user, canvas.require)) {
-        return res.send({
-            errors: ['You have no access to this canvas']
-        });
-    }
+    // if (canvas.require && !checkCanvasConditions(req.user, canvas.require)) {
+    //     return res.send({
+    //         errors: ['You have no access to this canvas']
+    //     });
+    // }
 
     if (chunkX < 0 || chunkX >= canvas.width || chunkY < 0 || chunkY >= canvas.height) {
         return res.send({
