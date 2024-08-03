@@ -33,6 +33,8 @@ input[type=number] {
     width: 12px;
 }
 
+/* */
+
 .columnHeader {
     display: flex;
     justify-content: center;
@@ -834,6 +836,13 @@ input[type=range]::-moz-range-thumb {
 
 .fullWidthInput {
     width: inherit;
+}
+
+@media (min-width: 651px) {
+    .user {
+        text-align: left !important;
+        padding-left: 10% !important;
+    }
 }
 
 .user>button {

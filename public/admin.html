@@ -1,4 +1,12 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin stuff</title><style>input[type=number]::-webkit-outer-spin-button,
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin stuff</title>
+    <style>
+        input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
@@ -55,4 +63,98 @@
 
         #protectMaskFile{
             display: none;
-        }</style><link rel="icon" href="./favicon.ico"><script defer="defer" src="./vendors.c84ada78e713074e6772.bundle.js"></script><script defer="defer" src="./penis.465290b53b8da471843e.bundle.js"></script><script defer="defer" src="./admin.e249cf43d0f565328a1a.bundle.js"></script><link href="./admin.bbadb609a3e418cb2125.css" rel="stylesheet"></head><body><div class="mod"><h2 class="translate">Backup Viewer</h2><div class="line inline"><select id="buCanvasSelect" class="canvasSelect"><option disabled="disabled" class="translate">SELECT CANVAS</option></select> <select id="dateSelect"><option disabled="disabled" class="translate">SELECT DAY</option></select> <select id="timeSelect"><option disabled="disabled" class="translate">SELECT TIME</option></select> &nbsp; <button id="rollback" class="translate">rollback</button></div><div class="flex line"><input type="checkbox" id="gridCB"> <label for="gridCB" class="translate">Show chunk grid</label> &nbsp; <input type="checkbox" id="cropCB"> <label for="cropCB" class="translate">Crop chunks from</label> <input type="number" id="cropXStart" class="cropInput">, <input type="number" id="cropYStart" class="cropInput"><span class="translate">to</span> <input type="number" id="cropXEnd" class="cropInput">, <input type="number" id="cropYEnd" class="cropInput"><input type="checkbox" id="cropRollbackCB" disabled="disabled" checked="1"> <label for="cropRollbackCB" class="translate">Crop rollback too</label></div><div id="backupContainer"></div><br></div><div class="admin"><h2 class="translate">IP Actions</h2><div class="inline-flex"><textarea id="ips" cols="22" rows="10" placeholder="Multiple ips may be here"></textarea>&nbsp;<div><div><input type="radio" name="ipAction" id="bl" value="blacklist" checked="checked"><label for="bl" class="translate">Blacklist</label></div><div><input type="radio" name="ipAction" id="ubl" value="unblacklist"><label for="ubl" class="translate">UnBlackist</label></div><div><input type="radio" name="ipAction" id="wl" value="whitelist"><label for="wl" class="translate">Whitelist</label></div><div><input type="radio" name="ipAction" id="uwl" value="unwhitelist"><label for="uwl" class="translate">UnWhitelist</label></div></div>&nbsp;&nbsp; <button id="sendIps" style="height: fit-content;" class="translate">send</button></div><h2>Other</h2><div class="inline-flex line" class="translate"><span class="translate">set captchaEnabled state</span> <input type="checkbox" id="captchaState"><button id="sendCaptchaEnabled">set</button></div><br><div class="inline-flex line" class="translate"><span class="translate">set afterJoinDelay value</span>&nbsp; <input type="number" id="joinDelay" style="width: 40px;">&nbsp;<button id="sendJoinDelay">set</button></div><br><div class="inline-flex line" class="translate"><span class="translate">apply protect mask</span>&nbsp; <select id="pmCanvasSelect" class="canvasSelect"></select> x: <input type="number" id="protectMaskXOff" value="0">&nbsp; y: <input type="number" id="protectMaskYOff" value="0">&nbsp; <button><label for="protectMaskFile">Choose image</label></button> <input type="file" accept="image/png" id="protectMaskFile">&nbsp; <button id="submitProtectMask">submit</button></div><div class="superadmin"><h2 class="translate">Canvas Actions</h2><div class="line"><span class="translate">Canvas</span> <select id="selectActCanvas"></select></div><div class="line"><button id="doCanvasAction" class="translate">DO</button> <select id="canvasAction"><option value="wipe" class="translate">wipe</option><option value="enlarge" class="translate">enlarge</option></select></div><div class="hidden enlargeConfig line"><span class="translate">top</span> <input type="number" value="1" id="enTop"> <span class="translate">right</span> <input type="number" value="1" id="enRight"> <span class="translate">bottom</span> <input type="number" value="1" id="enBot"> <span class="translate">left</span> <input type="number" value="1" id="enLeft"></div></div></div></body></html>
+        }
+    </style>
+<link rel="icon" href="./favicon.ico"><script defer src="./vendors.40eef5404554a24d0ed0.bundle.js"></script><script defer src="./penis.99332878e9f4e37a7e0f.bundle.js"></script><script defer src="./admin.282e5e5c56dbe41a800a.bundle.js"></script><link href="./admin.c4ff2cab35a827fe9cc2.css" rel="stylesheet"></head>
+
+<body>
+    <div class="mod">
+        <h2 class="translate">Backup Viewer</h2>
+        <div class="line inline">
+            <select id="buCanvasSelect" class="canvasSelect">
+                <option disabled class="translate">SELECT CANVAS</option>
+            </select>
+            <select id="dateSelect">
+                <option disabled class="translate">SELECT DAY</option>
+            </select>
+            <select id="timeSelect">
+                <option disabled class="translate">SELECT TIME</option>
+            </select>
+            &nbsp;
+            <button id="rollback" class="translate">rollback</button>
+        </div>
+        <div class="flex line">
+            <input type="checkbox" id="gridCB">
+            <label for="gridCB" class="translate">Show chunk grid</label> &nbsp;
+
+            <input type="checkbox" id="cropCB">
+            <label for="cropCB" class="translate">Crop chunks from</label>
+            <input type="number" id="cropXStart" class="cropInput"></input>,
+            <input type="number" id="cropYStart" class="cropInput"></input>
+            <span class="translate">to</span>
+            <input type="number" id="cropXEnd" class="cropInput"></input>,
+            <input type="number" id="cropYEnd" class="cropInput"></input>
+
+            <input type="checkbox" id="cropRollbackCB" disabled checked="1">
+            <label for="cropRollbackCB" class="translate">Crop rollback too</label>
+        </div>
+        <div id="backupContainer"></div><br>
+    </div>
+    <div class="admin">
+        <h2 class="translate">IP Actions</h2>
+        <div class="inline-flex">
+            <textarea id="ips" cols="22" rows="10" placeholder="Multiple ips may be here"></textarea>&nbsp;
+            <div>
+                <div><input type="radio" name="ipAction" id="bl" value="blacklist" checked><label
+                        for="bl" class="translate">Blacklist</label></div>
+                <div><input type="radio" name="ipAction" id="ubl" value="unblacklist"><label
+                        for="ubl" class="translate">UnBlackist</label></div>
+                <div><input type="radio" name="ipAction" id="wl" value="whitelist"><label for="wl" class="translate">Whitelist</label>
+                </div>
+                <div><input type="radio" name="ipAction" id="uwl" value="unwhitelist"><label
+                        for="uwl" class="translate">UnWhitelist</label></div>
+            </div> &nbsp;&nbsp;
+            <button id="sendIps" style="height: fit-content;" class="translate">send</button>
+        </div>
+        <h2>Other</h2>
+        <div class="inline-flex line" class="translate">
+            <span class="translate">set captchaEnabled state</span> 
+            <input type="checkbox" id="captchaState"><button id="sendCaptchaEnabled">set</button>
+        </div><br>
+        <div class="inline-flex line" class="translate">
+            <span class="translate">set afterJoinDelay value</span>&nbsp;
+            <input type="number" id="joinDelay" style="width: 40px;">&nbsp;<button id="sendJoinDelay">set</button>
+        </div><br>
+        <div class="inline-flex line" class="translate">
+            <span class="translate">apply protect mask</span>&nbsp;
+            <select id="pmCanvasSelect" class="canvasSelect"></select>
+            x: <input type="number" id="protectMaskXOff" value="0"></input>&nbsp;
+            y: <input type="number" id="protectMaskYOff" value="0"></input>&nbsp;
+            <button><label for="protectMaskFile">Choose image</label></button>
+            <input type="file" accept="image/png" id="protectMaskFile">&nbsp;
+
+            <button id="submitProtectMask">submit</button>
+        </div>
+        <div class="superadmin">
+            <h2 class="translate">Canvas Actions</h2>
+            <div class="line">
+                <span class="translate">Canvas</span>  <select id="selectActCanvas"></select>
+            </div>
+            <div class="line">
+                <button id="doCanvasAction" class="translate">DO</button>
+                <select id="canvasAction">
+                    <option value="wipe" class="translate">wipe</option>
+                    <option value="enlarge" class="translate">enlarge</option>
+                </select>
+            </div>
+            <div class="hidden enlargeConfig line">
+                <span class="translate">top</span> <input type="number" value="1" id="enTop">
+                <span class="translate">right</span> <input type="number" value="1" id="enRight">
+                <span class="translate">bottom</span> <input type="number" value="1" id="enBot">
+                <span class="translate">left</span> <input type="number" value="1" id="enLeft">
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

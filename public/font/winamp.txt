@@ -1,0 +1,358 @@
+{
+    "name": "Winamp",
+    "defaultWidth": 4,
+    "fixedHeight": 6,
+    "letters": [{
+            "letter": "A"
+        },
+        {
+            "letter": "B"
+        },
+        {
+            "letter": "C"
+        },
+        {
+            "letter": "D"
+        },
+        {
+            "letter": "E"
+        },
+        {
+            "letter": "F"
+        },
+        {
+            "letter": "G"
+        },
+        {
+            "letter": "H"
+        },
+        {
+            "letter": "I",
+            "width": 3
+        },
+        {
+            "letter": "J"
+        },
+        {
+            "letter": "K"
+        },
+        {
+            "letter": "L"
+        },
+        {
+            "letter": "M"
+        },
+        {
+            "letter": "N"
+        },
+        {
+            "letter": "O"
+        },
+        {
+            "letter": "P"
+        },
+        {
+            "letter": "Q"
+        },
+        {
+            "letter": "R"
+        },
+        {
+            "letter": "S"
+        },
+        {
+            "letter": "T",
+            "width": 3
+        },
+        {
+            "letter": "U"
+        },
+        {
+            "letter": "V"
+        },
+        {
+            "letter": "W"
+        },
+        {
+            "letter": "X"
+        },
+        {
+            "letter": "Y"
+        },
+        {
+            "letter": "Z"
+        },
+        {
+            "letter": "А",
+            "width": 5
+        },
+        {
+            "letter": "Б",
+            "width": 5
+        },
+        {
+            "letter": "В",
+            "width": 5
+        },
+        {
+            "letter": "Г",
+            "width": 5
+        },
+        {
+            "letter": "Д",
+            "width": 5
+        },
+        {
+            "letter": "Е",
+            "width": 5
+        },
+        {
+            "letter": "Ё",
+            "width": 5
+        },
+        {
+            "letter": "Ж",
+            "width": 5
+        },
+        {
+            "letter": "З",
+            "width": 5
+        },
+        {
+            "letter": "И",
+            "width": 5
+        },
+		{
+            "letter": "Й",
+            "width": 5
+        },
+        {
+            "letter": "К",
+            "width": 5
+        },
+        {
+            "letter": "Л",
+            "width": 5
+        },
+        {
+            "letter": "М",
+            "width": 5
+        },
+        {
+            "letter": "Н",
+            "width": 5
+        },
+        {
+            "letter": "О",
+            "width": 5
+        },
+        {
+            "letter": "П",
+            "width": 5
+        },
+        {
+            "letter": "Р",
+            "width": 5
+        },
+        {
+            "letter": "С",
+            "width": 5
+        },
+        {
+            "letter": "Т",
+            "width": 5
+        },
+        {
+            "letter": "У",
+            "width": 5
+        },
+        {
+            "letter": "Ф",
+            "width": 5
+        },
+        {
+            "letter": "Х",
+            "width": 5
+        },
+        {
+            "letter": "Ц",
+            "width": 5
+        },
+        {
+            "letter": "Ч",
+            "width": 5
+        },
+        {
+            "letter": "Ш",
+			"width": 5
+        },
+        {
+            "letter": "Щ",
+            "width": 5
+        },
+        {
+            "letter": "Ъ",
+            "width": 5
+        },
+        {
+            "letter": "Ы",
+            "width": 5
+        },
+        {
+            "letter": "Ь",
+            "width": 5
+        },
+        {
+            "letter": "Э",
+            "width": 5
+        },
+        {
+            "letter": "Ю",
+            "width": 5
+        },
+        {
+            "letter": "Я",
+            "width": 5
+        },
+        {
+            "letter": "«"
+        },
+        {
+            "letter": "»"
+        },
+        {
+            "letter": "1",
+            "width": 2
+        },
+        {
+            "letter": "2"
+        },
+        {
+            "letter": "3"
+        },
+        {
+            "letter": "4"
+        },
+        {
+            "letter": "5"
+        },
+        {
+            "letter": "6"
+        },
+        {
+            "letter": "7"
+        },
+        {
+            "letter": "8"
+        },
+        {
+            "letter": "9"
+        },
+        {
+            "letter": "0"
+        },
+        {
+            "letter": "!",
+            "width": 1
+        },
+        {
+            "letter": "\"",
+            "width": 3
+        },
+        {
+            "letter": ";",
+            "width": 2
+        },
+        {
+            "letter": "%",
+            "width": 4
+        },
+        {
+            "letter": ":",
+            "width": 2
+        },
+        {
+            "letter": "?",
+            "width": 4
+        },
+        {
+            "letter": "*",
+            "width": 3
+        },
+        {
+            "letter": "(",
+            "width": 2
+        },
+        {
+            "letter": ")",
+            "width": 2
+        },
+        {
+            "letter": "@",
+            "width": 6
+        },
+        {
+            "letter": "#",
+            "width": 5
+        },
+        {
+            "letter": "$",
+            "width": 3
+        },
+        {
+            "letter": "^",
+            "width": 5
+        },
+        {
+            "letter": "&"
+        },
+        {
+            "letter": "[",
+            "width": 2
+        },
+        {
+            "letter": "]",
+            "width": 2
+        },
+        {
+            "letter": ",", 
+            "width": 1
+        },
+        {
+            "letter": ".",
+            "width": 2
+        },
+        {
+            "letter": "/",
+            "width": 5
+        },
+        {
+            "letter": "\\",
+            "width": 5
+        },
+        {
+            "letter": "+",
+            "width": 5
+        },
+        {
+            "letter": "_",
+            "width": 5
+        },
+        {
+            "letter": "-",
+            "width": 4
+        },
+        {
+            "letter": "=",
+            "width": 3
+        },
+        {
+            "letter": "<",
+            "width": 2
+        },
+        {
+            "letter": ">",
+            "width": 2
+        }
+    ]
+}
