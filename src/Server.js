@@ -50,6 +50,15 @@ function startServer(port) {
     }))
 
     app.use((req, res, next) => {
+        if(req.url.includes('%')){
+            res.status(403).send('соси');
+            return;
+        }
+    
+        next();
+    })
+
+    app.use((req, res, next) => {
         req.realIp = getIPv6Subnet(getIPFromRequest(req));
         next();
     })
@@ -62,6 +71,13 @@ function startServer(port) {
 
     app.use('/config.json', (req, res) => {
         res.json(config.public);
+    })
+
+    const changelogPath = path.join(__dirname, '../data/CHANGELOG');
+
+    app.get('/changelog', (req, res) => {
+        res.setHeader('Content-Type', 'text/plain');
+        res.sendFile(changelogPath);
     })
 
     app.use('/api', api);
