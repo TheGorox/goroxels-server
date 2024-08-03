@@ -79,8 +79,6 @@ function withCache(doNotCheck, ip, deferredCB) {
     }
     logger.debug('PROXYCHECK fetch isproxy not from cache %s', ipKey);
 
-    // TODO залей всё на сайт и протестируй с внешним ip
-
     if (checking.indexOf(ipKey) === -1 && lock > 0) {
         lock -= 1;
         checking.push(ipKey);
