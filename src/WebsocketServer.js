@@ -773,6 +773,11 @@ class Server {
             this.onlineStats[key] = totalPerCanvas;
         }
     }
+
+    broadcastRadioChange(type=0){
+        const packet = createPacket.radioChange(type);
+        this.broadcastBinary(packet);
+    }
 }
 
 module.exports = Server

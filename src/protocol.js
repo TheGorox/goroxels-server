@@ -4,14 +4,15 @@ const {
 } = require('./utils')
 
 const OPCODES = {
-    chunk:      0x0,
-    place:      0x1,
-    online:     0x2,
-    canvas:     0x3,
-    pixels:     0x4,
-    captcha:    0x5,
-    ping:       0x6,
-    placeBatch: 0x7
+    chunk:       0x0,
+    place:       0x1,
+    online:      0x2,
+    canvas:      0x3,
+    pixels:      0x4,
+    captcha:     0x5,
+    ping:        0x6,
+    placeBatch:  0x7,
+    updateRadio: 0x8
 }
 
 const STRING_OPCODES = {
@@ -67,6 +68,14 @@ const createPacket = {
         const buf = Buffer.allocUnsafe(1 + 2);
         buf.writeUInt8(OPCODES.online, 0);
         buf.writeUInt16BE(count, 1);
+
+        return buf
+    },
+
+    radioChange: (type) => {
+        const buf = Buffer.allocUnsafe(1 + 1);
+        buf.writeUInt8(OPCODES.updateRadio, 0);
+        buf.writeUInt8(type, 1);
 
         return buf
     }

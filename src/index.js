@@ -1,14 +1,4 @@
-try { // optional
-    // this code is used for overriding
-    // ecosystem variables
-    // (and system too, so be very careful)
-    const fs = require('fs')
-    const dotenv = require('dotenv')
-    const envConfig = dotenv.parse(fs.readFileSync('.env'))
-    for (var k in envConfig) {
-        process.env[k] = envConfig[k]
-    }
-} catch {}
+require('./dotenv');
 
 const Server = require('./Server');
 const Canvas = require('./Canvas');
@@ -16,6 +6,7 @@ const config = require('./config');
 // the module below will also configure loggers
 const logger = require('./logger')('MAIN', 'info');
 const db = require('./db');
+const radioServer = require('./music-radio/server');
 
 // backup boards when process exits with error or without
 require('./exitHandler');
@@ -33,6 +24,11 @@ global.canvases = canvases;
 
 db.sync().then(() => {
     Server.startServer(config.port);
+
+    radioServer.init().then(started => {
+        if(!started)
+            logger.warn('Cannot start radio server (maybe requirements not match)');
+    })
 }).catch(err => {
     logger.fatal('Can\'t start server: ');
     logger.error(err)
