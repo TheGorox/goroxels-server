@@ -1,4 +1,5 @@
 # Goroxels
+It is a server repository. Client one is here: [goroxels-client](https://github.com/TheGorox/goroxels-client)
 ## What? Where am I?
 This is the repository of the best pixels ever made - Goroxels!!
 Many ideas are taken from other sites, leaving only best - by the Goroh's opinion!
