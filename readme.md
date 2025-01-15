@@ -1,11 +1,12 @@
 # Goroxels
-It is a server repository. Client one is here: [goroxels-client](https://github.com/TheGorox/goroxels-client)
+It is a server repository. Client one is here: [goroxels-client](https://github.com/TheGorox/goroxels-client)  
+Also, the online version of the site is here: [goroxels.ru](https://goroxels.ru)  
 ## What? Where am I?
-This is the repository of the best pixels ever made - Goroxels!!
-Many ideas are taken from other sites, leaving only best - by the Goroh's opinion!
+This is the repository of the best pixels ever made - Goroxels!!  
+Many ideas are taken from other sites, leaving only best - by the Goroh's opinion!  
 ## I just want to launch
 Anyways, you have to install [node.js](https://nodejs.org/en/), LTS.
-Clone this rep, evaluate `npm install` in console, then `npm start`, that's it!
+Clone this rep, evaluate `npm install` in console, then `npm start`, that's it!  
 You can access goroxels at http://localhost
 ## Wanna changes
 ### Requirements:
