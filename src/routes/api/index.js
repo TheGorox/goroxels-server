@@ -14,14 +14,15 @@ const online = require('./online');
 const pixelInfo = require('./pixelInfo');
 const getChunk = require('./getchunk');
 const radio = require('./radio');
+const badges = require('./badges');
+const template = require('./template');
 
 const router = express.Router();
 
 router.use(bodyParser.json());
 
-// these two does not need all this session shit
+// getchunk is called too often to use the session
 router.use('/getchunk', getChunk);
-router.use('/radio', radio);
 
 router.use(session);
 
@@ -35,9 +36,12 @@ router.use((req, res, next) => {
             errors: [error]
         })
     }
-
+    
     next();
 });
+
+
+router.use('/radio', radio);
 
 router.use('/auth', auth(passport));
 router.use('/me', me);
@@ -46,6 +50,8 @@ router.use('/userInfo', userInfo);
 router.use('/captcha', captcha);
 router.use('/online', online);
 router.use('/pixelInfo', pixelInfo);
+router.use('/badges', badges);
+router.use('/template', template);
 
 router.use('/admin', admin);
 

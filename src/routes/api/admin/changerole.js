@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../../../db/models/User')
+const {User} = require('../../../db/models/User')
 
 const logger = require('../../../logger')('API', 'debug');
 const adminLogger = require('../../../logger')('admin');

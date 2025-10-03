@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 const sequelize = require('../index');
-const User = require('./User');
+const {User} = require('./User');
 
 const Blacklist = sequelize.define('blacklist', {
     ip: {

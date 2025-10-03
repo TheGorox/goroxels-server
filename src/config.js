@@ -30,11 +30,11 @@ config.auth = {
         id: process.env.AUTH_DC_CLIENT_ID,
         secret: process.env.AUTH_DC_CLIENT_SECRET
     },
-    facebook: {
-        use: !!process.env.AUTH_FB_CLIENT_ID,
+    google: {
+        use: !!process.env.AUTH_GG_CLIENT_ID,
 
-        id: process.env.AUTH_FB_CLIENT_ID,
-        secret: process.env.AUTH_FB_CLIENT_SECRET
+        id: process.env.AUTH_GG_CLIENT_ID,
+        secret: process.env.AUTH_GG_CLIENT_SECRET
     },
     vkontakte: {
         use: !!process.env.AUTH_VK_CLIENT_ID,

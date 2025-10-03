@@ -34,6 +34,12 @@ router.get('/', async (req, res) => {
 
     try {
         const chunkData = await canvas.chunkManager.getChunkData(chunkX, chunkY);
+
+        // make the cloudlfare cache chunks, but sending cache check requests every time
+        // this will remain the same amount of requests, but will reduce outgoing traffic
+        // for the new players drastically
+        res.set("Cache-Control", "public, no-cache");
+
         res.header('Content-Encoding', 'deflate');
         res.header('Content-Type', 'application/binary');
         res.send(chunkData);

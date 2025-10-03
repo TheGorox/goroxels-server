@@ -21,17 +21,13 @@ const User = sequelize.define('user', {
         defaultValue: 'USER'
     },
 
-    badges: {
-        type: Sequelize.STRING(255)
-    },
-
     email: {
         type: Sequelize.STRING,
         allowNull: true
     },
 
     discordId: {
-        type: Sequelize.CHAR(18),
+        type: Sequelize.STRING,
         allowNull: true
     },
 
@@ -53,12 +49,52 @@ const User = sequelize.define('user', {
     lastCC: {
         type: Sequelize.CHAR(2),
         allowNull: true
+    },
+
+    shadowBanned: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
 }, {
     createdAt: 'creationDate',
     updatedAt: 'updateDate',
 });
 
+const Badge = sequelize.define('badge', {
+    id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    name: {
+        type: Sequelize.STRING(32),
+        allowNull: false
+    },
+
+
+    // only if we need to resize this badge, otherwise don't set
+    width: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+    },
+
+    height: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+    },
+}, {
+    tableName: 'badges',
+    timestamps: false
+});
+
+User.belongsToMany(Badge, { through: 'UserBadges' });
+Badge.belongsToMany(User, { through: 'UserBadges' });
+
 User.sync();
 
-module.exports = User
+module.exports = {
+    User,
+    Badge
+}

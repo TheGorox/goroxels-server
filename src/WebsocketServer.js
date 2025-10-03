@@ -205,6 +205,11 @@ class Server {
         return client.canvas !== null
     }
 
+    checkShadowBan(client){
+        if(!client.user) return true;
+        return !client.user.shadowBanned;
+    }
+
     checkCaptcha(client) {
         if (needCaptcha(client.ip, client)) {
             client.sendError('error.captcha');
@@ -252,8 +257,8 @@ class Server {
         }
     }
 
-    broadcastReloadChunks(canvas) {
-        const packet = createStringPacket.chunksReload();
+    broadcastReloadChunks(canvas, chunks) {
+        const packet = createStringPacket.chunksReload(chunks);
         const packetStr = JSON.stringify(packet);
         this.broadcastStringByCond(packetStr, CONDITION.sameCanvas({ canvas }));
     }
@@ -289,7 +294,8 @@ class Server {
             case OPCODES.place: {
                 if (!this.checkCanvas(client) ||
                     !this.checkCaptcha(client) ||
-                    !this.checkDelay(client)) return;
+                    !this.checkDelay(client) ||
+                    !this.checkShadowBan(client)) return;
 
                 if (!client.bucket.spend(1)) {
                     return
@@ -310,7 +316,7 @@ class Server {
                 // is protected
                 if (oldPixel & 0x80) {
                     if (!client.user ||
-                        ROLE[client.user.role] < ROLE.MOD) {
+                        ROLE[client.user.role] < ROLE.TRUSTED) {
                         return
                     }
                 }
@@ -338,13 +344,18 @@ class Server {
                 if (!this.checkCanvas(client) ||
                     !this.checkCaptcha(client) ||
                     !this.checkUser(client) ||
-                    !this.checkDelay(client)) return;
+                    !this.checkDelay(client) ||
+                    !this.checkShadowBan(client)) return;
 
                 const isProtect = !!message.readUInt8(1);
-                if (isProtect && ROLE[client.user.role] < ROLE.MOD) {
+                const isMod = ROLE[client.user.role] >= ROLE.MOD;
+                
+                if (isProtect && !isMod) {
                     return
                 }
 
+                const isTrusted = ROLE[client.user.role] >= ROLE.TRUSTED;
+                
                 const {
                     realWidth, realHeight
                 } = client.canvas;
@@ -362,7 +373,6 @@ class Server {
                     const y = message.readUInt16BE(i+2);
                     const clr = message.readUInt8(i+4);
 
-                    // TODO client side pixel validation
 
                     if (clr < 0 || clr > max) {
                         continue
@@ -371,7 +381,7 @@ class Server {
                     if (x < 0 || x >= realWidth ||
                         y < 0 || y >= realHeight) continue;
 
-                    if (ROLE[client.user.role] < ROLE.MOD) {
+                    if (!isTrusted) {
                         // check for protection
                         const oldPixel = client.canvas.chunkManager.getChunkPixel(x, y);
                         if (oldPixel & 0x80) {
@@ -548,12 +558,11 @@ class Server {
                     return
                 }
 
-                // second restriction is stupid, maybe remove?
                 if (msg.msg.length == 0) {
                     return
                 }
 
-                let packet = createStringPacket.alert(msg.msg);
+                let packet = createStringPacket.alert(msg.msg, msg.type);
 
                 if (msg.to === 'all') packet.msg = '[all] ' + packet.msg;
 
@@ -725,7 +734,6 @@ class Server {
                 packet.id = _client.id;
                 packet.registered = !!_client.user;
                 packet.role = _client.user ? _client.user.role : null;
-                packet.badges = _client.user ? _client.user.badges : null;
 
                 client.send(JSON.stringify(packet));
             }

@@ -30,6 +30,7 @@
     "express": "^4.17.1",
     "express-rate-limit": "^5.5.0",
     "express-session": "^1.17.2",
+    "express-validator": "^7.2.1",
     "http-proxy-agent": "^4.0.1",
     "ip-address": "^7.1.0",
     "log4js": "^6.3.0",
@@ -39,7 +40,7 @@
     "pako": "^2.0.4",
     "passport": "^0.7.0",
     "passport-discord": "^0.1.4",
-    "passport-facebook": "^3.0.0",
+    "passport-google-oidc": "^0.1.0",
     "passport-reddit": "^0.2.4",
     "passport-vkontakte": "^0.5.0",
     "pngjs": "^6.0.0",
@@ -48,13 +49,14 @@
     "sharp": "^0.33.3",
     "socks-proxy-agent": "^5.0.1",
     "throttle": "^1.0.3",
+    "unique-username-generator": "^1.5.1",
     "utf-8-validate": "^5.0.7",
     "ws": "^7.5.5",
     "zlib": "^1.0.5"
   },
   "devDependencies": {
     "fs-extra": "^8.1.0",
-    "sequelize-cli": "^6.5.2",
+    "sequelize-cli": "^6.6.3",
     "sqlite3": "^5.0.0"
   }
 }

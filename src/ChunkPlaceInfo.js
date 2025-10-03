@@ -4,6 +4,7 @@ const fs = require('fs');
 /**
  * It's ez. Just a class to maintain placement info
  * flagsData is an array of flags, to determine how to read actual <data>
+ * 0 = not placed yet
  * 1 = not registered, next data is u32 ip addr
  * 2 = registered, next data is u16 uid
  * 3 = not registered, ipv6 u64 ip subnet

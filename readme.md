@@ -1,71 +1,75 @@
 # Goroxels
-It is a server repository. Client one is here: [goroxels-client](https://github.com/TheGorox/goroxels-client)  
-Also, the online version of the site is here: [goroxels.ru](https://goroxels.ru)  
-## What? Where am I?
-This is the repository of the best pixels ever made - Goroxels!!  
-Many ideas are taken from other sites, leaving only best - by the Goroh's opinion!  
-## I just want to launch
-Anyways, you have to install [node.js](https://nodejs.org/en/), LTS.
-Clone this rep, evaluate `npm install` in console, then `npm start`, that's it!  
-You can access goroxels at http://localhost
-## Wanna changes
-### Requirements:
-- [Node.js](https://nodejs.org/en/) with NPM
-- [pm2](https://github.com/Unitech/pm2) (`npm install pm2 -g`) (optional)
-- [dotenv](https://github.com/motdotla/dotenv) (`npm install dotenv`) (optional)
-- [Mysql](https://www.mysql.com/downloads/) (optional)
+## Что? Куда я попал?
+Это репозиторий лучших пикселей, когда-либо деланных - горокселей!!
+Почти всё слизано у других сайтов, и оставлено только лучшее - по мнению гороха!
+## Я просто спросить
+В любом случае, тебе понадобится установить [node.js](https://nodejs.org/en/), лучше LTS.
+Скачай этот реп, выполни в папке с ним (на винде shift+пкм на свободном месте в папке - "запустить PowerShell(или cmd)"), `npm install`, а затем `npm start`, и всё! 
+Гороксели будут доступны по http://localhost:8000
+## Хочу перемен
+### Требования:
+- [Node.js](https://nodejs.org/en/) с NPM
+- [pm2](https://github.com/Unitech/pm2) (`npm install pm2 -g`) (опционально, но текущая инструкция без него не будет работать)
+- [Mysql](https://www.mysql.com/downloads/) (опционально)
 
-Clone both repositories:
+
+Чтобы полноценно и удобно разрабатывать гороксели, нужно чтобы папки с обоими репозиториями находились в одной общей. Имена папок должны быть *goroxels-server* и *goroxels-client*:
+
 ```
 git clone https://github.com/TheGorox/goroxels-server.git ./goroxels-server
 git clone https://github.com/TheGorox/goroxels-client.git ./goroxels-client
 ```
 
-Evaluate `npm install` on both client and server:
+После скачивания, создай файл *sharedConfig.json* в общей папке и скопируй туда содержимое с *goroxels-server*/shared/config.json. Это упростит в будущем копирование конфига в клиент и в сервер:
+```
+cp ./goroxels-server/shared/config.json sharedConfig.json
+```
+
+Выполни `npm install` в обеих папках:
 ```
 npm install --prefix goroxels-server
 npm install --prefix goroxels-client
 ```
 
-Client is compiled by `npm run devBuild` command in it's folder.
+Клиент компилируется командой `npm run devBuild` в папке с клиентом.
 
-To compile client and then start server, use this command:
+Для того, чтобы в два клика компилировать клиент и перезапускать сервер, создай батник с именем, которое нравится(к примеру, start.bat) в общей папке и вставь туда 
 ```
-npm run devBuild --prefix goroxels-client && npm run devStart --prefix goroxels-server
+npm run devBuild --prefix goroxels-client && ^
+cd goroxels-server && ^
+pm2 startOrRestart ecosystem.config.js --update-env && ^
+cd .. && ^
+pm2 logs goroxels
 ```
-Save to sh/bat file and launch when needed.
-If you want to use pm2 and *ecosystem.config.js* file, use this command:
-```
-npm run devBuild --prefix goroxels-client && pm2 startOrRestart ./goroxels-server/ecosystem.config.js
-```
-To show application logs, type `pm2 logs goroxels --raw`
 
-Now take a look at this wonderful environment variables.
-All variables are optional.
+Теперь можно запускать это дело двойным кликом или `.\start.bat` из консоли.
+На линусе этот батник, скорее всего, не сработает, но красноглазые достаточно умны чтобы самим разобраться.
+Запускать научились. Теперь взглянем на эти прекрасные переменные окружения.
+Ниже приведены обязательные переменные(без них запуск через node не сработает):
+| ИМЯ        | ЗНАЧЕНИЕ                                                             |
+| ---------- | -------------------------------------------------------------------- |
+| DB_ISLOCAL | Использование sqlite вместо mysql (1-е не требует настройки). 1/0    |
+| DB_LOG     | Логгировать ли транзакции. 1/0                                       |
 
-| NAME                  | DESCRIPTION                      | EXAMPLE       |
-| --------------------- | -------------------------------- | ------------  |
-| DB_ISLOCAL            | Use sqlite instead of mysql. 1/0 | 1(default)    |
-| DB_LOG                | Do DB need to log operatons. 1/0 |               |
-| DB_USER               | DB user (mysql)                  | nonrootuser   |
-| DB_PASS               | DB user pass                     | 12345         |
-| DB_HOST               | DB host                          | localhost     |
-| DB_PORT               | DB port                          | 5432          |
-| DB_DATABASE           | DB's goroxels table name         | goroxels      |
-| DB_LOG_PATH           | DB log path (only if DB_LOG=1)   | ./logs/db.log |
-| SESSION_SECRET        | Auth sessions' secret string     | trapsaregays  |
-| AUTH_FB_CLIENT_ID     | Facebook app client ID           | shitbook      |
-| AUTH_FB_CLIENT_SECRET | FB app secret key                | ayybravo      |
-| AUTH_DC_CLIENT_ID     | Discord app client ID            | 123456        |
-| AUTH_DC_CLIENT_SECRET | Disc app secret key              | discock       |
-| AUTH_VK_CLIENT_ID     | Vkontakte app client ID          | vkswamp       |
-| AUTH_VK_CLIENT_SECRET | VK app secret key                | durov123      |
 
-These are not all variables used in code, others will be added soon (or not :)).
+И необязательные:
 
-Put them in server's *ecosystem.config.js* if pm2 used, or to .env file (server folder) if `dotenv` is in use.
+| ИМЯ                   | ЗНАЧЕНИЕ                         | ПРИМЕР       |
+| --------------------- | -------------------------------- | ------------ |
+| DB_USER               | Имя пользователя бд (mysql)      | postgres     |
+| DB_PASS               | Пароль к выше описанному         | 12345        |
+| DB_HOST               | Адрес базы данных                | localhost    |
+| DB_PORT               | Порт бд, указанный при установке | 5432         |
+| DB_DATABASE           | Название бд                      | goroxels     |
+| DB_LOG_PATH           | Путь к логу бд (если DB_LOG=1)   | db.log       |
+| SESSION_SECRET        | Уникальный код сессий аккаунтов  | trapsaregays |
+| AUTH_FB_CLIENT_ID     | ID приложения в facebook         | shitbook     |
+| AUTH_FB_CLIENT_SECRET | Ключ доступа приложения FB       | ayybravo     |
+| AUTH_DC_CLIENT_ID     | ID приложения Discord            | 123456       |
+| AUTH_DC_CLIENT_SECRET | Ключ доступа прилы Discord       | discock      |
+| AUTH_VK_CLIENT_ID     | ID приложения Vkontakte          | leavevk      |
+| AUTH_VK_CLIENT_SECRET | Ключ доступа прилы VK            | durov123     |
 
-Canvas data can be changed at *data/config.json*.
+Выставляем их в *ecosystem.config.js* сервера, либо опциональным модулем *env* (`npm i env`) в файле .env сервера
 
-Current restrictions(making these ones above the limit may make server/client behave unpredictable):
-Max colors count: 64 (0b00111111) with protection or 128 (0b01111111) without
+Хз, вроде должно работать

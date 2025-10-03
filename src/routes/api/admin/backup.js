@@ -271,6 +271,8 @@ router.post('/rollback', async (req, res) => {
 
     const canvasInst = global.canvases[canvas];
 
+    let changedChunks = [];
+
     for (let key of Object.keys(chunks)) {
         const chunk = chunks[key];
         const [cx, cy] = key.split(',').map(x => +x);
@@ -280,14 +282,14 @@ router.post('/rollback', async (req, res) => {
             }
         }
 
+        changedChunks.push({x: cx, y: cy});
         canvasInst.chunkManager.setChunkData(cx, cy, chunk);
     }
 
     const canvasName = canvasInst.name;
 
     WSS.getInstance().channels[canvasName].addMessage(null, 'Rollback!', true);
-    WSS.getInstance().broadcastReloadChunks(canvasInst);
-    // WSS.getInstance().broadcastReload(canvasInst);
+    WSS.getInstance().broadcastReloadChunks(canvasInst, toCrop ? changedChunks : null);
 
     adminLogger.info(
         `${req.user.name} rollbacks ${canvasName} to ${day} ${time} ` +

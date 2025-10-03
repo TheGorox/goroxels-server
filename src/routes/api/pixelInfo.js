@@ -1,7 +1,8 @@
 const express = require('express');
-const User = require('../../db/models/User');
+const crypto = require('crypto');
+
+const { User } = require('../../db/models/User');
 const roleRequired = require('../../utils/roleRequired');
-const WSS = require('../../WebsocketServer');
 const { checkRole } = require('../../utils/role');
 const { ROLE, MINUTE } = require('../../constants');
 const { rateLimiter } = require('../../utils/express');
@@ -17,16 +18,16 @@ function error(res, error) {
 
 const limiter = rateLimiter.byIp({
     time: 5 * MINUTE,
-    max: 5*30,
+    max: 5 * 30,
     headers: false
-})
+});
 
-router.use(roleRequired.mod);
+router.use(roleRequired.user);
 router.use(limiter);
 
 router.get('/', async (req, res) => {
     const canvas = parseInt(req.query.canvas, 10);
-    if(!(canvas >= 0 && canvas < global.canvases.length)){
+    if (!(canvas >= 0 && canvas < global.canvases.length)) {
         return error(res, 'Canvas id invalid');
     }
 
@@ -35,31 +36,36 @@ router.get('/', async (req, res) => {
     const x = parseInt(req.query.x, 10);
     const y = parseInt(req.query.y, 10);
 
-    if(!(x >= 0 && x < canvasInst.realWidth) ||
-        !(y >= 0 && y < canvasInst.realHeight)){
-            return error(res, 'Coordinates invalid');
+    if (!(x >= 0 && x < canvasInst.realWidth) ||
+        !(y >= 0 && y < canvasInst.realHeight)) {
+        return error(res, 'Coordinates invalid');
     }
 
     let properties = {};
     const pixelInfo = canvasInst.chunkManager.getPlaceDataRaw(x, y);
-    if(!pixelInfo){
+    if (!pixelInfo) {
         properties.type = 'error';
         properties.placer = 'not found'
-    }else{
+    } else {
         const [flag, data] = pixelInfo;
-        switch(flag){
-            case 0: 
+        switch (flag) {
+            case 0:
                 properties.type = 'empty';
                 break
             case 1:
                 properties.type = 'ip';
                 const converted = int2ipv4(data);
-                properties.placer = converted;
+                if(checkRole(req.user, ROLE.MOD)){
+                    properties.placer = converted;
+                }else{
+                    const anon = anonymizeIp(converted);
+                    properties.placer = `GUEST(${anon})`;
+                }
                 break
-            case 2: 
+            case 2:
                 properties.type = 'UID';
                 const uname = await getUserNickname(data);
-                if(!uname){
+                if (!uname) {
                     return error(res, 'Cannot find user with id ' + data);
                 }
                 properties.placer = {
@@ -70,7 +76,12 @@ router.get('/', async (req, res) => {
             case 3:
                 properties.type = 'ipv6';
                 const convertedv6 = int2ipv6subnet(data);
-                properties.placer = convertedv6;
+                if(checkRole(req.user, ROLE.MOD)){
+                    properties.placer = convertedv6;
+                }else{
+                    const anon = anonymizeIp(convertedv6);
+                    properties.placer = `GUEST(${anon})`;
+                }
                 break
         }
     }
@@ -81,14 +92,22 @@ router.get('/', async (req, res) => {
     res.json(properties);
 })
 
-async function getUserNickname(id){
+async function getUserNickname(id) {
     const user = await User.findOne({
         where: { id },
         attributes: ['name']
     })
-    if(!user) return null;
+    if (!user) return null;
 
     return user.get('name');
+}
+
+function anonymizeIp(ip) {
+    const salt = process.env.IP_HASH_SALT || 'CHANGEMEEE!!!';
+    return crypto.createHash('sha256')
+        .update(ip + salt)
+        .digest('hex')
+        .slice(0, 8);
 }
 
 module.exports = router

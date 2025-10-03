@@ -114,10 +114,11 @@ const createStringPacket = {
             ch: channel
         }
     },
-    alert(message){
+    alert(message, type=0){
         return {
             c: STRING_OPCODES.alert,
-            msg: message
+            msg: message,
+            type: type
         }
     },
     me(id){
@@ -131,9 +132,10 @@ const createStringPacket = {
             c: STRING_OPCODES.reload
         }
     },
-    chunksReload(){
+    chunksReload(chunks){
         return {
-            c: STRING_OPCODES.reloadChunks
+            c: STRING_OPCODES.reloadChunks,
+            chunks
         }
     }
 }

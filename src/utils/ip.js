@@ -12,7 +12,7 @@ function getHostFromRequest(req) {
 
 function getIPFromRequest(req) {
     if (process.env.USE_CF_CONIP != '0') {
-        const ip = req.headers['cf-connecting-ip'];
+        const ip = req.headers['x-real-ip'] || req.headers['cf-connecting-ip'];
         if (ip) {
             return ip;
         }

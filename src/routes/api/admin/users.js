@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../../../db/models/User');
+const {User} = require('../../../db/models/User');
 
 const logger = require('../../../logger')('API', 'debug');
 const adminLogger = require('../../../logger')('admin');
@@ -12,7 +12,6 @@ const {
     ROLE
 } = require('../../../constants');
 const { rateLimiter } = require('../../../utils/express');
-const { sequelize } = require('../../../db/models/User');
 const { Op } = require('sequelize');
 
 router.use(rateLimiter.byIp({

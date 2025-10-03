@@ -33,7 +33,9 @@ module.exports = {
       EXPRESS_LOG_PATH: './logs/express.log',
       ADMIN_LOG_PATH: './logs/admin.log',
 
-      APISOCKET_KEY: 'changeme'
+      APISOCKET_KEY: 'changeme',
+
+      IP_HASH_SALT: 'changemeeee'
 
       //SSL_KEY: '/path/to/ssl/key.pem',
       //SSL_CERT: '/path/to/ssl/cert.pem'

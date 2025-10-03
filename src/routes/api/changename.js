@@ -1,6 +1,6 @@
 const express = require('express');
 const { MINUTE } = require('../../constants');
-const User = require('../../db/models/User');
+const {User} = require('../../db/models/User');
 const logger = require('../../logger')('API');
 
 const { rateLimiter } = require('../../utils/express');
@@ -8,9 +8,8 @@ const roleRequired = require('../../utils/roleRequired');
 
 const router = express.Router();
 
-// limit to 15 minutes
 const limiter = rateLimiter.byIdOrIp({
-    time: 15 * MINUTE,
+    time: 5 * MINUTE,
     max: 3
 })
 

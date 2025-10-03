@@ -1,4 +1,5 @@
 const express = require('express');
+const { query, validationResult } = require('express-validator');
 
 const botGateway = require('./botGateway');
 
@@ -7,8 +8,8 @@ const radioServer = require('../../../music-radio/server');
 const router = express.Router();
 
 router.get('/stream', (req, res) => {
-    res.setHeader('Content-Type', 'application/binary');
-    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader("Content-Type", "video/mp4");
+    // res.setHeader('Transfer-Encoding', 'chunked');
     res.set({
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         Pragma: 'no-cache',
@@ -29,7 +30,7 @@ router.get('/current-song', (req, res) => {
     });
 
     const info = radioServer.getCurrentSongInfo();
-    if(!info){
+    if (!info) {
         return res.json({
             success: false
         });
@@ -41,20 +42,29 @@ router.get('/current-song', (req, res) => {
     });
 });
 
-router.get('/get-queue', (req, res) => {
-    res.set({
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-        Expires: '0',
-    });
+router.get('/get-queue',
+    [query('limit').optional().isInt({
+        min: 1
+    }).toInt()],
+    (req, res) => {
+        const result = validationResult(req);
+        if (!result.isEmpty()) {
+            return res.json({ errors: result.array() });
+        }
 
-    const queues = radioServer.getQueues(10);
+        res.set({
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            Pragma: 'no-cache',
+            Expires: '0',
+        });
 
-    res.json({
-        success: true,
-        queues: queues
+        const queues = radioServer.getQueues(req.query.limit ?? 10);
+
+        res.json({
+            success: true,
+            queues: queues
+        });
     });
-});
 
 router.use('/gateway', botGateway);
 

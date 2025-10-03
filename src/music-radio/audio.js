@@ -3,12 +3,13 @@ const fsp = require('fs/promises');
 const path = require('path');
 const crypto = require('crypto');
 const { spawnWithPipe, checkBounds, GetAudioError, ffprobeTempfile } = require('./util');
+const { pcmPath, tempPcmPath, infoPath } = require('./paths');
 
 const logger = require('../logger')('RADIO', 'info');
 
-const pcmPath = path.join(__dirname, '../../data/radio/pcm');
-const tempPcmPath = path.join(__dirname, '../../data/radio/temp');
-const infoPath = path.join(__dirname, '../../data/radio/info');
+// const pcmPath = path.join(__dirname, '../../data/radio/pcm');
+// const tempPcmPath = path.join(__dirname, '../../data/radio/temp');
+// const infoPath = path.join(__dirname, '../../data/radio/info');
 
 if (!fs.existsSync(pcmPath)) {
     logger.info('PCM path not exists, creating');
@@ -74,7 +75,7 @@ async function ffprobe_getAudioInfo(audioBuffer, audioFileName) {
 
     // use metadata tags if present
     if (json.format?.tags?.title && json.format?.tags?.artist) {
-        sanProps.title = `${json.format?.tags?.artist} - ${json.format?.tags?.title}`;
+        sanProps.title = `${json.format?.tags?.artist} - ${json.format?.tags?.title}`.slice(0, 64);
     } else {
         sanProps.title = audioFileName.slice(0, 32);
     }

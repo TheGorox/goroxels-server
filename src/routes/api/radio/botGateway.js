@@ -3,6 +3,9 @@ const multer = require('multer');
 
 const radioServer = require('../../../music-radio/server');
 const { SongExistsError, SongNotExistError } = require('../../../music-radio/util');
+const { checkRole } = require('../../../utils/role');
+const { ROLE } = require('../../../constants');
+const roleRequired = require('../../../utils/roleRequired');
 
 const logger = require('../../../logger')('BOT-GATEWAY', 'debug');
 
@@ -11,22 +14,30 @@ const router = express.Router();
 
 router.use((req, res, next) => {
     const botKey = process.env.RADIO_BOT_KEY;
-    if(req.headers['x-bot-key'] !== botKey){
-        return res.status(403).send('BAD API KEY');
+    if(req.headers['x-bot-key']){   
+        if(req.headers['x-bot-key'] !== botKey){
+            return res.status(403).send('BAD API KEY');
+        }else{
+            req.user = {
+                role: ROLE.ADMIN,
+                id: -1
+            }
+        }
     }
 
     next();
 });
+router.use(roleRequired.trusted);
 
 const formDataAddSong = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fieldSize: 1048576 * 10 // 10mb
+        fileSize: 1048576 * 15 // 15mb
     }
 });
 
 const addSongMulter = formDataAddSong.fields([{ name: 'name', maxCount: 1 }, { name: 'enqueue', maxCount: 1 }, { name: 'data', maxCount: 1 }]);
-router.post('/add-song', addSongMulter, (req, res) => {
+router.post('/add-song', roleRequired.admin, addSongMulter, (req, res) => {
     const songName = req.body.name;
     const enqueue = !!(+req.body.enqueue);
     const songData = req.files.data[0];
@@ -53,7 +64,7 @@ router.post('/add-song', addSongMulter, (req, res) => {
     }
 });
 
-router.get('/skip-song', async (req, res) => {
+router.get('/skip-song', roleRequired.mod, async (req, res) => {
     try {
         await radioServer.skipSong();
 
@@ -71,7 +82,7 @@ router.get('/skip-song', async (req, res) => {
 });
 
 // we'll use addSong multer since it has all the fields we need
-router.post('/add-temp-song', addSongMulter, async (req, res) => {
+router.post('/add-temp-song',roleRequired.trusted, addSongMulter, async (req, res) => {
     const songName = req.body.name;
     const songData = req.files.data[0];
 
@@ -116,7 +127,7 @@ router.post('/enqueue', async (req, res) => {
     }
 });
 
-router.post('/delete-song', async (req, res) => {
+router.post('/delete-song', roleRequired.admin, async (req, res) => {
     const titlePart = req.query.title;
 
     try {

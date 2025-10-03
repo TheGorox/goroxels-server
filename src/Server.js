@@ -50,15 +50,6 @@ function startServer(port) {
     }))
 
     app.use((req, res, next) => {
-        if(req.url.includes('%')){
-            res.status(403).send('соси');
-            return;
-        }
-    
-        next();
-    })
-
-    app.use((req, res, next) => {
         req.realIp = getIPv6Subnet(getIPFromRequest(req));
         next();
     })
@@ -82,21 +73,55 @@ function startServer(port) {
 
     app.use('/api', api);
 
-    const public = path.join(__dirname, '/../public');
+    const publicDir = path.join(__dirname, '/../public');
 
-    // dat shit
-    app.use('/convert/:filename', (req, res) => res.sendFile(path.join(public, req.params.filename)))
-    app.use('/convert', (req, res) => {
-        res.sendFile(path.join(public, '/convert.html'));
-    })
+    app.get('/convert/:filename', (req, res) => {
+        res.sendFile(req.params.filename, {
+            root: publicDir,
+            dotfiles: 'deny'
+        }, (err) => {
+            if (err) {
+                res.status(err.statusCode || 404).send('Not found');
+            }
+        });
+    });
 
-    app.use('/admin/:filename', (req, res) => res.sendFile(path.join(public, req.params.filename)))
-    app.use('/admin', (req, res) => {
-        res.sendFile(path.join(public, '/admin.html'));
-    })
+    app.get('/convert', (req, res) => {
+        res.sendFile('convert.html', { root: publicDir });
+    });
 
-    app.use(express.static(public));
-    app.use(/\/[\d\w]{0,32}/, express.static(public));
+    app.get('/admin/:filename', (req, res) => {
+        res.sendFile(req.params.filename, {
+            root: publicDir,
+            dotfiles: 'deny'
+        }, (err) => {
+            if (err) {
+                res.status(err.statusCode || 404).send('Not found');
+            }
+        });
+    });
+
+    app.get('/admin', (req, res) => {
+        res.sendFile('admin.html', { root: publicDir });
+    });
+
+    app.get('/radio/:filename', (req, res) => {
+        res.sendFile(req.params.filename, {
+            root: publicDir,
+            dotfiles: 'deny'
+        }, (err) => {
+            if (err) {
+                res.status(err.statusCode || 404).send('Not found');
+            }
+        });
+    });
+
+    app.get('/radio', (req, res) => {
+        res.sendFile('radio.html', { root: publicDir });
+    });
+
+    app.use(express.static(publicDir));
+    app.use(/\/[\d\w]{0,32}/, express.static(publicDir));
 
     const webSocketServer = new Socket();
 
