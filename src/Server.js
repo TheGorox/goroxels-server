@@ -61,7 +61,12 @@ function startServer(port) {
     }));
 
     app.use('/config.json', (req, res) => {
+        res.header('Cache-Control', 'no-cache');
         res.json(config.public);
+    })
+
+    app.use('/robots.txt', (req, res) => {
+        res.sendFile(path.join(__dirname, '../data/robots.txt'));
     })
 
     const changelogPath = path.join(__dirname, '../data/CHANGELOG');
