@@ -115,7 +115,7 @@ class Chunk{
     }
     
     getChunkKey(){
-        return this.x << 4 | this.y
+        return this.x << 16 | this.y
     }
 }
 

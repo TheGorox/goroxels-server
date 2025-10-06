@@ -142,7 +142,7 @@ class ChunkManager extends EventEmitter {
     }
 
     getChunkKey(x, y) {
-        return x << 4 | y
+        return x << 16 | y
     }
 
     loadChunk(x, y) {
