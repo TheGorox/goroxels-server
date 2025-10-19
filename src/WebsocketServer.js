@@ -30,6 +30,7 @@ const config = require('./config');
 const { checkCanvasConditions } = require('./utils/canvas');
 const { checkRole } = require('./utils/role');
 const ChatMessage = require('./ChatMessage');
+const ms = require('ms');
 
 const ipConns = {};
 
@@ -46,7 +47,7 @@ const notValidPixel = 0xffff;
 function writeInvalidPixel(buffer, i) {
     // TODO: rework this
     buffer.writeUInt16BE(0xffff, i);
-    buffer.writeUInt16BE(0xffff, i+2);
+    buffer.writeUInt16BE(0xffff, i + 2);
 }
 
 class Server {
@@ -128,6 +129,20 @@ class Server {
             client.ip = ip;
             client.ipInt = ipInt;
 
+            if (client.user?.role === 'BANNED') {
+                if (client.user.bannedUntil) {
+                    const timeLeft = Math.max(client.user.bannedUntil - Date.now(), 0);
+                    client.sendError({
+                        msg: 'bannedUntil',
+                        data: ms(timeLeft)
+                    });
+                } else {
+                    client.sendError('banned');
+                }
+                client.kill();
+                return;
+            }
+
             this.clients.set(client.id, client);
 
             if (this.connections['TOTAL'][ip])
@@ -136,6 +151,8 @@ class Server {
                 this.connections['TOTAL'][ip] = 1;
 
             socket.onclose = () => {
+                this.clients.delete(client.id);
+
                 // won't let users use reconnection to reset cd or spam
                 setTimeout(() => {
                     this.connections['TOTAL'][ip]--;
@@ -154,7 +171,6 @@ class Server {
                     this.leaved.set(client.id, client);
                 }
 
-                this.clients.delete(client.id);
                 socket = null;
 
                 this.broadcastOnline();
@@ -205,8 +221,8 @@ class Server {
         return client.canvas !== null
     }
 
-    checkShadowBan(client){
-        if(!client.user) return true;
+    checkShadowBan(client) {
+        if (!client.user) return true;
         return !client.user.shadowBanned;
     }
 
@@ -349,17 +365,17 @@ class Server {
 
                 const isProtect = !!message.readUInt8(1);
                 const isMod = ROLE[client.user.role] >= ROLE.MOD;
-                
+
                 if (isProtect && !isMod) {
                     return
                 }
 
                 const isTrusted = ROLE[client.user.role] >= ROLE.TRUSTED;
-                
+
                 const {
                     realWidth, realHeight
                 } = client.canvas;
-                const max = isProtect ? 1 : client.canvas.palette.length - 1;
+                const maxClrId = isProtect ? 1 : client.canvas.palette.length - 1;
 
                 const pxlsCount = (message.length - 6) / 4;
 
@@ -370,11 +386,11 @@ class Server {
 
                 for (let i = 6; i < message.length; i += 5) {
                     const x = message.readUInt16BE(i);
-                    const y = message.readUInt16BE(i+2);
-                    const clr = message.readUInt8(i+4);
+                    const y = message.readUInt16BE(i + 2);
+                    const clr = message.readUInt8(i + 4);
 
 
-                    if (clr < 0 || clr > max) {
+                    if (clr < 0 || clr > maxClrId) {
                         continue
                     }
 
@@ -422,7 +438,7 @@ class Server {
 
                 let cooldown;
                 if (client.user) {
-                    if(client.user.role === 'BANNED'){
+                    if (client.user.role === 'BANNED') {
                         client.kill()
                     }
                     if (client.user.role == 'ADMIN')
@@ -782,7 +798,7 @@ class Server {
         }
     }
 
-    broadcastRadioChange(type=0){
+    broadcastRadioChange(type = 0) {
         const packet = createPacket.radioChange(type);
         this.broadcastBinary(packet);
     }

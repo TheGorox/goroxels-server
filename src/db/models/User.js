@@ -55,6 +55,11 @@ const User = sequelize.define('user', {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
+    },
+
+    bannedUntil: {
+        type: Sequelize.DATE,
+        allowNull: true
     }
 }, {
     createdAt: 'creationDate',

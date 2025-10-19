@@ -87,6 +87,7 @@ router.get('/', async (req, res) => {
                     properties.cc = user.lastCC;
                     properties.badges = user.badges.map(b => b.toJSON());
                     properties.shadowBanned = user.shadowBanned;
+                    properties.bannedUntil = user.bannedUntil;
                 case 'TRUSTED':
                 case 'USER':
                     properties.name = user.name;

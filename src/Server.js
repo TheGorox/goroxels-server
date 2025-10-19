@@ -7,7 +7,7 @@ const compression = require('compression');
 const http = require('http');
 const https = require('https');
 
-const { proxyCheck } = require('./utils/isProxy');
+const { proxyCheck, expiresFromCache } = require('./utils/isProxy');
 
 const verifyUser = require('./verifySocket');
 const { api } = require('./routes/')
@@ -19,6 +19,9 @@ const path = require('path');
 const fs = require('fs');
 
 const config = require('./config');
+const { STRING_OPCODES } = require('./protocol');
+const ms = require('ms');
+const { DAY } = require('./constants');
 
 const APIKEY = process.env.APISOCKET_KEY
 
@@ -162,6 +165,7 @@ function startServer(port) {
                 // will defer socket closing if proxy isn't cached
                 const isBanned = proxyCheck(socket.realIp, () => {
                     wss.clients.forEach(client => {
+                        console.log(client.ip, socket.realIp);
                         if (client.ip === socket.realIp) {
                             client.close();
                         }
@@ -169,6 +173,15 @@ function startServer(port) {
                 });
 
                 if (isBanned) {
+                    const until = expiresFromCache(socket.realIp);
+                    wss.handleUpgrade(request, socket, head, function done(ws) {
+                        const errMsg = {
+                            msg: 'bannedUntil',
+                            data: ms(Math.max(until-Date.now(), 0))
+                        }
+                        ws.send(JSON.stringify({c: STRING_OPCODES.error, errors: [errMsg]}))
+                        ws.close();
+                    });
                     return
                 }
             }

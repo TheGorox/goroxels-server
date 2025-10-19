@@ -25,10 +25,10 @@ router.post('/', async (req, res) => {
     const targetUserId = +req.body.id,
         targetUserRole = req.body.role;
     if(isNaN(targetUserId) || targetUserId < 1) return error(res, 'wrong user id');
-    if(ROLE[targetUserRole] === undefined || (targetUserRole === 'ADMIN' && req.user.id !== 1))
+    if(ROLE[targetUserRole] === undefined || ROLE === 'BANNED' || (targetUserRole === 'ADMIN' && req.user.id !== 1))
         return error(res, 'wrong role')
 
-    if(req.user.id !== 1 && targetUserId === targetUserRole){
+    if(req.user.id !== 1 && targetUserId === req.user.id){
         return error(res, 'you can\'t change your role')
     }
 
