@@ -24,13 +24,14 @@ async function getProxyCheck(ip) {
 }
 
 async function isBlacklisted(ip) {
-    const count = await Blacklist
-        .count({
+    const found = await Blacklist
+        .findOne({
             where: {
-                ip,
+                ip
             },
         });
-    return count !== 0;
+
+    return [!!found, found?.until];
 }
 
 async function isWhitelisted(ip) {
@@ -43,27 +44,38 @@ async function isWhitelisted(ip) {
     return count !== 0;
 }
 
-async function withoutCache(doNotCheck, ip) {
+async function withoutCache(doNotSearch, ip) {
     if (!ip) return true;
     const ipKey = getIPv6Subnet(ip);
     if (await isWhitelisted(ipKey)) {
-        return false;
+        return {
+            banned: false
+        };
     }
-    if (await isBlacklisted(ipKey)) {
-        return true;
+
+    let [banned, until] = await isBlacklisted(ipKey);
+    if (banned) {
+        return {
+            banned: true,
+            until: until ?? new Date(Date.now() + DAY * 365)
+        };
     }
-    if (doNotCheck) return false;
+    if (doNotSearch) return false;
 
     const result = await getProxyCheck(ip);
-    return result;
+    return {
+        banned: result
+    };
 }
 
 let lock = 4;
 const checking = [];
 const checked = {};
 
-function setCache(ipKey, result) {
-    checked[ipKey] = [result, Date.now() + (DAY * 6)];
+function setCache(ipKey, result, until) {
+    until ??= Date.now() + (DAY * 6)
+
+    checked[ipKey] = [result, until];
 }
 function clearCache(ipKey) {
     delete checked[ipKey];
@@ -84,7 +96,10 @@ function withCache(doNotCheck, ip, deferredCB) {
         checking.push(ipKey);
         withoutCache(doNotCheck, ip)
             .then((result) => {
-                checked[ipKey] = [result, Date.now() + (DAY * 6)];
+                const banned = result.banned;
+                const until = result.until ?? Date.now() + (DAY * 6);
+
+                checked[ipKey] = [banned, until];
 
                 const pos = checking.indexOf(ipKey);
                 if (~pos) checking.splice(pos, 1);
@@ -100,6 +115,14 @@ function withCache(doNotCheck, ip, deferredCB) {
             });
     }
     return false;
+}
+function expiresFromCache(ip) {
+    const ipKey = getIPv6Subnet(ip);
+    let cached = checked[ipKey];
+    if (cached) {
+        return cached[1];
+    }
+    return null;
 }
 
 // clear outdated cached proxies
@@ -127,5 +150,6 @@ function cheapDetector(ip, cb = null) {
 module.exports =
 {
     proxyCheck: cheapDetector,
-    setCache, clearCache
+    setCache, clearCache,
+    expiresFromCache
 }

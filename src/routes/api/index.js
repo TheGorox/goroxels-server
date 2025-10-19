@@ -12,7 +12,7 @@ const admin = require('./admin');
 const captcha = require('./captcha');
 const online = require('./online');
 const pixelInfo = require('./pixelInfo');
-const getChunk = require('./getchunk');
+const chunks = require('./chunks');
 const radio = require('./radio');
 const badges = require('./badges');
 const template = require('./template');
@@ -21,8 +21,7 @@ const router = express.Router();
 
 router.use(bodyParser.json());
 
-// getchunk is called too often to use the session
-router.use('/getchunk', getChunk);
+router.use('/chunks', chunks);
 
 router.use(session);
 

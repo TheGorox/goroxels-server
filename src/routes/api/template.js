@@ -110,6 +110,7 @@ router.post(
 
                 template.public = req.query.public;
                 template.origWidth = req.query.width || null;
+                await template.save();
             } else {
                 template = await req.user.createTemplate({
                     name: req.query.name,
