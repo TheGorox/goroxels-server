@@ -1,4 +1,15 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radio Management Interface</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css"><style>body {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Management Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
+    <style>
+        body {
             background-color: #121212;
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
@@ -93,4 +104,50 @@
             right: 20px;
             font-size: 24px;
             cursor: pointer;
-        }</style><link rel="icon" href="./favicon.ico"><script defer="defer" src="./vendors.1922addbebdd5050fc9a.bundle.js"></script><script defer="defer" src="./radio.f8ef6d72203cfd031963.bundle.js"></script></head><body><div class="container"><h1>Radio Management</h1><div id="role-info" class="section"></div><div class="section"><h2>Songs List</h2><div id="song-list"></div></div><div id="add-temp-form" class="section" style="display: none;"><h2>Add One-Time Song</h2><div class="form-group"><input id="temp-name" placeholder="Song Name"> <input type="file" id="temp-file"> <button onclick="addTempSong()">Add to One-Time Queue</button></div></div><div id="add-perm-form" class="section" style="display: none;"><h2>Add Permanent Song</h2><div class="form-group"><input id="perm-name" placeholder="Song Name"> <input type="file" id="perm-file"> <label><input type="checkbox" id="enqueue-check"> Enqueue Immediately</label> <button onclick="addPermSong()">Add to Permanent</button></div></div><div id="skip-section" class="section" style="display: none;"><button onclick="skipSong()">Skip Current Song</button></div></div><div id="modal"><div class="modal-content"><span class="close" onclick="closeModal()">&times;</span><h2 id="modal-title"></h2><p id="modal-info">Additional song info would go here if available.</p></div></div></body></html>
+        }
+    </style>
+<link rel="icon" href="./favicon.ico"><script defer src="./vendors.40eef5404554a24d0ed0.bundle.js"></script><script defer src="./radio.02555362b7854b996f94.bundle.js"></script></head>
+<body>
+    <div class="container">
+        <h1>Radio Management</h1>
+        <div id="role-info" class="section"></div>
+
+        <div class="section">
+            <h2>Songs List</h2>
+            <div id="song-list"></div>
+        </div>
+
+        <div id="add-temp-form" class="section" style="display: none;">
+            <h2>Add One-Time Song</h2>
+            <div class="form-group">
+                <input type="text" id="temp-name" placeholder="Song Name">
+                <input type="file" id="temp-file">
+                <button onclick="addTempSong()">Add to One-Time Queue</button>
+            </div>
+        </div>
+
+        <div id="add-perm-form" class="section" style="display: none;">
+            <h2>Add Permanent Song</h2>
+            <div class="form-group">
+                <input type="text" id="perm-name" placeholder="Song Name">
+                <input type="file" id="perm-file">
+                <label><input type="checkbox" id="enqueue-check"> Enqueue Immediately</label>
+                <button onclick="addPermSong()">Add to Permanent</button>
+            </div>
+        </div>
+
+        <div id="skip-section" class="section" style="display: none;">
+            <button onclick="skipSong()">Skip Current Song</button>
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modal-title"></h2>
+            <p id="modal-info">Additional song info would go here if available.</p>
+        </div>
+    </div>
+
+</body>
+</html>
