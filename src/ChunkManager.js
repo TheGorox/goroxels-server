@@ -299,15 +299,14 @@ class ChunkManager extends EventEmitter {
     async getChunkData(cx, cy, compress=true) {
         const chunkKey = this.getChunkKey(cx, cy);
 
+        let chunk;
         if (this.chunks.hasOwnProperty(chunkKey)) {
-            const chunk = this.chunks[chunkKey];
-            return compress ? (await chunk.compress()) : (chunk.data);
+            chunk = this.chunks[chunkKey];
         } else {
-            let newChunk = this.loadChunk(cx, cy);
-            this.chunks[chunkKey] = newChunk;
-
-            return compress ? (await newChunk.compress()) : (newChunk.data);
+            chunk = this.loadChunk(cx, cy);
+            this.chunks[chunkKey] = chunk;
         }
+        return compress ? [await chunk.compress(), chunk.compressedHash] : [chunk.data, null];
     }
 
     setChunkData(cx, cy, buffer) {
@@ -355,6 +354,14 @@ class ChunkManager extends EventEmitter {
 
     getChunk(cx, cy){
         return this.chunks[this.getChunkKey(cx, cy)];
+    }
+
+    async checkChunkHash(cx, cy, hash){
+        const chunk = this.chunks[this.getChunkKey(cx, cy)];
+        // just to be sure, it won't be compressed extra time anyway
+        await chunk.compress();
+
+        return chunk.compressedHash === hash;
     }
 }
 

@@ -1,5 +1,6 @@
 const zlib = require('zlib');
 const ChunkPlaceInfo = require('./ChunkPlaceInfo');
+const { sha256 } = require('./utils/crypto');
 const logger = require('./logger')('CHUNK');
 
 _anus = []
@@ -12,21 +13,28 @@ class Chunk{
         this.size = size;
 
         this.data = data;
+        
+        // for compression
         this.__needUpdate = true;
-        this._compressed = null;
-
+        
+        this.compressed = null;
+        this.compressedHash = null;
+        
+        // for saves (to file)
         this.__needToSave = false;
+        // for backups
         this.__needBackup = false;
-
+        
+        // to update everything
         this._updLatch = false;
 
         this.placeInfo = new ChunkPlaceInfo(canvasId, this);
     }
-
+    
     resetUpdLatch(){
         this._updLatch = false;
     }
-
+    
     // this looks so ugly! :D
     get _needToSave(){ return this.__needToSave }
     set _needToSave(value){
@@ -96,12 +104,15 @@ class Chunk{
                 zlib.deflate(this.data, (err, result) => {
                     if(err) return rej(err);
 
-                    res(this._compressed=result);
+                    const chunkhash = sha256(result, 8);
+                    this.compressedHash = chunkhash;
+
+                    res(this.compressed=result);
                 });
             })
         }
 
-        return this._compressed
+        return this.compressed
     }
 
     wipe(){
